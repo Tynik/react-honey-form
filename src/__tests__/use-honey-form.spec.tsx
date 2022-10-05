@@ -1,4 +1,5 @@
-import { act, renderHook } from '@testing-library/react';
+import React, { useEffect } from 'react';
+import { act, render, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -15,7 +16,7 @@ describe('use honey form', () => {
         fields: {
           name: {},
         },
-      }),
+      })
     );
 
     expect(result.current.errors?.name).toBeUndefined();
@@ -35,7 +36,7 @@ describe('use honey form', () => {
           },
         },
         onSubmit,
-      }),
+      })
     );
     expect(onSubmit).not.toBeCalled();
 
@@ -56,7 +57,7 @@ describe('use honey form', () => {
           age: {},
         },
         onSubmit,
-      }),
+      })
     );
 
     await act(() => result.current.submit());
@@ -81,7 +82,7 @@ describe('use honey form', () => {
             value: 45,
           },
         },
-      }),
+      })
     );
 
     expect(result.current.formFields.name.value).toBe('Alex');
@@ -99,7 +100,7 @@ describe('use honey form', () => {
             value: 45,
           },
         },
-      }),
+      })
     );
 
     act(() => {
@@ -126,7 +127,7 @@ describe('use honey form', () => {
             validator: value => value === 45,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -154,7 +155,7 @@ describe('use honey form', () => {
             min: 5,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -182,7 +183,7 @@ describe('use honey form', () => {
             max: 65,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -211,7 +212,7 @@ describe('use honey form', () => {
             max: 65,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -234,7 +235,7 @@ describe('use honey form', () => {
             min: 1,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -262,7 +263,7 @@ describe('use honey form', () => {
             max: 5,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -291,7 +292,7 @@ describe('use honey form', () => {
             max: 5,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -314,7 +315,7 @@ describe('use honey form', () => {
             value: 45,
           },
         },
-      }),
+      })
     );
     expect(result.current.isDirty).toBeFalsy();
 
@@ -333,7 +334,7 @@ describe('use honey form', () => {
             value: 45,
           },
         },
-      }),
+      })
     );
 
     await act(async () => {
@@ -354,7 +355,7 @@ describe('use honey form', () => {
             filter: value => value.replace(/[^0-9]/g, ''),
           },
         },
-      }),
+      })
     );
 
     act(() => {
@@ -367,7 +368,7 @@ describe('use honey form', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
         fields: {},
-      }),
+      })
     );
 
     act(() => {
@@ -389,7 +390,7 @@ describe('use honey form', () => {
           },
         },
         onSubmit,
-      }),
+      })
     );
 
     act(() => {
@@ -411,7 +412,7 @@ describe('use honey form', () => {
             value: 10,
           },
         },
-      }),
+      })
     );
     expect(result.current.formFields.age?.value).toBe(10);
 
@@ -430,7 +431,7 @@ describe('use honey form', () => {
             dependsOn: 'city',
           },
         },
-      }),
+      })
     );
 
     act(() => {
@@ -449,5 +450,29 @@ describe('use honey form', () => {
 
     expect(result.current.formFields.city.value).toBe('New Jersey');
     expect(result.current.formFields.address.value).toBeUndefined();
+  });
+
+  test('form field should be focused', () => {
+    const Comp = () => {
+      const { formFields } = useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+      });
+
+      useEffect(() => {
+        formFields.name.focus();
+      }, []);
+
+      return (
+        <>
+          <input {...formFields.name.props} data-testid="name" />
+        </>
+      );
+    };
+
+    const { getByTestId } = render(<Comp />);
+
+    expect(document.activeElement).toBe(getByTestId('name'));
   });
 });

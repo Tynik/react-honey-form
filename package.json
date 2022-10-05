@@ -1,7 +1,7 @@
 {
   "name": "@tynik/react-honey-form",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2",
+  "description": "React hook form",
   "keywords": [
     "react",
     "form",
@@ -62,7 +62,7 @@
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
     "testMatch": [
-      "**/src/**/__tests__/**/*.ts"
+      "**/src/**/__tests__/**/*.tsx"
     ]
   },
   "browserslist": [

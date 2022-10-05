@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { createRef, useCallback, useRef, useState } from 'react';
 
 import type {
   UseHoneyBaseFormFields,
@@ -31,7 +31,7 @@ import {
 const createHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form = keyof Form,
-  Value extends Form[FieldName] = Form[FieldName],
+  Value extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
   config: UseHoneyFormFieldConfig<Form, Value>,
@@ -39,19 +39,25 @@ const createHoneyFormField = <
     setValue,
   }: {
     setValue: UseHoneyFormFieldSetValue<Form>;
-  },
+  }
 ): UseHoneyFormField<Form, Value> => {
+  const ref = createRef<HTMLElement>();
+
   return {
     config,
     value: config.value as never,
     errors: [],
     props: {
+      ref,
       value: config.value as never,
       onChange: e => {
         setValue(fieldName, e.target.value as never, true);
       },
     },
     setValue: value => setValue(fieldName, value, true),
+    focus: () => {
+      ref.current.focus();
+    },
   };
 };
 
@@ -62,26 +68,23 @@ const getInitialHoneyFormFields =
       setValue,
     }: {
       setValue: UseHoneyFormFieldSetValue<Form>;
-    },
+    }
   ) =>
   () =>
-    Object.keys(fieldsConfigs).reduce(
-      (initialFormFields, fieldName: keyof Form) => {
-        initialFormFields[fieldName] = createHoneyFormField<Form>(
-          fieldName,
-          fieldsConfigs[fieldName],
-          {
-            setValue,
-          },
-        );
-        //
-        return initialFormFields;
-      },
-      {} as UseHoneyFormFields<Form>,
-    );
+    Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
+      initialFormFields[fieldName] = createHoneyFormField<Form>(
+        fieldName,
+        fieldsConfigs[fieldName],
+        {
+          setValue,
+        }
+      );
+      //
+      return initialFormFields;
+    }, {} as UseHoneyFormFields<Form>);
 
 const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
-  formFields: UseHoneyFormFields<Form>,
+  formFields: UseHoneyFormFields<Form>
 ) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
     formData[fieldName] = formFields[fieldName].value;
@@ -98,9 +101,7 @@ const defaultHoneyValidatorsMap: Record<
   number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
     return !value ||
       new RegExp(
-        `^${negative ? '-?' : ''}\\d+${
-          decimal ? `(\\.\\d{1,${maxFraction}})?` : ''
-        }$`,
+        `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
       ).test((value as string).toString())
       ? true
       : {
@@ -108,9 +109,7 @@ const defaultHoneyValidatorsMap: Record<
             {
               type: 'invalidValue',
               message: `Only ${negative ? '' : 'positive '}${
-                decimal
-                  ? `decimals with max fraction ${maxFraction}`
-                  : 'numerics'
+                decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
               } are allowed`,
             },
           ],
@@ -121,10 +120,10 @@ const defaultHoneyValidatorsMap: Record<
 const validateHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form = keyof Form,
-  Value extends Form[FieldName] = Form[FieldName],
+  Value extends Form[FieldName] = Form[FieldName]
 >(
   value: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
+  fieldConfig: UseHoneyFormFieldConfig<Form, Value>
 ) => {
   let validationResult: UseHoneyFormFieldValidationResult | null = null;
 
@@ -148,10 +147,7 @@ const validateHoneyFormField = <
     validationResult = fieldConfig.validator(value, fieldConfig);
     //
   } else if (fieldConfig.type) {
-    validationResult = defaultHoneyValidatorsMap[fieldConfig.type](
-      value,
-      fieldConfig,
-    );
+    validationResult = defaultHoneyValidatorsMap[fieldConfig.type](value, fieldConfig);
   }
 
   if (validationResult && typeof validationResult === 'object') {
@@ -170,7 +166,7 @@ const validateHoneyFormField = <
 const getNextHoneyFormFieldsState = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  Value extends Form[FieldName],
+  Value extends Form[FieldName]
 >(
   fieldName: FieldName,
   value: Value,
@@ -180,16 +176,13 @@ const getNextHoneyFormFieldsState = <
   }: {
     formFields: UseHoneyFormFields<Form>;
     validate: boolean;
-  },
+  }
 ) => {
   const newFormFields = { ...formFields };
 
   let filteredValue = value;
 
-  const fieldConfig = formFields[fieldName].config as UseHoneyFormFieldConfig<
-    Form,
-    Value
-  >;
+  const fieldConfig = formFields[fieldName].config as UseHoneyFormFieldConfig<Form, Value>;
 
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(value);
@@ -249,22 +242,15 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
 
   const isDirtyRef = useRef<boolean>(false);
 
-  const setFieldValue = <
-    FieldName extends keyof Form,
-    Value extends Form[FieldName],
-  >(
+  const setFieldValue = <FieldName extends keyof Form, Value extends Form[FieldName]>(
     fieldName: FieldName,
     value: Value,
-    validate: boolean,
+    validate: boolean
   ) => {
     isDirtyRef.current = true;
 
     setFormFields(formFields => {
-      const nextFormFields = getNextHoneyFormFieldsState<
-        Form,
-        FieldName,
-        Value
-      >(fieldName, value, {
+      const nextFormFields = getNextHoneyFormFieldsState<Form, FieldName, Value>(fieldName, value, {
         formFields,
         validate,
       });
@@ -283,72 +269,56 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     setValue: setFieldValue,
   });
 
-  const [formFields, setFormFields] =
-    useState<UseHoneyFormFields<Form>>(initialFormFields);
+  const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFields);
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, Value extends Form[FieldName]>(
       fieldName: FieldName,
-      config: UseHoneyFormFieldConfig<Form, Value>,
+      config: UseHoneyFormFieldConfig<Form, Value>
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
-          console.warn(
-            `[use-form] Form field "${fieldName.toString()}" is already present`,
-          );
+          console.warn(`[use-form] Form field "${fieldName.toString()}" is already present`);
         }
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField<Form, FieldName, Value>(
-            fieldName,
-            config,
-            {
-              setValue: setFieldValue,
-            },
-          ),
+          [fieldName]: createHoneyFormField<Form, FieldName, Value>(fieldName, config, {
+            setValue: setFieldValue,
+          }),
         };
       });
     },
-    [],
+    []
   );
 
-  const removeFormField = useCallback<UseHoneyFormRemoveFormField<Form>>(
-    fieldName => {
-      setFormFields(formFields => {
-        const newFormFields = { ...formFields };
-        //
-        delete newFormFields[fieldName];
-        //
-        return newFormFields;
-      });
-    },
-    [],
-  );
+  const removeFormField = useCallback<UseHoneyFormRemoveFormField<Form>>(fieldName => {
+    setFormFields(formFields => {
+      const newFormFields = { ...formFields };
+      //
+      delete newFormFields[fieldName];
+      //
+      return newFormFields;
+    });
+  }, []);
 
   const validate = () => {
     let hasError = false;
 
-    const newFormFields = Object.keys(formFields).reduce(
-      (result, fieldName: keyof Form) => {
-        const value = formFields[fieldName].value;
+    const newFormFields = Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
+      const value = formFields[fieldName].value;
 
-        const errors = validateHoneyFormField<Form>(
-          value,
-          formFields[fieldName].config,
-        );
-        //
-        if (errors.length) {
-          hasError = true;
-        }
-        //
-        result[fieldName] = {
-          ...formFields[fieldName],
-          errors,
-        };
-        return result;
-      },
-      {} as UseHoneyFormFields<Form>,
-    );
+      const errors = validateHoneyFormField<Form>(value, formFields[fieldName].config);
+      //
+      if (errors.length) {
+        hasError = true;
+      }
+      //
+      result[fieldName] = {
+        ...formFields[fieldName],
+        errors,
+      };
+      return result;
+    }, {} as UseHoneyFormFields<Form>);
     //
     setFormFields(newFormFields);
     //

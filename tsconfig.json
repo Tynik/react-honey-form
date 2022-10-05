@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["dom", "ESNext"],
+    "jsx": "react",
     "target": "ES6",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -12,7 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
   },
   "include": ["src"]
 }

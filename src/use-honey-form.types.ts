@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, RefObject } from 'react';
 
 type UseFormFieldName = string;
 
@@ -10,10 +10,7 @@ export type UseHoneyFormFieldValidationResult =
       errors: UseHoneyFormFieldError[];
     };
 
-export type UseHoneyFormFieldConfig<
-  Form extends UseHoneyBaseFormFields,
-  Value,
-> = {
+export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, Value> = {
   value?: Value;
   type?: UseHoneyFormFieldType;
   required?: boolean;
@@ -28,21 +25,18 @@ export type UseHoneyFormFieldConfig<
   filter?: (value: Value) => Value;
 };
 
-export type UseHoneyFormFieldValidator<
-  Form extends UseHoneyBaseFormFields,
-  Value,
-> = (
+export type UseHoneyFormFieldValidator<Form extends UseHoneyBaseFormFields, Value> = (
   value: Value,
-  options: UseHoneyFormFieldConfig<Form, Value>,
+  options: UseHoneyFormFieldConfig<Form, Value>
 ) => UseHoneyFormFieldValidationResult;
 
 export type UseHoneyFormFieldInternalValidator = <
   Form extends UseHoneyBaseFormFields,
-  Value extends Form[keyof Form],
+  Value extends Form[keyof Form]
 >(
   value: Value,
   fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
-  errors: UseHoneyFormFieldError[],
+  errors: UseHoneyFormFieldError[]
 ) => void;
 
 export type UseHoneyFormFieldError = {
@@ -55,12 +49,14 @@ export type UseHoneyFormField<Form extends UseHoneyBaseFormFields, Value> = {
   readonly errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
   readonly props: {
+    ref: RefObject<any>;
     value: Value;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   };
   readonly config: UseHoneyFormFieldConfig<Form, Value>;
   // functions
   readonly setValue: (value: Value) => void;
+  readonly focus: () => void;
 };
 
 export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
@@ -87,26 +83,26 @@ export type UseHoneyFormSubmit = () => Promise<void>;
 
 export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,
-  Value extends Form[FieldName],
+  Value extends Form[FieldName]
 >(
   fieldName: FieldName,
   value: Value,
-  validate: boolean,
+  validate: boolean
 ) => void;
 
 export type UseHoneyFormAddFormField<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,
-  Value extends Form[FieldName],
+  Value extends Form[FieldName]
 >(
   fieldName: FieldName,
-  config: UseHoneyFormFieldConfig<Form, Value>,
+  config: UseHoneyFormFieldConfig<Form, Value>
 ) => void;
 
 /**
  * Non-optional fields cannot be removed
  */
 export type UseHoneyFormRemoveFormField<Form extends UseHoneyBaseFormFields> = <
-  FieldName extends keyof Form,
+  FieldName extends keyof Form
 >(
-  fieldName: FieldName,
+  fieldName: FieldName
 ) => void;
