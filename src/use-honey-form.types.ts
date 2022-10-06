@@ -10,8 +10,12 @@ export type UseHoneyFormFieldValidationResult =
       errors: UseHoneyFormFieldError[];
     };
 
-export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, Value> = {
-  value?: Value;
+export type UseHoneyFormFieldConfig<
+  Form extends UseHoneyBaseFormFields,
+  CleanValue,
+  FormattedValue = unknown
+> = {
+  value?: CleanValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
   min?: number;
@@ -21,8 +25,9 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, Value> 
   maxFraction?: number;
   // clear that field value when dependent field is changed
   dependsOn?: keyof Form;
-  validator?: UseHoneyFormFieldValidator<Form, Value>;
-  filter?: (value: Value) => Value;
+  validator?: UseHoneyFormFieldValidator<Form, CleanValue>;
+  filter?: (value: CleanValue) => CleanValue;
+  format?: (value: CleanValue) => FormattedValue;
 };
 
 export type UseHoneyFormFieldValidator<Form extends UseHoneyBaseFormFields, Value> = (
@@ -44,18 +49,24 @@ export type UseHoneyFormFieldError = {
   message: string;
 };
 
-export type UseHoneyFormField<Form extends UseHoneyBaseFormFields, Value> = {
-  readonly value: Value;
+export type UseHoneyFormField<
+  Form extends UseHoneyBaseFormFields,
+  CleanValue,
+  FormattedValue = unknown
+> = {
+  readonly cleanValue: CleanValue;
+  // the value after formatting when specific format function was executed
+  readonly value: FormattedValue;
   readonly errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
   readonly props: {
     ref: RefObject<any>;
-    value: Value;
+    value: CleanValue;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   };
-  readonly config: UseHoneyFormFieldConfig<Form, Value>;
+  readonly config: UseHoneyFormFieldConfig<Form, CleanValue, FormattedValue>;
   // functions
-  readonly setValue: (value: Value) => void;
+  readonly setValue: (value: CleanValue) => void;
   readonly focus: () => void;
 };
 

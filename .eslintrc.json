@@ -12,6 +12,8 @@
     "project": "./tsconfig.json"
   },
   "rules": {
+    "@typescript-eslint/no-shadow": "off",
+    "react/jsx-props-no-spreading": "off",
     "import/prefer-default-export": "off",
     "no-param-reassign": "off",
     "import/extensions": "off",

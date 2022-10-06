@@ -464,15 +464,30 @@ describe('use honey form', () => {
         formFields.name.focus();
       }, []);
 
-      return (
-        <>
-          <input {...formFields.name.props} data-testid="name" />
-        </>
-      );
+      return <input {...formFields.name.props} data-testid="name" />;
     };
 
     const { getByTestId } = render(<Comp />);
 
     expect(document.activeElement).toBe(getByTestId('name'));
+  });
+
+  test('should show formatted value', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ price: number }>({
+        fields: {
+          price: {
+            format: value => `$${value}`,
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.price.setValue(5);
+    });
+
+    expect(result.current.formFields.price.cleanValue).toBe(5);
+    expect(result.current.formFields.price.value).toBe('$5');
   });
 });

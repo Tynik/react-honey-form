@@ -45,6 +45,7 @@ const createHoneyFormField = <
 
   return {
     config,
+    cleanValue: config.value as never,
     value: config.value as never,
     errors: [],
     props: {
@@ -87,7 +88,7 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
   formFields: UseHoneyFormFields<Form>
 ) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
-    formData[fieldName] = formFields[fieldName].value;
+    formData[fieldName] = formFields[fieldName].value as never;
     return formData;
   }, {} as Form);
 
@@ -95,7 +96,7 @@ const defaultHoneyValidatorsMap: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any>
 > = {
-  string: (value, options) => {
+  string: () => {
     return true;
   },
   number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
@@ -207,10 +208,13 @@ const getNextHoneyFormFieldsState = <
     }
   });
 
+  const formattedValue = fieldConfig.format?.(value) ?? filteredValue;
+
   newFormFields[fieldName] = {
     ...formFields[fieldName],
-    value: filteredValue,
-    props: { ...formFields[fieldName].props, value: filteredValue },
+    cleanValue: value,
+    value: formattedValue,
+    props: { ...formFields[fieldName].props, value: formattedValue },
     errors,
   };
 
@@ -249,6 +253,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
   ) => {
     isDirtyRef.current = true;
 
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
       const nextFormFields = getNextHoneyFormFieldsState<Form, FieldName, Value>(fieldName, value, {
         formFields,
@@ -305,9 +310,9 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     let hasError = false;
 
     const newFormFields = Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
-      const value = formFields[fieldName].value;
+      const { value } = formFields[fieldName];
 
-      const errors = validateHoneyFormField<Form>(value, formFields[fieldName].config);
+      const errors = validateHoneyFormField<Form>(value as never, formFields[fieldName].config);
       //
       if (errors.length) {
         hasError = true;
@@ -339,6 +344,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     } finally {
       setIsSubmitting(false);
     }
+    return Promise.resolve();
   };
 
   const reset = useCallback(() => {
