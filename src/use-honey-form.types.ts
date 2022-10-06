@@ -13,7 +13,7 @@ export type UseHoneyFormFieldValidationResult =
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyBaseFormFields,
   CleanValue,
-  FormattedValue = unknown
+  FormattedValue = any
 > = {
   value?: CleanValue;
   type?: UseHoneyFormFieldType;
@@ -52,7 +52,7 @@ export type UseHoneyFormFieldError = {
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
   CleanValue,
-  FormattedValue = unknown
+  FormattedValue = any
 > = {
   readonly cleanValue: CleanValue;
   // the value after formatting when specific format function was executed
