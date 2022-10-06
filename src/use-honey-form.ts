@@ -1,4 +1,4 @@
-import { createRef, useCallback, useRef, useState } from 'react';
+import { createRef, useCallback, useMemo, useRef, useState } from 'react';
 
 import type {
   UseHoneyBaseFormFields,
@@ -16,6 +16,9 @@ import type {
   UseHoneyFormFieldsConfigs,
   UseHoneyFormRemoveFormField,
   UseHoneyFormSubmit,
+  UseHoneyFormAddError,
+  UseHoneyFormReset,
+  UseHoneyFormResetErrors,
 } from './use-honey-form.types';
 
 import {
@@ -88,7 +91,7 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
   formFields: UseHoneyFormFields<Form>
 ) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
-    formData[fieldName] = formFields[fieldName].value as never;
+    formData[fieldName] = formFields[fieldName].cleanValue;
     return formData;
   }, {} as Form);
 
@@ -208,13 +211,14 @@ const getNextHoneyFormFieldsState = <
     }
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(value) ?? filteredValue;
 
   newFormFields[fieldName] = {
     ...formFields[fieldName],
     cleanValue: value,
-    value: formattedValue,
-    props: { ...formFields[fieldName].props, value: formattedValue },
+    value: formattedValue as never,
+    props: { ...formFields[fieldName].props, value: formattedValue as never },
     errors,
   };
 
@@ -234,13 +238,16 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
   onChange,
 }: UseHoneyFormOptions<Form>): {
   formFields: UseHoneyFormFields<Form>;
-  addFormField: UseHoneyFormAddFormField<Form>;
-  removeFormField: UseHoneyFormRemoveFormField<Form>;
   isDirty: boolean;
   isSubmitting: boolean;
-  submit: UseHoneyFormSubmit;
   errors: UseHoneyFormErrors<Form>;
-  reset: () => void;
+  // functions
+  addFormField: UseHoneyFormAddFormField<Form>;
+  removeFormField: UseHoneyFormRemoveFormField<Form>;
+  addError: UseHoneyFormAddError<Form>;
+  resetErrors: UseHoneyFormResetErrors;
+  submit: UseHoneyFormSubmit;
+  reset: UseHoneyFormReset;
 } => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -306,10 +313,33 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     });
   }, []);
 
+  const addError = useCallback<UseHoneyFormAddError<Form>>((fieldName, error) => {
+    setFormFields(formFields => ({
+      ...formFields,
+      [fieldName]: {
+        ...formFields[fieldName],
+        errors: [...formFields[fieldName].errors, error],
+      },
+    }));
+  }, []);
+
+  const resetErrors = useCallback<UseHoneyFormResetErrors>(() => {
+    setFormFields(formFields =>
+      Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
+        result[fieldName] = {
+          ...result[fieldName],
+          errors: [],
+        };
+        return result;
+      }, {} as UseHoneyFormFields<Form>)
+    );
+  }, []);
+
   const validate = () => {
     let hasError = false;
 
     const newFormFields = Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { value } = formFields[fieldName];
 
       const errors = validateHoneyFormField<Form>(value as never, formFields[fieldName].config);
@@ -347,18 +377,29 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     return Promise.resolve();
   };
 
-  const reset = useCallback(() => {
+  const reset = useCallback<UseHoneyFormReset>(() => {
     setFormFields(initialFormFields);
   }, []);
+
+  const errors = useMemo<UseHoneyFormErrors<Form>>(() => {
+    return Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
+      if (formFields[fieldName].errors.length) {
+        result[fieldName] = formFields[fieldName].errors;
+      }
+      return result;
+    }, {} as UseHoneyFormErrors<Form>);
+  }, [formFields]);
 
   return {
     formFields,
     isDirty: isDirtyRef.current,
     isSubmitting,
-    errors: null,
+    errors,
     // functions
     addFormField,
     removeFormField,
+    addError,
+    resetErrors,
     submit,
     reset,
   };

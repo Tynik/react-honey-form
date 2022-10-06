@@ -45,9 +45,18 @@ export type UseHoneyFormFieldInternalValidator = <
 ) => void;
 
 export type UseHoneyFormFieldError = {
-  type: 'required' | 'invalidValue';
+  type: 'required' | 'invalidValue' | 'server';
   message: string;
 };
+
+export type UseHoneyFormAddError<Form extends UseHoneyBaseFormFields> = <
+  FieldName extends keyof Form
+>(
+  fieldName: FieldName,
+  error: UseHoneyFormFieldError
+) => void;
+
+export type UseHoneyFormResetErrors = () => void;
 
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
@@ -87,10 +96,11 @@ export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields> = {
 };
 
 export type UseHoneyFormErrors<Form extends UseHoneyBaseFormFields> =
-  | { [K in keyof Form]: UseHoneyFormFieldError }
-  | null;
+  | { [K in keyof Form]: UseHoneyFormFieldError[] };
 
 export type UseHoneyFormSubmit = () => Promise<void>;
+
+export type UseHoneyFormReset = () => void;
 
 export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,

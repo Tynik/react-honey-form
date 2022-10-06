@@ -3,11 +3,11 @@ import { act, render, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
-describe('use honey form', () => {
+describe('Use honey form. General', () => {
   test('errors should be null initially', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 
-    expect(result.current.errors).toBeNull();
+    expect(result.current.errors).toStrictEqual({});
   });
 
   test('error should be undefined for just declared field', () => {
@@ -19,56 +19,7 @@ describe('use honey form', () => {
       })
     );
 
-    expect(result.current.errors?.name).toBeUndefined();
-  });
-
-  test('should call onSubmit() when submitting', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm({
-        fields: {
-          name: {
-            value: 'Peter',
-          },
-          age: {
-            value: 23,
-          },
-        },
-        onSubmit,
-      })
-    );
-    expect(onSubmit).not.toBeCalled();
-
-    await act(() => result.current.submit());
-
-    expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 });
-  });
-
-  test('check required fields when submitting', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string; age: number }>({
-        fields: {
-          name: {
-            required: true,
-          },
-          age: {},
-        },
-        onSubmit,
-      })
-    );
-
-    await act(() => result.current.submit());
-
-    expect(result.current.formFields.name.errors).toStrictEqual([
-      {
-        type: 'required',
-        message: 'The value is required',
-      },
-    ]);
-    expect(onSubmit).not.toBeCalled();
+    expect(result.current.errors.name).toBeUndefined();
   });
 
   test('should set initial form fields', () => {
@@ -119,34 +70,78 @@ describe('use honey form', () => {
     expect(result.current.formFields.age.value).toBe(45);
   });
 
-  test('use custom boolean field validator', () => {
+  test('a form should be dirty after setting value', () => {
     const { result } = renderHook(() =>
-      useHoneyForm<{ age: number }>({
+      useHoneyForm({
         fields: {
           age: {
-            validator: value => value === 45,
+            value: 45,
           },
         },
       })
     );
-    expect(result.current.formFields.age.errors).toStrictEqual([]);
+    expect(result.current.isDirty).toBeFalsy();
 
     act(() => {
-      result.current.formFields.age.setValue(43);
+      result.current.formFields.age.setValue(56);
     });
-    expect(result.current.formFields.age.errors).toStrictEqual([
-      {
-        type: 'invalidValue',
-        message: 'Invalid value',
-      },
-    ]);
 
-    act(() => {
-      result.current.formFields.age.setValue(45);
-    });
-    expect(result.current.formFields.age.errors).toStrictEqual([]);
+    expect(result.current.isDirty).toBeTruthy();
   });
 
+  test('a form should not be dirty after submitting', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          age: {
+            value: 45,
+          },
+        },
+      })
+    );
+
+    await act(async () => {
+      result.current.formFields.age.setValue(56);
+
+      await result.current.submit();
+    });
+
+    expect(result.current.isDirty).toBeFalsy();
+  });
+
+  test('reset errors', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {},
+          age: {},
+        },
+      })
+    );
+
+    act(() => {
+      result.current.addError('name', {
+        type: 'server',
+        message: 'name should be less than 255 chars',
+      });
+
+      result.current.addError('age', {
+        type: 'server',
+        message: 'age should be less than 55',
+      });
+    });
+
+    expect(Object.keys(result.current.errors).length).toBe(2);
+
+    act(() => {
+      result.current.resetErrors();
+    });
+
+    expect(Object.keys(result.current.errors).length).toBe(0);
+  });
+});
+
+describe('Use honey form. Validation', () => {
   test('use min value validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
@@ -306,47 +301,61 @@ describe('use honey form', () => {
       },
     ]);
   });
+});
 
-  test('a form should be dirty after setting value', () => {
+describe('Use honey form. Submitting', () => {
+  test('should call onSubmit() when submitting', async () => {
+    const onSubmit = jest.fn();
+
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
+          name: {
+            value: 'Peter',
+          },
           age: {
-            value: 45,
+            value: 23,
           },
         },
+        onSubmit,
       })
     );
-    expect(result.current.isDirty).toBeFalsy();
+    expect(onSubmit).not.toBeCalled();
 
-    act(() => {
-      result.current.formFields.age.setValue(56);
-    });
+    await act(() => result.current.submit());
 
-    expect(result.current.isDirty).toBeTruthy();
+    expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 });
   });
 
-  test('a form should not be dirty after submitting', async () => {
+  test('check required fields when submitting', async () => {
+    const onSubmit = jest.fn();
+
     const { result } = renderHook(() =>
-      useHoneyForm({
+      useHoneyForm<{ name: string; age: number }>({
         fields: {
-          age: {
-            value: 45,
+          name: {
+            required: true,
           },
+          age: {},
         },
+        onSubmit,
       })
     );
 
-    await act(async () => {
-      result.current.formFields.age.setValue(56);
+    await act(() => result.current.submit());
 
-      await result.current.submit();
-    });
-
-    expect(result.current.isDirty).toBeFalsy();
+    expect(result.current.formFields.name.errors).toStrictEqual([
+      {
+        type: 'required',
+        message: 'The value is required',
+      },
+    ]);
+    expect(onSubmit).not.toBeCalled();
   });
+});
 
-  test('use filter field value', () => {
+describe('Use honey form. Field', () => {
+  test('use a filter for a field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -364,6 +373,34 @@ describe('use honey form', () => {
     expect(result.current.formFields.age.value).toBe('12');
   });
 
+  test('use custom boolean field validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            validator: value => value === 45,
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.age.setValue(43);
+    });
+    expect(result.current.formFields.age.errors).toStrictEqual([
+      {
+        type: 'invalidValue',
+        message: 'Invalid value',
+      },
+    ]);
+
+    act(() => {
+      result.current.formFields.age.setValue(45);
+    });
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+  });
+
   test('add new form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
@@ -379,7 +416,7 @@ describe('use honey form', () => {
     expect(result.current.formFields.gender?.value).toBe('female');
   });
 
-  test('new form field should be submitted with other fields', async () => {
+  test('a new form field should be submitted with other fields', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -472,7 +509,34 @@ describe('use honey form', () => {
     expect(document.activeElement).toBe(getByTestId('name'));
   });
 
-  test('should show formatted value', () => {
+  test('add server field error', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {},
+        },
+      })
+    );
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.addError('age', {
+        type: 'server',
+        message: 'age should be less than 55',
+      });
+    });
+
+    expect(result.current.formFields.age.errors).toStrictEqual([
+      {
+        message: 'age should be less than 55',
+        type: 'server',
+      },
+    ]);
+  });
+});
+
+describe('Use honey form. Format function', () => {
+  test('a value should have formatted value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ price: number }>({
         fields: {
@@ -489,5 +553,33 @@ describe('use honey form', () => {
 
     expect(result.current.formFields.price.cleanValue).toBe(5);
     expect(result.current.formFields.price.value).toBe('$5');
+  });
+
+  test('call onSubmit() with clean values (not formatted)', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; price: number }>({
+        fields: {
+          name: {},
+          price: {
+            format: value => `$${value}`,
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('apple');
+      result.current.formFields.price.setValue(15);
+    });
+
+    expect(result.current.formFields.price.cleanValue).toBe(15);
+    expect(result.current.formFields.price.value).toBe('$15');
+
+    await act(() => result.current.submit());
+
+    expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 });
   });
 });
