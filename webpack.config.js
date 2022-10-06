@@ -21,4 +21,7 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
   },
+  externals: {
+    react: 'commonjs react',
+  },
 };
