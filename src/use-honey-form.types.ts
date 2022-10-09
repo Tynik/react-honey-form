@@ -26,7 +26,9 @@ export type UseHoneyFormFieldConfig<
   // clear that field value when dependent field is changed
   dependsOn?: keyof Form;
   validator?: UseHoneyFormFieldValidator<Form, CleanValue>;
+  // Remove some chars from value
   filter?: (value: CleanValue) => CleanValue;
+  // Modify a value
   format?: (value: CleanValue) => FormattedValue;
 };
 
@@ -43,6 +45,8 @@ export type UseHoneyFormFieldInternalValidator = <
   fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
   errors: UseHoneyFormFieldError[]
 ) => void;
+
+export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: string) => Value;
 
 export type UseHoneyFormFieldError = {
   type: 'required' | 'invalidValue' | 'server';

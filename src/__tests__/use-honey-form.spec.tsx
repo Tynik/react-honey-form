@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { ChangeEvent, useEffect } from 'react';
 import { act, render, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
@@ -355,6 +355,24 @@ describe('Use honey form. Submitting', () => {
 });
 
 describe('Use honey form. Field', () => {
+  test('set value calling onChange()', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.props.onChange({
+        target: { value: 'Peter' },
+      } as ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.formFields.name.value).toBe('Peter');
+  });
+
   test('use a filter for a field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
@@ -371,6 +389,26 @@ describe('Use honey form. Field', () => {
       result.current.formFields.age.setValue('a12b');
     });
     expect(result.current.formFields.age.value).toBe('12');
+  });
+
+  test('use number type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.props.onChange({
+        target: { value: '35' },
+      } as ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.formFields.age.cleanValue).toBe(35);
   });
 
   test('use custom boolean field validator', () => {

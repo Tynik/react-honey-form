@@ -19,6 +19,7 @@ import type {
   UseHoneyFormAddError,
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
+  UseHoneyFormFieldValueConvertor,
 } from './use-honey-form.types';
 
 import {
@@ -121,6 +122,12 @@ const defaultHoneyValidatorsMap: Record<
   },
 };
 
+const defaultHoneyValueConvertorsMap: Partial<
+  Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
+> = {
+  number: value => Number(value),
+};
+
 const validateHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form = keyof Form,
@@ -211,12 +218,14 @@ const getNextHoneyFormFieldsState = <
     }
   });
 
+  const valueConvertor = fieldConfig.type ? defaultHoneyValueConvertorsMap[fieldConfig.type] : null;
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(value) ?? filteredValue;
 
   newFormFields[fieldName] = {
     ...formFields[fieldName],
-    cleanValue: value,
+    cleanValue: valueConvertor?.(value as never) ?? value,
     value: formattedValue as never,
     props: { ...formFields[fieldName].props, value: formattedValue as never },
     errors,
