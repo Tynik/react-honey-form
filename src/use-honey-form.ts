@@ -241,11 +241,11 @@ const getNextHoneyFormFieldsState = <
  * @param onChange: When any field value is changed.
  *  That callback function is called on next iteration after any change
  */
-export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
+export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = never>({
   fields: fieldsConfig,
   onSubmit,
   onChange,
-}: UseHoneyFormOptions<Form>): {
+}: UseHoneyFormOptions<Form, Response>): {
   formFields: UseHoneyFormFields<Form>;
   isDirty: boolean;
   isSubmitting: boolean;
@@ -255,7 +255,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
   removeFormField: UseHoneyFormRemoveFormField<Form>;
   addError: UseHoneyFormAddError<Form>;
   resetErrors: UseHoneyFormResetErrors;
-  submit: UseHoneyFormSubmit;
+  submit: UseHoneyFormSubmit<Form, Response>;
   reset: UseHoneyFormReset;
 } => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -369,21 +369,22 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields>({
     return !hasError;
   };
 
-  const submit: UseHoneyFormSubmit = async () => {
+  const submit: UseHoneyFormSubmit<Form, Response> = async submitHandler => {
     if (!validate()) {
-      return Promise.resolve();
+      return null;
     }
     const submitData = getSubmitHoneyFormData<Form>(formFields);
 
     setIsSubmitting(true);
     try {
-      await onSubmit?.(submitData);
+      const response = await (submitHandler || onSubmit)?.(submitData);
 
       isDirtyRef.current = false;
+      return response;
     } finally {
       setIsSubmitting(false);
     }
-    return Promise.resolve();
+    return null;
   };
 
   const reset = useCallback<UseHoneyFormReset>(() => {

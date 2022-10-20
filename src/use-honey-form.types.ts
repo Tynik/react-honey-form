@@ -10,11 +10,7 @@ export type UseHoneyFormFieldValidationResult =
       errors: UseHoneyFormFieldError[];
     };
 
-export type UseHoneyFormFieldConfig<
-  Form extends UseHoneyBaseFormFields,
-  CleanValue,
-  FormattedValue = any
-> = {
+export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanValue> = {
   value?: CleanValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
@@ -29,7 +25,7 @@ export type UseHoneyFormFieldConfig<
   // Remove some chars from value
   filter?: (value: CleanValue) => CleanValue;
   // Modify a value
-  format?: (value: CleanValue) => FormattedValue;
+  format?: (value: CleanValue) => unknown;
 };
 
 export type UseHoneyFormFieldValidator<Form extends UseHoneyBaseFormFields, Value> = (
@@ -65,7 +61,7 @@ export type UseHoneyFormResetErrors = () => void;
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
   CleanValue,
-  FormattedValue = any
+  FormattedValue = CleanValue
 > = {
   readonly cleanValue: CleanValue;
   // the value after formatting when specific format function was executed
@@ -77,7 +73,7 @@ export type UseHoneyFormField<
     value: CleanValue;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   };
-  readonly config: UseHoneyFormFieldConfig<Form, CleanValue, FormattedValue>;
+  readonly config: UseHoneyFormFieldConfig<Form, CleanValue>;
   // functions
   readonly setValue: (value: CleanValue) => void;
   readonly focus: () => void;
@@ -93,16 +89,18 @@ export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
   [K in keyof Form]: UseHoneyFormFieldConfig<Form, Form[K]>;
 };
 
-export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields> = {
+export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> = {
   fields: UseHoneyFormFieldsConfigs<Form>;
-  onSubmit?: (data: Form) => Promise<void>;
+  onSubmit?: (data: Form) => Promise<Response>;
   onChange?: (data: Form) => void;
 };
 
 export type UseHoneyFormErrors<Form extends UseHoneyBaseFormFields> =
   | { [K in keyof Form]: UseHoneyFormFieldError[] };
 
-export type UseHoneyFormSubmit = () => Promise<void>;
+export type UseHoneyFormSubmit<Form extends UseHoneyBaseFormFields, Response> = (
+  submitHandler?: (data: Form) => Promise<Response>
+) => Promise<Response>;
 
 export type UseHoneyFormReset = () => void;
 
