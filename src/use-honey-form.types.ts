@@ -100,7 +100,7 @@ export type UseHoneyFormErrors<Form extends UseHoneyBaseFormFields> =
 
 export type UseHoneyFormSubmit<Form extends UseHoneyBaseFormFields, Response> = (
   submitHandler?: (data: Form) => Promise<Response>
-) => Promise<Response>;
+) => Promise<void>;
 
 export type UseHoneyFormReset = () => void;
 

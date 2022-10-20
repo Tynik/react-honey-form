@@ -371,20 +371,19 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
 
   const submit: UseHoneyFormSubmit<Form, Response> = async submitHandler => {
     if (!validate()) {
-      return null;
+      return Promise.resolve();
     }
     const submitData = getSubmitHoneyFormData<Form>(formFields);
 
     setIsSubmitting(true);
     try {
-      const response = await (submitHandler || onSubmit)?.(submitData);
+      await (submitHandler || onSubmit)?.(submitData);
 
       isDirtyRef.current = false;
-      return response;
     } finally {
       setIsSubmitting(false);
     }
-    return null;
+    return Promise.resolve();
   };
 
   const reset = useCallback<UseHoneyFormReset>(() => {
