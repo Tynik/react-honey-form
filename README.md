@@ -9,16 +9,21 @@
 
 ## API
 
-1. `formFields` - The object of all fields.
-1. `isDirty: boolean` - By default is `false`. Becomes `true` when any field value is changed. Returns to `false` when form successfully submitted.
-1. `isSubmitting: boolean` - Becomes `true` when form is submitting.
+1. `formFields` - The object of all form fields, where a key is a field name and a value as the field properties.
+1. `isDirty` - By default is `false`. Becomes `true` when any field value is changed. Returns to `false` when form successfully submitted.
+1. `isSubmitting` - Becomes `true` when form is submitting.
 1. `errors` - The object that includes all fields errors. By default, is `{}`. When field has any error the field appears in that object as a key and a value is array of field errors.
 1. `addFormField` - Dynamically allows to add a new form field.
 1. `removeFormField` - Remove a form field. You can remove only optional form fields.
 1. `addError` - Add a new error related to specific field. All previous field errors stay present.
 1. `resetErrors` - Reset all form field errors. Can be used to remove all custom added errors.
-1. `submit` - Submit a form. Can accept async function that will be called with filled form data.
+1. `submit` - Submit a form. Can accept async function that will be called with clean form data.
 1. `reset` - Reset all form field values to initial state.
+
+## Field Properties
+
+1. `value` - The current field value. Contains formatted value when `format` function is used for the field.
+1. `cleanValue` - The converted, but not formatted current field value. The value is used for submitting form data. Converting process is used when field type was set (e.g.: string to number).  
 
 ## Examples
 
