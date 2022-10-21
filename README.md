@@ -24,6 +24,9 @@
 
 1. `value` - The current field value. Contains formatted value when `format` function is used for the field.
 1. `cleanValue` - The converted, but not formatted current field value. The value is used for submitting form data. Converting process is used when field type was set (e.g.: string to number).  
+1. `errors` - The list of field errors. By default, is `[]`. Each error object has a type `required | invalid | server` and a message.
+1. `setValue` - Set a field value.
+1. `focus` - Focus a field.
 
 ## Examples
 
