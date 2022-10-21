@@ -661,7 +661,7 @@ describe('Use honey form. Field', () => {
     expect(document.activeElement).toBe(getByTestId('name'));
   });
 
-  test('add server field error', () => {
+  test('add server error to existed field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -684,6 +684,33 @@ describe('Use honey form. Field', () => {
         type: 'server',
       },
     ]);
+  });
+
+  test('add server error to non existed field', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {},
+        },
+      })
+    );
+
+    act(() => {
+      // there are some cases when the form can have alien field errors when the server can return non existed form fields
+      result.current.addError('name' as never, {
+        type: 'server',
+        message: 'name should be less than 255',
+      });
+    });
+
+    expect(result.current.errors).toStrictEqual({
+      name: [
+        {
+          message: 'name should be less than 255',
+          type: 'server',
+        },
+      ],
+    });
   });
 });
 

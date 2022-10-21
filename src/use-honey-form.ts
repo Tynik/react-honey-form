@@ -292,6 +292,9 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFields);
 
+  const formFieldsRef = useRef(formFields);
+  formFieldsRef.current = formFields;
+
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, Value extends Form[FieldName]>(
       fieldName: FieldName,
@@ -323,13 +326,18 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
   }, []);
 
   const addError = useCallback<UseHoneyFormAddError<Form>>((fieldName, error) => {
-    setFormFields(formFields => ({
-      ...formFields,
-      [fieldName]: {
-        ...formFields[fieldName],
-        errors: [...formFields[fieldName].errors, error],
-      },
-    }));
+    setFormFields(formFields => {
+      const fieldOptions = formFields[fieldName];
+
+      return {
+        ...formFields,
+        [fieldName]: {
+          ...fieldOptions,
+          // there are some cases when the form can have alien field errors when the server can return non existed form fields
+          errors: [...(fieldOptions?.errors ?? []), error],
+        },
+      };
+    });
   }, []);
 
   const resetErrors = useCallback<UseHoneyFormResetErrors>(() => {
@@ -347,33 +355,33 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
   const validate = () => {
     let hasError = false;
 
-    const newFormFields = Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { value } = formFields[fieldName];
+    const newFormFields = Object.keys(formFieldsRef.current).reduce(
+      (formFields, fieldName: keyof Form) => {
+        const { value } = formFieldsRef.current[fieldName];
 
-      const errors = validateHoneyFormField<Form>(value as never, formFields[fieldName].config);
-      //
-      if (errors.length) {
-        hasError = true;
-      }
-      //
-      result[fieldName] = {
-        ...formFields[fieldName],
-        errors,
-      };
-      return result;
-    }, {} as UseHoneyFormFields<Form>);
-    //
+        const errors = validateHoneyFormField<Form>(value, formFieldsRef.current[fieldName].config);
+        if (errors.length) {
+          hasError = true;
+        }
+        formFields[fieldName] = {
+          ...formFieldsRef.current[fieldName],
+          errors,
+        };
+        return formFields;
+      },
+      {} as UseHoneyFormFields<Form>
+    );
+
     setFormFields(newFormFields);
-    //
+
     return !hasError;
   };
 
-  const submit: UseHoneyFormSubmit<Form, Response> = async submitHandler => {
+  const submit: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
     if (!validate()) {
       return Promise.resolve();
     }
-    const submitData = getSubmitHoneyFormData<Form>(formFields);
+    const submitData = getSubmitHoneyFormData<Form>(formFieldsRef.current);
 
     setIsSubmitting(true);
     try {
@@ -384,7 +392,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
       setIsSubmitting(false);
     }
     return Promise.resolve();
-  };
+  }, []);
 
   const reset = useCallback<UseHoneyFormReset>(() => {
     setFormFields(initialFormFields);
