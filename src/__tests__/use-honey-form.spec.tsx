@@ -712,6 +712,22 @@ describe('Use honey form. Field', () => {
       ],
     });
   });
+
+  test('fields list should have 0 length', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: { name: string }[] }>({
+        fields: {
+          items: [
+            {
+              name: {},
+            },
+          ],
+        },
+      })
+    );
+
+    expect(result.current.formFields.items.length).toBe(0);
+  });
 });
 
 describe('Use honey form. Filter function', () => {
