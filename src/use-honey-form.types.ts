@@ -2,7 +2,7 @@ import type { ChangeEvent, RefObject } from 'react';
 
 type UseFormFieldName = string;
 
-export type UseHoneyFormFieldType = 'string' | 'number';
+export type UseHoneyFormFieldType = 'number';
 
 export type UseHoneyFormFieldValidationResult =
   | boolean
@@ -45,7 +45,7 @@ export type UseHoneyFormFieldInternalValidator = <
 export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: string) => Value;
 
 export type UseHoneyFormFieldError = {
-  type: 'required' | 'invalidValue' | 'server';
+  type: 'required' | 'invalid' | 'server';
   message: string;
 };
 

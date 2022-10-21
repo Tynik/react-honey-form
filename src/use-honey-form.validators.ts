@@ -21,7 +21,7 @@ export const minValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (typeof value === 'number' && value < fieldConfig.min) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The value should be greater or equal to ${fieldConfig.min}`,
       });
     }
@@ -36,7 +36,7 @@ export const maxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (typeof value === 'number' && value > fieldConfig.max) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The value should be less or equal to ${fieldConfig.max}`,
       });
     }
@@ -51,7 +51,7 @@ export const minMaxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalVa
   if (fieldConfig.min !== undefined && fieldConfig.max !== undefined) {
     if (typeof value === 'number' && (value < fieldConfig.min || value > fieldConfig.max)) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The value should be between ${fieldConfig.min} and ${fieldConfig.max}`,
       });
     }
@@ -66,7 +66,7 @@ export const minLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (typeof value === 'string' && value.length < fieldConfig.min) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The length should be greater or equal to ${fieldConfig.min}`,
       });
     }
@@ -81,7 +81,7 @@ export const maxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (typeof value === 'string' && value.length > fieldConfig.max) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The length should be less or equal to ${fieldConfig.max}`,
       });
     }
@@ -99,7 +99,7 @@ export const minMaxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalV
       (value.length < fieldConfig.min || value.length > fieldConfig.max)
     ) {
       errors.push({
-        type: 'invalidValue',
+        type: 'invalid',
         message: `The length should be between ${fieldConfig.min} and ${fieldConfig.max}`,
       });
     }

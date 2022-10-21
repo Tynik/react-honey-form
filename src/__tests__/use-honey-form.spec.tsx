@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect } from 'react';
-import { act, render, renderHook } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -139,6 +139,59 @@ describe('Use honey form. General', () => {
 
     expect(Object.keys(result.current.errors).length).toBe(0);
   });
+
+  test('should re-render form one time when onChange() is triggered', () => {
+    let renderers = 0;
+
+    const Comp = () => {
+      const { formFields } = useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            value: '',
+          },
+        },
+      });
+      renderers += 1;
+
+      return <input {...formFields.name.props} data-testid="name" />;
+    };
+
+    const { getByTestId } = render(<Comp />);
+
+    expect(renderers).toBe(1);
+
+    fireEvent.change(getByTestId('name'), { target: { value: 'Jake' } });
+
+    expect(renderers).toBe(2);
+  });
+
+  test('call onChange() with form data when any field value is changed', async () => {
+    const onChange = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; kind: string }>({
+        fields: {
+          name: {},
+          kind: {},
+        },
+        onChange,
+      })
+    );
+
+    expect(onChange).not.toBeCalled();
+
+    act(() => {
+      result.current.formFields.name.setValue('a');
+    });
+
+    await waitFor(() => expect(onChange).toBeCalledWith({ name: 'a', kind: undefined }));
+
+    act(() => {
+      result.current.formFields.kind.setValue('f');
+    });
+
+    await waitFor(() => expect(onChange).toBeCalledWith({ name: 'a', kind: 'f' }));
+  });
 });
 
 describe('Use honey form. Validation', () => {
@@ -164,7 +217,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The value should be greater or equal to 5',
       },
     ]);
@@ -192,7 +245,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The value should be less or equal to 65',
       },
     ]);
@@ -216,7 +269,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The value should be between 5 and 65',
       },
     ]);
@@ -244,7 +297,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The length should be greater or equal to 1',
       },
     ]);
@@ -272,7 +325,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The length should be less or equal to 5',
       },
     ]);
@@ -296,7 +349,7 @@ describe('Use honey form. Validation', () => {
     });
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'The length should be between 1 and 5',
       },
     ]);
@@ -351,6 +404,31 @@ describe('Use honey form. Submitting', () => {
       },
     ]);
     expect(onSubmit).not.toBeCalled();
+  });
+
+  test('use submit handler function passed to submit()', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {},
+        },
+      })
+    );
+
+    expect(onSubmit).not.toBeCalled();
+
+    act(() => {
+      result.current.formFields.name.setValue('Ken');
+    });
+
+    await act(() => result.current.submit(onSubmit));
+
+    expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined });
   });
 });
 
@@ -428,13 +506,49 @@ describe('Use honey form. Field', () => {
     });
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalidValue',
+        type: 'invalid',
         message: 'Invalid value',
       },
     ]);
 
     act(() => {
       result.current.formFields.age.setValue(45);
+    });
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+  });
+
+  test('use custom errors return from field validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            validator: value =>
+              value > 45 || {
+                errors: [
+                  {
+                    type: 'invalid',
+                    message: 'Age should be greater than 45',
+                  },
+                ],
+              },
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.age.setValue(43);
+    });
+    expect(result.current.formFields.age.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Age should be greater than 45',
+      },
+    ]);
+
+    act(() => {
+      result.current.formFields.age.setValue(46);
     });
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
@@ -570,6 +684,38 @@ describe('Use honey form. Field', () => {
         type: 'server',
       },
     ]);
+  });
+});
+
+describe('Use honey form. Filter function', () => {
+  test.skip('should not re-render form when filter() does not change a value', () => {
+    let renderers = 0;
+
+    const Comp = () => {
+      const { formFields } = useHoneyForm<{ age: string }>({
+        fields: {
+          age: {
+            value: '',
+            filter: value => value.replace(/[^0-9]/g, ''),
+          },
+        },
+      });
+      renderers += 1;
+
+      return <input {...formFields.age.props} data-testid="age" />;
+    };
+
+    const { getByTestId } = render(<Comp />);
+
+    expect(renderers).toBe(1);
+
+    fireEvent.change(getByTestId('age'), { target: { value: '10' } });
+
+    expect(renderers).toBe(2);
+
+    fireEvent.change(getByTestId('age'), { target: { value: '10a' } });
+
+    expect(renderers).toBe(2);
   });
 });
 

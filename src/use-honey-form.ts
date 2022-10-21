@@ -98,11 +98,8 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
 
 const defaultHoneyValidatorsMap: Record<
   UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator<any, any>
+  UseHoneyFormFieldValidator<never, never>
 > = {
-  string: () => {
-    return true;
-  },
   number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
     return !value ||
       new RegExp(
@@ -112,7 +109,7 @@ const defaultHoneyValidatorsMap: Record<
       : {
           errors: [
             {
-              type: 'invalidValue',
+              type: 'invalid',
               message: `Only ${negative ? '' : 'positive '}${
                 decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
               } are allowed`,
@@ -158,7 +155,10 @@ const validateHoneyFormField = <
     validationResult = fieldConfig.validator(value, fieldConfig);
     //
   } else if (fieldConfig.type) {
-    validationResult = defaultHoneyValidatorsMap[fieldConfig.type](value, fieldConfig);
+    validationResult = defaultHoneyValidatorsMap[fieldConfig.type](
+      value as never,
+      fieldConfig as never
+    );
   }
 
   if (validationResult && typeof validationResult === 'object') {
@@ -166,7 +166,7 @@ const validateHoneyFormField = <
     //
   } else if (validationResult === false) {
     errors.push({
-      type: 'invalidValue',
+      type: 'invalid',
       message: 'Invalid value',
     });
   }
@@ -198,7 +198,7 @@ const getNextHoneyFormFieldsState = <
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(value);
 
-    if (filteredValue === value) {
+    if (filteredValue === formFields[fieldName].props.value) {
       // Do not re-render, nothing change. Return previous state
       return formFields;
     }
