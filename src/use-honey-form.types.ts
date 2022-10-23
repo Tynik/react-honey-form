@@ -81,26 +81,23 @@ export type UseHoneyFormField<
 
 export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
 
+export type UseHoneyFormNestedField<Value> = {
+  length: number;
+  add: (value: Value) => void;
+  __nested__: never;
+};
+
 export type UseHoneyFormFields<Form extends UseHoneyBaseFormFields> = {
-  [K in keyof Form]: Form[K] extends Array<unknown> ? unknown[] : UseHoneyFormField<Form, Form[K]>;
+  [K in keyof Form]: Form[K] extends unknown[]
+    ? UseHoneyFormNestedField<Form[K][0]>
+    : UseHoneyFormField<Form, Form[K]>;
 };
 
 export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
   [K in keyof Form]: Form[K] extends unknown[]
-    ? [
-        {
-          [K2 in keyof Form[K][0]]: Form[K][0][K2] extends unknown[]
-            ? [
-                {
-                  [K3 in keyof Form[K][0][K2][0]]: UseHoneyFormFieldConfig<
-                    Form,
-                    Form[K][0][K2][K3]
-                  >;
-                }
-              ]
-            : UseHoneyFormFieldConfig<Form, Form[K][0][K2]>;
-        }
-      ]
+    ? {
+        [K2 in keyof Form[K][0]]: UseHoneyFormFieldConfig<Form, Form[K][0][K2]>;
+      }[]
     : UseHoneyFormFieldConfig<Form, Form[K]>;
 };
 

@@ -717,6 +717,18 @@ describe('Use honey form. Field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ items: { name: string }[] }>({
         fields: {
+          items: [],
+        },
+      })
+    );
+
+    expect(result.current.formFields.items.length).toBe(0);
+  });
+
+  test.skip('fields list should have 1 length', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: { name: string }[] }>({
+        fields: {
           items: [
             {
               name: {},
@@ -726,7 +738,9 @@ describe('Use honey form. Field', () => {
       })
     );
 
-    expect(result.current.formFields.items.length).toBe(0);
+    // result.current.formFields.items.add({ name: 'Apple' });
+
+    expect(result.current.formFields.items.length).toBe(1);
   });
 });
 

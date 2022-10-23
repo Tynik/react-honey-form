@@ -20,6 +20,7 @@ import type {
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
   UseHoneyFormFieldValueConvertor,
+  UseHoneyFormNestedField,
 } from './use-honey-form.types';
 
 import {
@@ -82,7 +83,12 @@ const getInitialHoneyFormFields =
       if (Array.isArray(fieldConfig)) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        initialFormFields[fieldName] = [];
+        initialFormFields[fieldName] = {
+          length: 0,
+          add: value => {},
+          __nested__: true,
+        } as UseHoneyFormNestedField<unknown>;
+
         return initialFormFields;
       }
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -100,7 +106,7 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
     const formField = formFields[fieldName];
 
-    if (Array.isArray(formField)) {
+    if ('__nested__' in formField) {
       return formData;
     }
     formData[fieldName] = formField.cleanValue;
@@ -207,7 +213,7 @@ const getNextHoneyFormFieldsState = <
 
   const formField = formFields[fieldName];
 
-  if (Array.isArray(formField)) {
+  if ('__nested__' in formField) {
     return newFormFields;
   }
 
@@ -230,7 +236,7 @@ const getNextHoneyFormFieldsState = <
   Object.keys(newFormFields).forEach((otherFieldName: keyof Form) => {
     const newFormField = newFormFields[otherFieldName];
 
-    if (Array.isArray(newFormField)) {
+    if ('__nested__' in newFormField) {
       return;
     }
 
@@ -353,7 +359,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
     setFormFields(formFields => {
       const formField = formFields[fieldName];
 
-      if (Array.isArray(formField)) {
+      if (typeof formField === 'object' && '__nested__' in formField) {
         return formFields;
       }
 
@@ -387,7 +393,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
       (formFields, fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
-        if (Array.isArray(formField)) {
+        if ('__nested__' in formField) {
           return formFields;
         }
 
@@ -434,7 +440,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
     return Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
       const formField = formFields[fieldName];
 
-      if (Array.isArray(formField)) {
+      if ('__nested__' in formField) {
         return result;
       }
       if (formField.errors.length) {
