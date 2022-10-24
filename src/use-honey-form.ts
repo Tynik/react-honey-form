@@ -45,20 +45,18 @@ const createHoneyFormField = <
   }: {
     setValue: UseHoneyFormFieldSetValue<Form>;
   }
-): UseHoneyFormField<Form, Value> => {
+): UseHoneyFormField<Form, Value> | UseHoneyFormNestedField<Form, Value> => {
   const ref = createRef<HTMLElement>();
 
-  // if (Array.isArray(fieldConfig)) {
-  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //   // @ts-ignore
-  //   initialFormFields[fieldName] = {
-  //     length: 0,
-  //     add: value => {},
-  //     __nested__: true,
-  //   } as UseHoneyFormNestedField<unknown>;
-  //
-  //   return initialFormFields;
-  // }
+  if (Array.isArray(config.value)) {
+    return {
+      config,
+      length: config.value.length,
+      add: value => {},
+      map: callback => [],
+      __nested__: true,
+    };
+  }
 
   return {
     config,

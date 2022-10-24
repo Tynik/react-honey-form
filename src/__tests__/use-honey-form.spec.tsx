@@ -713,11 +713,13 @@ describe('Use honey form. Field', () => {
     });
   });
 
-  test.skip('fields list should have 0 length', () => {
+  test('fields list should have 0 length when no initial items added', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ items: { name: string }[] }>({
         fields: {
-          items: {},
+          items: {
+            value: [],
+          },
         },
       })
     );
@@ -725,7 +727,7 @@ describe('Use honey form. Field', () => {
     expect(result.current.formFields.items.length).toBe(0);
   });
 
-  test.skip('fields list should have 1 length', () => {
+  test('fields list should have 1 added item', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ items: { name: string }[] }>({
         fields: {
@@ -740,7 +742,21 @@ describe('Use honey form. Field', () => {
       })
     );
 
-    // result.current.formFields.items.add({ name: 'Apple' });
+    expect(result.current.formFields.items.length).toBe(1);
+  });
+
+  test.skip('1', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: { name: string }[] }>({
+        fields: {
+          items: {
+            value: [],
+          },
+        },
+      })
+    );
+
+    result.current.formFields.items.add({ name: 'Apple' });
 
     expect(result.current.formFields.items.length).toBe(1);
   });

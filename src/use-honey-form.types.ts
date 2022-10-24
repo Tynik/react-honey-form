@@ -83,17 +83,19 @@ export type UseHoneyFormField<
   readonly focus: () => void;
 };
 
-export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
-
-export type UseHoneyFormNestedField<Value> = {
-  length: number;
-  add: (value: Value) => void;
-  __nested__: never;
+export type UseHoneyFormNestedField<Form extends UseHoneyBaseFormFields, Value> = {
+  readonly length: number;
+  readonly add: (value: Value) => void;
+  readonly map: <R = unknown>(callback: (value: Value) => R) => R[];
+  readonly config: UseHoneyFormFieldConfig<Form, Value>;
+  readonly __nested__: boolean;
 };
+
+export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
 
 export type UseHoneyFormFields<Form extends UseHoneyBaseFormFields> = {
   [K in keyof Form]: Form[K] extends unknown[]
-    ? UseHoneyFormNestedField<Form[K][0]>
+    ? UseHoneyFormNestedField<Form, Form[K][0]>
     : UseHoneyFormField<Form, Form[K]>;
 };
 
