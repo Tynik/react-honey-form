@@ -39,7 +39,7 @@ const createHoneyFormField = <
   Value extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
-  config: UseHoneyFormFieldConfig<Form, Value>,
+  { mode = 'onChange', ...config }: UseHoneyFormFieldConfig<Form, Value>,
   {
     setValue,
   }: {
@@ -48,17 +48,39 @@ const createHoneyFormField = <
 ): UseHoneyFormField<Form, Value> => {
   const ref = createRef<HTMLElement>();
 
+  // if (Array.isArray(fieldConfig)) {
+  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //   // @ts-ignore
+  //   initialFormFields[fieldName] = {
+  //     length: 0,
+  //     add: value => {},
+  //     __nested__: true,
+  //   } as UseHoneyFormNestedField<unknown>;
+  //
+  //   return initialFormFields;
+  // }
+
   return {
     config,
-    cleanValue: config.value as never,
-    value: config.value as never,
+    cleanValue: config.value,
+    value: config.value,
     errors: [],
     props: {
       ref,
-      value: config.value as never,
-      onChange: e => {
-        setValue(fieldName, e.target.value as never, true);
-      },
+      value: config.value,
+      // TODO: when element is touched
+      onFocus: e => {},
+      //
+      ...(mode === 'onChange' && {
+        onChange: e => {
+          setValue(fieldName, e.target.value as never, true);
+        },
+      }),
+      ...(mode === 'onBlur' && {
+        onBlur: e => {
+          setValue(fieldName, e.target.value as never, true);
+        },
+      }),
     },
     setValue: value => setValue(fieldName, value, true),
     focus: () => {
@@ -80,19 +102,8 @@ const getInitialHoneyFormFields =
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
-      if (Array.isArray(fieldConfig)) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        initialFormFields[fieldName] = {
-          length: 0,
-          add: value => {},
-          __nested__: true,
-        } as UseHoneyFormNestedField<unknown>;
-
-        return initialFormFields;
-      }
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       initialFormFields[fieldName] = createHoneyFormField<Form>(fieldName, fieldConfig, {
         setValue,
       });
@@ -332,6 +343,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = nev
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
+          // eslint-disable-next-line no-console
           console.warn(`[use-form] Form field "${fieldName.toString()}" is already present`);
         }
         return {

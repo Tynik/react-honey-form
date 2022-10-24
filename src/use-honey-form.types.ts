@@ -1,4 +1,5 @@
 import type { ChangeEvent, RefObject } from 'react';
+import { FocusEvent } from 'react';
 
 type UseFormFieldName = string;
 
@@ -21,6 +22,7 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanVa
   maxFraction?: number;
   // clear that field value when dependent field is changed
   dependsOn?: keyof Form;
+  mode?: 'onChange' | 'onBlur';
   validator?: UseHoneyFormFieldValidator<Form, CleanValue>;
   // Remove some chars from value
   filter?: (value: CleanValue) => CleanValue;
@@ -71,7 +73,9 @@ export type UseHoneyFormField<
   readonly props: {
     ref: RefObject<any>;
     value: CleanValue;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
   };
   readonly config: UseHoneyFormFieldConfig<Form, CleanValue>;
   // functions
@@ -94,11 +98,7 @@ export type UseHoneyFormFields<Form extends UseHoneyBaseFormFields> = {
 };
 
 export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
-  [K in keyof Form]: Form[K] extends unknown[]
-    ? {
-        [K2 in keyof Form[K][0]]: UseHoneyFormFieldConfig<Form, Form[K][0][K2]>;
-      }[]
-    : UseHoneyFormFieldConfig<Form, Form[K]>;
+  [K in keyof Form]: UseHoneyFormFieldConfig<Form, Form[K]>;
 };
 
 export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> = {

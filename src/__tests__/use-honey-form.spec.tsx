@@ -713,11 +713,11 @@ describe('Use honey form. Field', () => {
     });
   });
 
-  test('fields list should have 0 length', () => {
+  test.skip('fields list should have 0 length', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ items: { name: string }[] }>({
         fields: {
-          items: [],
+          items: {},
         },
       })
     );
@@ -729,11 +729,13 @@ describe('Use honey form. Field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ items: { name: string }[] }>({
         fields: {
-          items: [
-            {
-              name: {},
-            },
-          ],
+          items: {
+            value: [
+              {
+                name: 'apple',
+              },
+            ],
+          },
         },
       })
     );
