@@ -572,7 +572,22 @@ describe('Use honey form. Field', () => {
     expect(result.current.formFields.age.value).toBe('12');
   });
 
-  test('use number type', () => {
+  test('check not set number type values', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.age.value).toBeUndefined();
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+  });
+
+  test('use number type converting', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {

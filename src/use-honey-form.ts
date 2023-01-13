@@ -243,7 +243,10 @@ const getNextHoneyFormFieldsState = <
     ...formField,
     cleanValue,
     value: formattedValue as never,
-    props: { ...formField.props, value: formattedValue as never },
+    props: {
+      ...formField.props,
+      value: formattedValue as never,
+    },
     errors,
   };
 
