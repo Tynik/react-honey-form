@@ -604,7 +604,29 @@ describe('Use honey form. Field', () => {
       } as ChangeEvent<HTMLInputElement>);
     });
 
+    expect(result.current.formFields.age.value).toBe('35');
     expect(result.current.formFields.age.cleanValue).toBe(35);
+  });
+
+  test('use number type with empty string value', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.props.onChange({
+        target: { value: '' },
+      } as ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.formFields.age.value).toBe('');
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
   });
 
   test('use custom boolean field validator', () => {

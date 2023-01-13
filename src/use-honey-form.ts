@@ -123,7 +123,7 @@ const defaultHoneyValidatorsMap: Record<
 const defaultHoneyValueConvertorsMap: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
 > = {
-  number: Number,
+  number: value => (value ? Number(value) : undefined),
 };
 
 const validateHoneyFormField = <
@@ -230,7 +230,7 @@ const getNextHoneyFormFieldsState = <
     ? (defaultHoneyValueConvertorsMap[fieldConfig.type] as UseHoneyFormFieldValueConvertor<Value>)
     : null;
 
-  const cleanValue = valueConvertor?.(filteredValue as never) ?? filteredValue;
+  const cleanValue = valueConvertor ? valueConvertor(filteredValue as never) : filteredValue;
 
   const errors = validate
     ? validateHoneyFormField<Form, FieldName, Value>(cleanValue, fieldConfig, formFields)
