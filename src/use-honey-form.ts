@@ -1,16 +1,13 @@
-import { createRef, useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type {
   UseHoneyBaseFormFields,
   UseHoneyFormAddFormField,
   UseHoneyFormErrors,
   UseHoneyFormFieldConfig,
-  UseHoneyFormFieldError,
   UseHoneyFormFields,
   UseHoneyFormFieldSetValue,
   UseHoneyFormFieldType,
-  UseHoneyFormFieldValidationResult,
-  UseHoneyFormFieldValidator,
   UseHoneyFormOptions,
   UseHoneyFormFieldsConfigs,
   UseHoneyFormRemoveFormField,
@@ -19,53 +16,14 @@ import type {
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
   UseHoneyFormFieldValueConvertor,
-  CreateHoneyFormField,
 } from './use-honey-form.types';
 
-import {
-  maxLengthInternalHoneyFieldValidator,
-  maxValueInternalHoneyFieldValidator,
-  minLengthInternalHoneyFieldValidator,
-  minMaxLengthInternalHoneyFieldValidator,
-  minMaxValueInternalHoneyFieldValidator,
-  minValueInternalHoneyFieldValidator,
-  requiredInternalHoneyFieldValidator,
-} from './use-honey-form.validators';
+import { createHoneyFormField, validateHoneyFormField } from './use-honey-form.field';
 
-const createHoneyFormField: CreateHoneyFormField = (
-  fieldName,
-  { mode = 'onChange', ...config },
-  { setValue }
-) => {
-  const ref = createRef<HTMLElement>();
-
-  return {
-    config,
-    cleanValue: config.value,
-    value: config.value,
-    errors: [],
-    props: {
-      ref,
-      value: config.value,
-      // TODO: when element is touched
-      onFocus: e => {},
-      //
-      ...(mode === 'onChange' && {
-        onChange: e => {
-          setValue(fieldName, e.target.value as never, true);
-        },
-      }),
-      ...(mode === 'onBlur' && {
-        onBlur: e => {
-          setValue(fieldName, e.target.value as never, true);
-        },
-      }),
-    },
-    setValue: value => setValue(fieldName, value, true),
-    focus: () => {
-      ref.current.focus();
-    },
-  };
+const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
+  Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
+> = {
+  number: value => (value ? Number(value) : undefined),
 };
 
 const getInitialHoneyFormFieldsGetter =
@@ -98,88 +56,6 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
 
     return formData;
   }, {} as Form);
-
-const defaultHoneyValidatorsMap: Record<
-  UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator<any, any>
-> = {
-  number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
-    return !value ||
-      new RegExp(
-        `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
-      ).test((value as string).toString())
-      ? true
-      : [
-          {
-            type: 'invalid',
-            message: `Only ${negative ? '' : 'positive '}${
-              decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
-            } are allowed`,
-          },
-        ];
-  },
-};
-
-const defaultHoneyValueConvertorsMap: Partial<
-  Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
-> = {
-  number: value => (value ? Number(value) : undefined),
-};
-
-const validateHoneyFormField = <
-  Form extends UseHoneyBaseFormFields,
-  FieldName extends keyof Form = keyof Form,
-  Value extends Form[FieldName] = Form[FieldName]
->(
-  value: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
-  formFields: UseHoneyFormFields<Form>
-) => {
-  let validationResult: UseHoneyFormFieldValidationResult | null = null;
-
-  const errors: UseHoneyFormFieldError[] = [];
-
-  [
-    // all
-    requiredInternalHoneyFieldValidator,
-    // number
-    minValueInternalHoneyFieldValidator,
-    maxValueInternalHoneyFieldValidator,
-    minMaxValueInternalHoneyFieldValidator,
-    // string
-    minLengthInternalHoneyFieldValidator,
-    maxLengthInternalHoneyFieldValidator,
-    minMaxLengthInternalHoneyFieldValidator,
-  ].forEach(fn => fn<Form, Value>(value, fieldConfig, errors));
-
-  // custom validator
-  if (fieldConfig.validator) {
-    validationResult = fieldConfig.validator(value, fieldConfig, formFields);
-    //
-  } else if (fieldConfig.type) {
-    validationResult = defaultHoneyValidatorsMap[fieldConfig.type](value, fieldConfig, formFields);
-  }
-
-  if (validationResult) {
-    if (typeof validationResult === 'string') {
-      errors.push({
-        type: 'invalid',
-        message: validationResult,
-      });
-      //
-    } else if (typeof validationResult === 'object') {
-      errors.push(...validationResult);
-    }
-    //
-  } else if (validationResult === false) {
-    errors.push({
-      type: 'invalid',
-      message: 'Invalid value',
-    });
-  }
-
-  return errors;
-};
 
 const getNextHoneyFormFieldsState = <
   Form extends UseHoneyBaseFormFields,
@@ -227,7 +103,9 @@ const getNextHoneyFormFieldsState = <
   });
 
   const valueConvertor = fieldConfig.type
-    ? (defaultHoneyValueConvertorsMap[fieldConfig.type] as UseHoneyFormFieldValueConvertor<Value>)
+    ? (DEFAULT_HONEY_VALUE_CONVERTORS_MAP[
+        fieldConfig.type
+      ] as UseHoneyFormFieldValueConvertor<Value>)
     : null;
 
   const cleanValue = valueConvertor ? valueConvertor(filteredValue as never) : filteredValue;
@@ -271,7 +149,7 @@ const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
  * @param onSubmit
  * @param onChange: When any field value is changed.
  *  That callback function is called on next iteration after any change
- * @param onChangeDebounce number: Debounce time for onChange()
+ * @param onChangeDebounce number: Debounce time for onChange() callback
  */
 export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = void>({
   fields: fieldsConfig,
@@ -436,7 +314,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
       // TODO: maybe reject should be provided? Left a comment after decision
       return Promise.resolve();
     }
-    const submitData = getSubmitHoneyFormData<Form>(formFieldsRef.current);
+    const submitData = getSubmitHoneyFormData(formFieldsRef.current);
 
     setIsSubmitting(true);
     try {

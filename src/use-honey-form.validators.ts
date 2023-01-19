@@ -1,4 +1,29 @@
-import type { UseHoneyFormFieldInternalValidator } from './use-honey-form.types';
+import type {
+  UseHoneyFormFieldInternalValidator,
+  UseHoneyFormFieldType,
+  UseHoneyFormFieldValidator,
+} from './use-honey-form.types';
+
+export const DEFAULT_HONEY_VALIDATORS_MAP: Record<
+  UseHoneyFormFieldType,
+  UseHoneyFormFieldValidator<any, any>
+> = {
+  number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
+    return !value ||
+      new RegExp(
+        `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
+      ).test((value as string).toString())
+      ? true
+      : [
+          {
+            type: 'invalid',
+            message: `Only ${negative ? '' : 'positive '}${
+              decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
+            } are allowed`,
+          },
+        ];
+  },
+};
 
 export const requiredInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,

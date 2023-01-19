@@ -10,10 +10,7 @@
     "declaration": true,
     "outDir": "./dist",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "paths": {
-      "~/*": ["./src/*"]
-    },
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src"]
 }

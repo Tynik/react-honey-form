@@ -4,6 +4,7 @@ import type { ChangeEvent, FocusEvent, RefObject } from 'react';
 
 type UseFormFieldName = string;
 
+// TODO: implement date type
 export type UseHoneyFormFieldType = 'number';
 
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
@@ -103,6 +104,7 @@ export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
 
 export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> = {
   fields?: UseHoneyFormFieldsConfigs<Form>;
+  // TODO: not implemented
   schema?: unknown;
   onSubmit?: (data: Form) => Promise<Response>;
   onChange?: (data: Form, errors: UseHoneyFormErrors<Form>) => void;
