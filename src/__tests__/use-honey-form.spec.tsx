@@ -91,7 +91,7 @@ describe('Use honey form. General', () => {
     expect(result.current.isDirty).toBeTruthy();
   });
 
-  test('a form should not be dirty after successfully submitted', async () => {
+  test('a form should not be dirty when successfully submitted', async () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -102,9 +102,13 @@ describe('Use honey form. General', () => {
       })
     );
 
-    await act(async () => {
+    act(() => {
       result.current.formFields.age.setValue(56);
+    });
 
+    expect(result.current.isDirty).toBeTruthy();
+
+    await act(async () => {
       await result.current.submit();
     });
 
@@ -763,8 +767,6 @@ describe('Use honey form. Field', () => {
 
     act(() => {
       result.current.formFields.city.setValue('New York');
-    });
-    act(() => {
       result.current.formFields.address.setValue('71st Queens');
     });
 
@@ -777,6 +779,40 @@ describe('Use honey form. Field', () => {
 
     expect(result.current.formFields.city.value).toBe('New Jersey');
     expect(result.current.formFields.address.value).toBeUndefined();
+  });
+
+  test('dependent field values should be cleared in chain when parent field is changed', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ city: string; address: string; ap: string }>({
+        fields: {
+          city: {},
+          address: {
+            dependsOn: 'city',
+          },
+          ap: {
+            dependsOn: 'address',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.city.setValue('New Jersey');
+      result.current.formFields.address.setValue('53st Dockland');
+      result.current.formFields.ap.setValue('341a');
+    });
+
+    expect(result.current.formFields.city.value).toBe('New Jersey');
+    expect(result.current.formFields.address.value).toBe('53st Dockland');
+    expect(result.current.formFields.ap.value).toBe('341a');
+
+    act(() => {
+      result.current.formFields.city.setValue('New York');
+    });
+
+    expect(result.current.formFields.city.value).toBe('New York');
+    expect(result.current.formFields.address.value).toBeUndefined();
+    expect(result.current.formFields.ap.value).toBeUndefined();
   });
 
   test('cleared dependent field value should not be submitted', async () => {

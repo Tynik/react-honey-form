@@ -113,3 +113,25 @@ export const validateHoneyFormField = <
 
   return errors;
 };
+
+export const clearDependentFields = <
+  Form extends UseHoneyBaseFormFields,
+  FieldName extends keyof Form
+>(
+  formFields: UseHoneyFormFields<Form>,
+  fieldName: FieldName
+) => {
+  Object.keys(formFields).forEach((otherFieldName: keyof Form) => {
+    const newFormField = formFields[otherFieldName];
+
+    if (fieldName === newFormField.config.dependsOn) {
+      formFields[otherFieldName] = {
+        ...formFields[otherFieldName],
+        value: undefined,
+        cleanValue: undefined,
+      };
+
+      clearDependentFields(formFields, otherFieldName);
+    }
+  });
+};

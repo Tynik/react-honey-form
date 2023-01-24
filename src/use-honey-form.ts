@@ -18,7 +18,11 @@ import type {
   UseHoneyFormFieldValueConvertor,
 } from './use-honey-form.types';
 
-import { createHoneyFormField, validateHoneyFormField } from './use-honey-form.field';
+import {
+  clearDependentFields,
+  createHoneyFormField,
+  validateHoneyFormField,
+} from './use-honey-form.field';
 
 const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -89,18 +93,7 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  // clearing dependent fields
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
-    const newFormField = nextFormFields[otherFieldName];
-
-    if (fieldName === newFormField.config.dependsOn) {
-      nextFormFields[otherFieldName] = {
-        ...nextFormFields[otherFieldName],
-        value: undefined,
-        cleanValue: undefined,
-      };
-    }
-  });
+  clearDependentFields(nextFormFields, fieldName);
 
   const valueConvertor = fieldConfig.type
     ? (DEFAULT_HONEY_VALUE_CONVERTORS_MAP[
