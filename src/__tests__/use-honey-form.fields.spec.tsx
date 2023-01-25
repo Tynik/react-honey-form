@@ -1,12 +1,11 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect } from 'react';
 import { act, render, renderHook } from '@testing-library/react';
-import * as yup from 'yup';
 
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. Fields', () => {
-  test('set a new value calling onChange()', () => {
+  test('set a new value via onChange() function', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -24,7 +23,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.value).toBe('Peter');
   });
 
-  test('use filter for a field value', () => {
+  test('use filter() function for a field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -41,6 +40,7 @@ describe('Use honey form. Fields', () => {
     });
 
     expect(result.current.formFields.age.value).toBe('12');
+    expect(result.current.formFields.age.cleanValue).toBe('12');
   });
 
   test('check not set number type values', () => {
@@ -110,11 +110,13 @@ describe('Use honey form. Fields', () => {
         },
       })
     );
+
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
     act(() => {
       result.current.formFields.age.setValue(43);
     });
+
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
@@ -125,6 +127,7 @@ describe('Use honey form. Fields', () => {
     act(() => {
       result.current.formFields.age.setValue(45);
     });
+
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
@@ -144,11 +147,13 @@ describe('Use honey form. Fields', () => {
         },
       })
     );
+
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
     act(() => {
       result.current.formFields.age.setValue(43);
     });
+
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
@@ -159,10 +164,11 @@ describe('Use honey form. Fields', () => {
     act(() => {
       result.current.formFields.age.setValue(46);
     });
+
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('add a new form field', () => {
+  test('dynamically add a new form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
         fields: {},
@@ -174,10 +180,11 @@ describe('Use honey form. Fields', () => {
         value: 'female',
       });
     });
+
     expect(result.current.formFields.gender?.value).toBe('female');
   });
 
-  test('a new form field should be submitted with other fields', async () => {
+  test('dynamically added the new form field should be submitted with other fields', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -202,7 +209,7 @@ describe('Use honey form. Fields', () => {
     expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' });
   });
 
-  test('remove a form field', () => {
+  test('remove dynamically added the form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age?: number }>({
         fields: {
@@ -217,10 +224,11 @@ describe('Use honey form. Fields', () => {
     act(() => {
       result.current.removeFormField('age');
     });
+
     expect(result.current.formFields.age?.value).toBeUndefined();
   });
 
-  test('dependent field value should be cleared when parent field is changed', () => {
+  test('dependent field value should be cleared when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
         fields: {
@@ -248,7 +256,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.address.value).toBeUndefined();
   });
 
-  test('dependent field values should be cleared in chain when parent field is changed', () => {
+  test('dependent field values should be cleared in chain when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string; ap: string }>({
         fields: {
@@ -299,12 +307,7 @@ describe('Use honey form. Fields', () => {
 
     act(() => {
       result.current.formFields.city.setValue('New York');
-    });
-    act(() => {
       result.current.formFields.address.setValue('71st Queens');
-    });
-
-    act(() => {
       result.current.formFields.city.setValue('New Jersey');
     });
 
@@ -313,7 +316,7 @@ describe('Use honey form. Fields', () => {
     expect(onSubmit).toBeCalledWith({ city: 'New Jersey', address: undefined });
   });
 
-  test('form field should be focused', () => {
+  test('focus form field using focus() field function', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
@@ -333,7 +336,7 @@ describe('Use honey form. Fields', () => {
     expect(document.activeElement).toBe(getByTestId('name'));
   });
 
-  test('add server error to existed field', () => {
+  test('add new server error to existed field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -385,9 +388,11 @@ describe('Use honey form. Fields', () => {
     });
   });
 
-  test('should recognize array field type', () => {
+  test('should recognize array field value type', () => {
+    type Item = { name: string; weight: number };
+
     const { result } = renderHook(() =>
-      useHoneyForm<{ items: { name: string; weight: number }[] }>({
+      useHoneyForm<{ items: Item[] }>({
         fields: {
           items: {},
         },
@@ -399,23 +404,5 @@ describe('Use honey form. Fields', () => {
     });
 
     expect(result.current.formFields.items.value).toStrictEqual([]);
-  });
-
-  test.skip('use simple yup schema', () => {
-    const schema = yup.object({
-      name: yup.string(),
-    });
-
-    const { result } = renderHook(() =>
-      useHoneyForm<yup.InferType<typeof schema>>({
-        schema,
-      })
-    );
-
-    act(() => {
-      result.current.formFields.name.setValue('Kris');
-    });
-
-    expect(result.current.formFields.name.value).toBe('Kris');
   });
 });
