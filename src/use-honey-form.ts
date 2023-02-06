@@ -280,13 +280,9 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
       (formFields, fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
-        const { cleanValue } = formField;
+        const { value } = formField;
 
-        const errors = validateHoneyFormField<Form>(
-          cleanValue,
-          formField.config,
-          formFieldsRef.current
-        );
+        const errors = validateHoneyFormField<Form>(value, formField.config, formFieldsRef.current);
         if (errors.length) {
           hasError = true;
         }

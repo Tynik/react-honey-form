@@ -106,6 +106,39 @@ describe('Use honey form. Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 });
   });
 
+  test('should show an error related to allow only numerics because its high priority error than min/max', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+            min: 18,
+            max: 100,
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue(1.5);
+    });
+
+    await act(() => result.current.submit());
+
+    expect(onSubmit).not.toBeCalled();
+    expect(result.current.errors).toStrictEqual({
+      age: [
+        {
+          message: 'Only numerics are allowed',
+          type: 'invalid',
+        },
+      ],
+    });
+  });
+
   test('should not call onSubmit() when errors are present', async () => {
     const onSubmit = jest.fn();
 
