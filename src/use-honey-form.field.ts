@@ -68,19 +68,6 @@ export const validateHoneyFormField = <
 
   const errors: UseHoneyFormFieldError[] = [];
 
-  [
-    // all
-    requiredInternalHoneyFieldValidator,
-    // number
-    minValueInternalHoneyFieldValidator,
-    maxValueInternalHoneyFieldValidator,
-    minMaxValueInternalHoneyFieldValidator,
-    // string
-    minLengthInternalHoneyFieldValidator,
-    maxLengthInternalHoneyFieldValidator,
-    minMaxLengthInternalHoneyFieldValidator,
-  ].forEach(fn => fn<Form, Value>(value, fieldConfig, errors));
-
   if (fieldConfig.type) {
     validationResult = DEFAULT_HONEY_VALIDATORS_MAP[fieldConfig.type](
       value,
@@ -89,9 +76,25 @@ export const validateHoneyFormField = <
     );
   }
 
-  // execute custom validator. Can be run only when default validator return true or not run at all
-  if ((validationResult === null || validationResult === true) && fieldConfig.validator) {
-    validationResult = fieldConfig.validator(value, fieldConfig, formFields);
+  // do not run additional validators if default field type validator is failed
+  if (validationResult === null || validationResult === true) {
+    [
+      // all
+      requiredInternalHoneyFieldValidator,
+      // number
+      minValueInternalHoneyFieldValidator,
+      maxValueInternalHoneyFieldValidator,
+      minMaxValueInternalHoneyFieldValidator,
+      // string
+      minLengthInternalHoneyFieldValidator,
+      maxLengthInternalHoneyFieldValidator,
+      minMaxLengthInternalHoneyFieldValidator,
+    ].forEach(fn => fn(value, fieldConfig, errors));
+
+    // execute custom validator. Can be run only when default validator return true or not run at all
+    if (fieldConfig.validator) {
+      validationResult = fieldConfig.validator(value, fieldConfig, formFields);
+    }
   }
 
   if (validationResult) {

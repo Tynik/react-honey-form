@@ -151,63 +151,6 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('decimal value should not be allowed by default for number type', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age: number }>({
-        fields: {
-          age: {
-            type: 'number',
-          },
-        },
-      })
-    );
-
-    act(() => {
-      result.current.formFields.age.setValue(1.5);
-    });
-
-    expect(result.current.formFields.age.value).toBe(1.5);
-    expect(result.current.formFields.age.cleanValue).toBeUndefined();
-
-    expect(result.current.errors).toStrictEqual({
-      age: [
-        {
-          message: 'Only numerics are allowed',
-          type: 'invalid',
-        },
-      ],
-    });
-  });
-
-  test('decimal value should not be allowed by default for number type with custom validator', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age: number }>({
-        fields: {
-          age: {
-            type: 'number',
-            validator: value => value > 18 && value < 100,
-          },
-        },
-      })
-    );
-
-    act(() => {
-      result.current.formFields.age.setValue(1.5);
-    });
-
-    expect(result.current.formFields.age.value).toBe(1.5);
-    expect(result.current.formFields.age.cleanValue).toBeUndefined();
-
-    expect(result.current.errors).toStrictEqual({
-      age: [
-        {
-          message: 'Only numerics are allowed',
-          type: 'invalid',
-        },
-      ],
-    });
-  });
-
   test('focus form field using focus() field function', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
@@ -400,6 +343,63 @@ describe('Use honey form. Work with dynamic fields', () => {
 });
 
 describe('Use honey form. Work with field errors', () => {
+  test('decimal value should not be allowed by default for number type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue(1.5);
+    });
+
+    expect(result.current.formFields.age.value).toBe(1.5);
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+
+    expect(result.current.errors).toStrictEqual({
+      age: [
+        {
+          message: 'Only numerics are allowed',
+          type: 'invalid',
+        },
+      ],
+    });
+  });
+
+  test('decimal value should not be allowed by default for number type with custom validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+            validator: value => value > 18 && value < 100,
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue(1.5);
+    });
+
+    expect(result.current.formFields.age.value).toBe(1.5);
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+
+    expect(result.current.errors).toStrictEqual({
+      age: [
+        {
+          message: 'Only numerics are allowed',
+          type: 'invalid',
+        },
+      ],
+    });
+  });
+
   test('use custom errors return from field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
