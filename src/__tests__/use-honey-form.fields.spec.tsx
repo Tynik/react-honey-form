@@ -43,7 +43,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe('12');
   });
 
-  test('check not set number type values', () => {
+  test('by default number type field values should be undefined', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -58,7 +58,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
   });
 
-  test('use number type converting', () => {
+  test('string value should be converted to number with number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -79,7 +79,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe(35);
   });
 
-  test('use number type with empty string value', () => {
+  test('empty string value should be converted to undefined with number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -131,103 +131,123 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('use custom errors return from field validator', () => {
+  test('negative value should be allowed by default for number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
-            validator: value =>
-              value > 45 || [
-                {
-                  type: 'invalid',
-                  message: 'Age should be greater than 45',
-                },
-              ],
+            type: 'number',
           },
         },
       })
     );
 
-    expect(result.current.formFields.age.errors).toStrictEqual([]);
-
     act(() => {
-      result.current.formFields.age.setValue(43);
+      result.current.formFields.age.setValue(-5);
     });
 
-    expect(result.current.formFields.age.errors).toStrictEqual([
-      {
-        type: 'invalid',
-        message: 'Age should be greater than 45',
-      },
-    ]);
-
-    act(() => {
-      result.current.formFields.age.setValue(46);
-    });
-
+    expect(result.current.formFields.age.value).toBe(-5);
+    expect(result.current.formFields.age.cleanValue).toBe(-5);
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('dynamically add a new form field', () => {
+  test('decimal value should not be allowed by default for number type', () => {
     const { result } = renderHook(() =>
-      useHoneyForm<{ gender?: 'male' | 'female' }>({
-        fields: {},
-      })
-    );
-
-    act(() => {
-      result.current.addFormField('gender', {
-        value: 'female',
-      });
-    });
-
-    expect(result.current.formFields.gender?.value).toBe('female');
-  });
-
-  test('dynamically added the new form field should be submitted with other fields', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age: number; gender?: 'male' | 'female' }>({
+      useHoneyForm<{ age: number }>({
         fields: {
           age: {
-            value: 30,
-          },
-        },
-        onSubmit,
-      })
-    );
-
-    act(() => {
-      result.current.addFormField('gender', {
-        value: 'female',
-      });
-    });
-
-    await act(() => result.current.submit());
-
-    expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' });
-  });
-
-  test('remove dynamically added the form field', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age?: number }>({
-        fields: {
-          age: {
-            value: 10,
+            type: 'number',
           },
         },
       })
     );
-    expect(result.current.formFields.age?.value).toBe(10);
 
     act(() => {
-      result.current.removeFormField('age');
+      result.current.formFields.age.setValue(1.5);
     });
 
-    expect(result.current.formFields.age?.value).toBeUndefined();
+    expect(result.current.formFields.age.value).toBe(1.5);
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+
+    expect(result.current.errors).toStrictEqual({
+      age: [
+        {
+          message: 'Only numerics are allowed',
+          type: 'invalid',
+        },
+      ],
+    });
   });
 
+  test('decimal value should not be allowed by default for number type with custom validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            type: 'number',
+            validator: value => value > 18 && value < 100,
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue(1.5);
+    });
+
+    expect(result.current.formFields.age.value).toBe(1.5);
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+
+    expect(result.current.errors).toStrictEqual({
+      age: [
+        {
+          message: 'Only numerics are allowed',
+          type: 'invalid',
+        },
+      ],
+    });
+  });
+
+  test('focus form field using focus() field function', () => {
+    const Comp = () => {
+      const { formFields } = useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+      });
+
+      useEffect(() => {
+        formFields.name.focus();
+      }, []);
+
+      return <input {...formFields.name.props} data-testid="name" />;
+    };
+
+    const { getByTestId } = render(<Comp />);
+
+    expect(document.activeElement).toBe(getByTestId('name'));
+  });
+
+  test('should recognize array field value type', () => {
+    type Item = { name: string; weight: number };
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: Item[] }>({
+        fields: {
+          items: {},
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.items.setValue([]);
+    });
+
+    expect(result.current.formFields.items.value).toStrictEqual([]);
+  });
+});
+
+describe('Use honey form. Dependent fields', () => {
   test('dependent field value should be cleared when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
@@ -315,25 +335,112 @@ describe('Use honey form. Fields', () => {
 
     expect(onSubmit).toBeCalledWith({ city: 'New Jersey', address: undefined });
   });
+});
 
-  test('focus form field using focus() field function', () => {
-    const Comp = () => {
-      const { formFields } = useHoneyForm<{ name: string }>({
-        fields: {
-          name: {},
-        },
+describe('Use honey form. Work with dynamic fields', () => {
+  test('dynamically add a new form field', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ gender?: 'male' | 'female' }>({
+        fields: {},
+      })
+    );
+
+    act(() => {
+      result.current.addFormField('gender', {
+        value: 'female',
       });
+    });
 
-      useEffect(() => {
-        formFields.name.focus();
-      }, []);
+    expect(result.current.formFields.gender?.value).toBe('female');
+  });
 
-      return <input {...formFields.name.props} data-testid="name" />;
-    };
+  test('dynamically added the new form field should be submitted with other fields', async () => {
+    const onSubmit = jest.fn();
 
-    const { getByTestId } = render(<Comp />);
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number; gender?: 'male' | 'female' }>({
+        fields: {
+          age: {
+            value: 30,
+          },
+        },
+        onSubmit,
+      })
+    );
 
-    expect(document.activeElement).toBe(getByTestId('name'));
+    act(() => {
+      result.current.addFormField('gender', {
+        value: 'female',
+      });
+    });
+
+    await act(() => result.current.submit());
+
+    expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' });
+  });
+
+  test('remove dynamically added the form field', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age?: number }>({
+        fields: {
+          age: {
+            value: 10,
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.age?.value).toBe(10);
+
+    act(() => {
+      result.current.removeFormField('age');
+    });
+
+    expect(result.current.formFields.age?.value).toBeUndefined();
+  });
+});
+
+describe('Use honey form. Work with field errors', () => {
+  test('use custom errors return from field validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: number }>({
+        fields: {
+          age: {
+            validator: value =>
+              value > 45 || [
+                {
+                  type: 'invalid',
+                  message: 'Age should be greater than 45',
+                },
+              ],
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.age.setValue(43);
+    });
+
+    expect(result.current.formFields.age.value).toBe(43);
+    expect(result.current.formFields.age.cleanValue).toBeUndefined();
+
+    expect(result.current.formFields.age.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Age should be greater than 45',
+      },
+    ]);
+
+    act(() => {
+      result.current.formFields.age.setValue(46);
+    });
+
+    expect(result.current.formFields.age.value).toBe(46);
+    expect(result.current.formFields.age.cleanValue).toBe(46);
+
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
   test('add new server error to existed field', () => {
@@ -386,23 +493,5 @@ describe('Use honey form. Fields', () => {
         },
       ],
     });
-  });
-
-  test('should recognize array field value type', () => {
-    type Item = { name: string; weight: number };
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ items: Item[] }>({
-        fields: {
-          items: {},
-        },
-      })
-    );
-
-    act(() => {
-      result.current.formFields.items.setValue([]);
-    });
-
-    expect(result.current.formFields.items.value).toStrictEqual([]);
   });
 });

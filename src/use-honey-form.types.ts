@@ -7,6 +7,10 @@ type UseFormFieldName = string;
 // TODO: implement date type
 export type UseHoneyFormFieldType = 'number';
 
+/**
+ * true: when validation is passed and false otherwise
+ * string: the custom error string value
+ */
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
 
 export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanValue> = {
@@ -74,6 +78,7 @@ export type UseHoneyFormField<
   CleanValue,
   FormattedValue = CleanValue
 > = {
+  // a value should be undefined when error for a field is present
   readonly cleanValue: CleanValue;
   // the value after formatting when specific format function was executed
   readonly value: FormattedValue;

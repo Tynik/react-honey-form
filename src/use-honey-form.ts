@@ -112,7 +112,7 @@ const getNextHoneyFormFieldsState = <
 
   nextFormFields[fieldName] = {
     ...formField,
-    cleanValue,
+    cleanValue: errors.length ? undefined : cleanValue,
     value: formattedValue as never,
     props: {
       ...formField.props,
