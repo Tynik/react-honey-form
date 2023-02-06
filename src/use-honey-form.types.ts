@@ -57,7 +57,7 @@ export type UseHoneyFormFieldInternalValidator = <
   errors: UseHoneyFormFieldError[]
 ) => void;
 
-export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: string) => Value;
+export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: any) => Value;
 
 export type UseHoneyFormFieldError = {
   type: 'required' | 'invalid' | 'server';

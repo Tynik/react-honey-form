@@ -7,6 +7,8 @@ import type {
   UseHoneyFormFieldError,
   UseHoneyFormFields,
   UseHoneyFormFieldValidationResult,
+  UseHoneyFormFieldType,
+  UseHoneyFormFieldValueConvertor,
 } from './use-honey-form.types';
 import {
   DEFAULT_HONEY_VALIDATORS_MAP,
@@ -18,6 +20,12 @@ import {
   minValueInternalHoneyFieldValidator,
   requiredInternalHoneyFieldValidator,
 } from './use-honey-form.validators';
+
+const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
+  Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
+> = {
+  number: value => (value ? Number(value) : undefined),
+};
 
 export const createHoneyFormField: CreateHoneyFormField = (
   fieldName,
@@ -118,7 +126,7 @@ export const validateHoneyFormField = <
   return errors;
 };
 
-export const clearDependentFields = <
+export const clearHoneyFormDependentFields = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form
 >(
@@ -135,7 +143,22 @@ export const clearDependentFields = <
         cleanValue: undefined,
       };
 
-      clearDependentFields(formFields, otherFieldName);
+      clearHoneyFormDependentFields(formFields, otherFieldName);
     }
   });
+};
+
+export const convertHoneyFormFieldValue = <
+  Form extends UseHoneyBaseFormFields,
+  FieldName extends keyof Form,
+  Value extends Form[FieldName]
+>(
+  fieldType: UseHoneyFormFieldType | undefined,
+  value: Value
+) => {
+  const valueConvertor = fieldType
+    ? (DEFAULT_HONEY_VALUE_CONVERTORS_MAP[fieldType] as UseHoneyFormFieldValueConvertor<Value>)
+    : null;
+
+  return valueConvertor ? valueConvertor(value) : value;
 };

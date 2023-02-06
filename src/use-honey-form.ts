@@ -7,7 +7,6 @@ import type {
   UseHoneyFormFieldConfig,
   UseHoneyFormFields,
   UseHoneyFormFieldSetValue,
-  UseHoneyFormFieldType,
   UseHoneyFormOptions,
   UseHoneyFormFieldsConfigs,
   UseHoneyFormRemoveFormField,
@@ -15,20 +14,14 @@ import type {
   UseHoneyFormAddError,
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
-  UseHoneyFormFieldValueConvertor,
 } from './use-honey-form.types';
 
 import {
-  clearDependentFields,
+  convertHoneyFormFieldValue,
+  clearHoneyFormDependentFields,
   createHoneyFormField,
   validateHoneyFormField,
 } from './use-honey-form.field';
-
-const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
-  Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
-> = {
-  number: value => (value ? Number(value) : undefined),
-};
 
 const getInitialHoneyFormFieldsGetter =
   <Form extends UseHoneyBaseFormFields>(
@@ -93,15 +86,9 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  clearDependentFields(nextFormFields, fieldName);
+  clearHoneyFormDependentFields(nextFormFields, fieldName);
 
-  const valueConvertor = fieldConfig.type
-    ? (DEFAULT_HONEY_VALUE_CONVERTORS_MAP[
-        fieldConfig.type
-      ] as UseHoneyFormFieldValueConvertor<Value>)
-    : null;
-
-  const cleanValue = valueConvertor ? valueConvertor(filteredValue as never) : filteredValue;
+  const cleanValue = convertHoneyFormFieldValue(fieldConfig.type, filteredValue);
 
   const errors = validate
     ? validateHoneyFormField<Form, FieldName, Value>(cleanValue, fieldConfig, formFields)
@@ -282,7 +269,13 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         const { value } = formField;
 
-        const errors = validateHoneyFormField<Form>(value, formField.config, formFieldsRef.current);
+        const cleanValue = convertHoneyFormFieldValue(formField.config.type, value);
+
+        const errors = validateHoneyFormField<Form>(
+          cleanValue,
+          formField.config,
+          formFieldsRef.current
+        );
         if (errors.length) {
           hasError = true;
         }
