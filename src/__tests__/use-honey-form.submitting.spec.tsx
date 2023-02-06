@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. Submitting', () => {
-  test('should call onSubmit() when submitting', async () => {
+  test('should submit', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -78,7 +78,7 @@ describe('Use honey form. Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined });
   });
 
-  test('call onSubmit() with clean values (not formatted)', async () => {
+  test('submit form with clean values (not formatted)', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -139,7 +139,7 @@ describe('Use honey form. Submitting', () => {
     });
   });
 
-  test('should not call onSubmit() when errors are present', async () => {
+  test('should not submit when errors are present', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>

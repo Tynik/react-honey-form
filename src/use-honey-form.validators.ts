@@ -9,7 +9,8 @@ export const DEFAULT_HONEY_VALIDATORS_MAP: Record<
   UseHoneyFormFieldValidator<any, any>
 > = {
   number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
-    return !value ||
+    return value === '' ||
+      value === undefined ||
       new RegExp(
         `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
       ).test((value as string).toString())
