@@ -131,19 +131,24 @@ export const clearHoneyFormDependentFields = <
   FieldName extends keyof Form
 >(
   formFields: UseHoneyFormFields<Form>,
-  fieldName: FieldName
+  fieldName: FieldName,
+  initiatorFieldName: FieldName = null
 ) => {
-  Object.keys(formFields).forEach((otherFieldName: keyof Form) => {
-    const newFormField = formFields[otherFieldName];
+  initiatorFieldName = initiatorFieldName || fieldName;
 
-    if (fieldName === newFormField.config.dependsOn) {
+  Object.keys(formFields).forEach((otherFieldName: keyof Form) => {
+    const otherField = formFields[otherFieldName];
+
+    if (fieldName === otherField.config.dependsOn) {
       formFields[otherFieldName] = {
         ...formFields[otherFieldName],
         value: undefined,
         cleanValue: undefined,
       };
 
-      clearHoneyFormDependentFields(formFields, otherFieldName);
+      if (otherFieldName !== initiatorFieldName) {
+        clearHoneyFormDependentFields(formFields, otherFieldName, initiatorFieldName);
+      }
     }
   });
 };

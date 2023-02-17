@@ -278,6 +278,36 @@ describe('Use honey form. Dependent fields', () => {
 
     expect(onSubmit).toBeCalledWith({ city: 'New Jersey', address: undefined });
   });
+
+  test('cross dependent fields should clear each other', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ address1: string; address2: string }>({
+        fields: {
+          address1: {
+            dependsOn: 'address2',
+          },
+          address2: {
+            dependsOn: 'address1',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.address1.setValue('541st Arnold');
+      result.current.formFields.address2.setValue('71st Queens');
+    });
+
+    expect(result.current.formFields.address1.value).toBeUndefined();
+    expect(result.current.formFields.address2.value).toBe('71st Queens');
+
+    act(() => {
+      result.current.formFields.address1.setValue('132st Rich-Port');
+    });
+
+    expect(result.current.formFields.address2.value).toBeUndefined();
+    expect(result.current.formFields.address1.value).toBe('132st Rich-Port');
+  });
 });
 
 describe('Use honey form. Work with dynamic fields', () => {
