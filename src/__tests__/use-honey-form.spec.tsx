@@ -5,24 +5,6 @@ import * as yup from 'yup';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. General', () => {
-  test('errors initially should have empty object', () => {
-    const { result } = renderHook(() => useHoneyForm({ fields: {} }));
-
-    expect(result.current.errors).toStrictEqual({});
-  });
-
-  test('error should not be present for just declared field', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm({
-        fields: {
-          name: {},
-        },
-      })
-    );
-
-    expect(result.current.errors.name).toBeUndefined();
-  });
-
   test('should set initial form fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm({

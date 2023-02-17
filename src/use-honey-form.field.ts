@@ -148,7 +148,7 @@ export const clearHoneyFormDependentFields = <
   });
 };
 
-export const convertHoneyFormFieldValue = <
+export const cleanHoneyFormFieldValue = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
   Value extends Form[FieldName]

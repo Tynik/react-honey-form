@@ -17,7 +17,7 @@ import type {
 } from './use-honey-form.types';
 
 import {
-  convertHoneyFormFieldValue,
+  cleanHoneyFormFieldValue,
   clearHoneyFormDependentFields,
   createHoneyFormField,
   validateHoneyFormField,
@@ -88,7 +88,7 @@ const getNextHoneyFormFieldsState = <
 
   clearHoneyFormDependentFields(nextFormFields, fieldName);
 
-  const cleanValue = convertHoneyFormFieldValue(fieldConfig.type, filteredValue);
+  const cleanValue = cleanHoneyFormFieldValue(fieldConfig.type, filteredValue);
 
   const errors = validate
     ? validateHoneyFormField<Form, FieldName, Value>(cleanValue, fieldConfig, formFields)
@@ -269,7 +269,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         const { value } = formField;
 
-        const cleanValue = convertHoneyFormFieldValue(formField.config.type, value);
+        const cleanValue = cleanHoneyFormFieldValue(formField.config.type, value);
 
         const errors = validateHoneyFormField<Form>(
           cleanValue,
@@ -279,13 +279,14 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
         if (errors.length) {
           hasError = true;
         }
-        formFields[fieldName] = { ...formField, errors };
+        formFields[fieldName] = { ...formField, cleanValue, errors };
 
         return formFields;
       },
       {} as UseHoneyFormFields<Form>
     );
 
+    formFieldsRef.current = newFormFields;
     setFormFields(newFormFields);
 
     return !hasError;

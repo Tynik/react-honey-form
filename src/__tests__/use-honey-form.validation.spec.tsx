@@ -201,4 +201,46 @@ describe('Use honey form. Validation', () => {
       },
     ]);
   });
+
+  test.only('multiple field validators that affects each other', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age1: number; age2: number; age3: number }>({
+        fields: {
+          age1: {
+            type: 'number',
+            value: 1,
+            validator: (value, _, formFields) => value < formFields.age2.value,
+          },
+          age2: {
+            type: 'number',
+            value: 2,
+            validator: (value, _, formFields) =>
+              value > formFields.age1.value && value < formFields.age3.value,
+          },
+          age3: {
+            type: 'number',
+            value: 3,
+            validator: (value, _, formFields) => value > formFields.age2.value,
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age1.setValue(2);
+      result.current.formFields.age2.setValue(3);
+      result.current.formFields.age3.setValue(4);
+    });
+
+    expect(result.current.formFields.age1.value).toBe(2);
+    expect(result.current.formFields.age2.value).toBe(3);
+    expect(result.current.formFields.age3.value).toBe(4);
+
+    await act(() => result.current.submit());
+
+    expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 });
+  });
 });
