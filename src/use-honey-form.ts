@@ -96,7 +96,7 @@ const getNextHoneyFormFieldsState = <
     : [];
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const formattedValue = fieldConfig.format?.(value) ?? filteredValue;
+  const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
 
   nextFormFields[fieldName] = {
     ...formField,
@@ -222,13 +222,18 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
         Object.keys(values).forEach((fieldName: keyof Form) => {
           const fieldConfig = nextFormFields[fieldName].config;
 
+          const filteredValue = fieldConfig.filter
+            ? fieldConfig.filter(values[fieldName])
+            : values[fieldName];
+
           nextFormFields[fieldName] = {
             ...nextFormFields[fieldName],
             value: values[fieldName],
-            cleanValue: cleanHoneyFormFieldValue(
-              fieldConfig.type,
-              fieldConfig.filter ? fieldConfig.filter(values[fieldName]) : values[fieldName]
-            ),
+            cleanValue: cleanHoneyFormFieldValue(fieldConfig.type, filteredValue),
+            props: {
+              ...nextFormFields[fieldName].props,
+              value: fieldConfig.format?.(filteredValue) ?? filteredValue,
+            },
           };
         });
 

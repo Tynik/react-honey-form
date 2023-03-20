@@ -199,14 +199,22 @@ describe('Use honey form. General', () => {
     );
 
     expect(result.current.formFields.name.value).toBe('banana');
+    expect(result.current.formFields.name.cleanValue).toBe('banana');
+
     expect(result.current.formFields.kind.value).toBe('fruit');
+    expect(result.current.formFields.kind.cleanValue).toBe('fruit');
 
     act(() => {
       result.current.setFormValues({ name: 'apple' });
     });
 
     expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.name.cleanValue).toBe('apple');
+    expect(result.current.formFields.name.props.value).toBe('apple');
+
     expect(result.current.formFields.kind.value).toBe('fruit');
+    expect(result.current.formFields.kind.cleanValue).toBe('fruit');
+    expect(result.current.formFields.kind.props.value).toBe('fruit');
   });
 
   test('should partially set form values with clearing current values via setFormValues() function', () => {
@@ -228,7 +236,10 @@ describe('Use honey form. General', () => {
     });
 
     expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.name.cleanValue).toBe('apple');
+
     expect(result.current.formFields.kind.value).toBe(undefined);
+    expect(result.current.formFields.kind.cleanValue).toBe(undefined);
   });
 
   test.skip('use simple yup schema', () => {
