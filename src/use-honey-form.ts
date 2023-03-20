@@ -241,6 +241,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
           };
         });
 
+        formFieldsRef.current = nextFormFields;
         return nextFormFields;
       });
     },
