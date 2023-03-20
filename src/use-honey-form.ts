@@ -204,26 +204,39 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
 
-  const setFormValues = useCallback<UseHoneyFormSetFormValues<Form>>(values => {
-    setFormFields(formFields => {
-      const nextFormFields = { ...formFields };
+  const setFormValues = useCallback<UseHoneyFormSetFormValues<Form>>(
+    (values, { clearAll = false } = {}) => {
+      setFormFields(formFields => {
+        const nextFormFields = { ...formFields };
 
-      Object.keys(values).forEach((fieldName: keyof Form) => {
-        const fieldConfig = nextFormFields[fieldName].config;
+        if (clearAll) {
+          Object.keys(nextFormFields).forEach((fieldName: keyof Form) => {
+            nextFormFields[fieldName] = {
+              ...nextFormFields[fieldName],
+              value: undefined,
+              cleanValue: undefined,
+            };
+          });
+        }
 
-        nextFormFields[fieldName] = {
-          ...nextFormFields[fieldName],
-          value: values[fieldName],
-          cleanValue: cleanHoneyFormFieldValue(
-            fieldConfig.type,
-            fieldConfig.filter ? fieldConfig.filter(values[fieldName]) : values[fieldName]
-          ),
-        };
+        Object.keys(values).forEach((fieldName: keyof Form) => {
+          const fieldConfig = nextFormFields[fieldName].config;
+
+          nextFormFields[fieldName] = {
+            ...nextFormFields[fieldName],
+            value: values[fieldName],
+            cleanValue: cleanHoneyFormFieldValue(
+              fieldConfig.type,
+              fieldConfig.filter ? fieldConfig.filter(values[fieldName]) : values[fieldName]
+            ),
+          };
+        });
+
+        return nextFormFields;
       });
-
-      return nextFormFields;
-    });
-  }, []);
+    },
+    []
+  );
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, Value extends Form[FieldName]>(
