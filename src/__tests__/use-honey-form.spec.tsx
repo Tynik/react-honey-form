@@ -244,6 +244,23 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.props.value).toBe(undefined);
   });
 
+  test('using default field values with defaults form option', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        defaults: {
+          name: 'banana',
+        },
+      })
+    );
+
+    expect(result.current.formFields.name.value).toBe('banana');
+    expect(result.current.formFields.name.cleanValue).toBe('banana');
+    expect(result.current.formFields.name.props.value).toBe('banana');
+  });
+
   test.skip('use simple yup schema', () => {
     const schema = yup.object({
       name: yup.string(),

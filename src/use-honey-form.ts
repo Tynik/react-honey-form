@@ -27,19 +27,21 @@ import {
 const getInitialHoneyFormFieldsGetter =
   <Form extends UseHoneyBaseFormFields>(
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
-    {
-      setValue,
-    }: {
-      setValue: UseHoneyFormFieldSetValue<Form>;
-    }
+    defaults: Partial<Form>,
+    setValue: UseHoneyFormFieldSetValue<Form>
   ) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
-      initialFormFields[fieldName] = createHoneyFormField<Form>(fieldName, fieldConfig, {
-        setValue,
-      });
+      initialFormFields[fieldName] = createHoneyFormField<Form>(
+        fieldName,
+        defaults[fieldName],
+        fieldConfig,
+        {
+          setValue,
+        }
+      );
 
       return initialFormFields;
     }, {} as UseHoneyFormFields<Form>);
@@ -126,6 +128,7 @@ const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
 
 /**
  *
+ * @param defaults
  * @param fieldsConfig
  * @param onSubmit
  * @param onChange: When any field value is changed.
@@ -135,6 +138,7 @@ const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
 export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = void>({
   fields: fieldsConfig,
   schema,
+  defaults = {},
   onSubmit,
   onChange,
   onChangeDebounce,
@@ -197,9 +201,11 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
     });
   };
 
-  const initialFormFieldsGetter = getInitialHoneyFormFieldsGetter<Form>(fieldsConfig, {
-    setValue: setFieldValue,
-  });
+  const initialFormFieldsGetter = getInitialHoneyFormFieldsGetter<Form>(
+    fieldsConfig,
+    defaults,
+    setFieldValue
+  );
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
@@ -259,9 +265,10 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
           // eslint-disable-next-line no-console
           console.warn(`[use-honey-form] Form field "${fieldName.toString()}" is already present`);
         }
+
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField<Form, FieldName, Value>(fieldName, config, {
+          [fieldName]: createHoneyFormField<Form, FieldName, Value>(fieldName, undefined, config, {
             setValue: setFieldValue,
           }),
         };

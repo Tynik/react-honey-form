@@ -38,6 +38,7 @@ export type CreateHoneyFormField = <
   Value extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
+  fieldDefaultValue: Value,
   fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
   options: { setValue: UseHoneyFormFieldSetValue<Form> }
 ) => UseHoneyFormField<Form, Value>;
@@ -111,6 +112,7 @@ export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> =
   fields?: UseHoneyFormFieldsConfigs<Form>;
   // TODO: not implemented
   schema?: unknown;
+  defaults?: Partial<Form>;
   onSubmit?: (data: Form) => Promise<Response>;
   onChange?: (data: Form, errors: UseHoneyFormErrors<Form>) => void;
   onChangeDebounce?: number;
