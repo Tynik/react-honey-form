@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   UseHoneyBaseFormFields,
@@ -15,6 +15,7 @@ import type {
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
   UseHoneyFormSetFormValues,
+  UseHoneyFormDefaults,
 } from './use-honey-form.types';
 
 import {
@@ -27,16 +28,18 @@ import {
 const getInitialHoneyFormFieldsGetter =
   <Form extends UseHoneyBaseFormFields>(
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
-    defaults: Partial<Form>,
+    defaults: UseHoneyFormDefaults<Form>,
     setValue: UseHoneyFormFieldSetValue<Form>
   ) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
+      const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
+
       initialFormFields[fieldName] = createHoneyFormField<Form>(
         fieldName,
-        defaults[fieldName],
+        defaultFieldValue,
         fieldConfig,
         {
           setValue,
@@ -254,6 +257,14 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
     },
     []
   );
+
+  useEffect(() => {
+    if (typeof defaults === 'function') {
+      defaults()
+        .then(setFormValues)
+        .catch(() => {});
+    }
+  }, []);
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, Value extends Form[FieldName]>(

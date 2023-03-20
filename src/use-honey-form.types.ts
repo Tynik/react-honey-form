@@ -108,11 +108,15 @@ export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
   [K in keyof Form]: UseHoneyFormFieldConfig<Form, Form[K]>;
 };
 
+export type UseHoneyFormDefaults<Form extends UseHoneyBaseFormFields> =
+  | Partial<Form>
+  | (() => Promise<Partial<Form>>);
+
 export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> = {
   fields?: UseHoneyFormFieldsConfigs<Form>;
   // TODO: not implemented
   schema?: unknown;
-  defaults?: Partial<Form>;
+  defaults?: UseHoneyFormDefaults<Form>;
   onSubmit?: (data: Form) => Promise<Response>;
   onChange?: (data: Form, errors: UseHoneyFormErrors<Form>) => void;
   onChangeDebounce?: number;
