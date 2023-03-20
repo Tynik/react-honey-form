@@ -100,8 +100,8 @@ const getNextHoneyFormFieldsState = <
 
   nextFormFields[fieldName] = {
     ...formField,
-    cleanValue: errors.length ? undefined : cleanValue,
     value: formattedValue as never,
+    cleanValue: errors.length ? undefined : cleanValue,
     props: {
       ...formField.props,
       value: formattedValue as never,
@@ -230,18 +230,19 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
             ? fieldConfig.filter(values[fieldName])
             : values[fieldName];
 
+          const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
+
           nextFormFields[fieldName] = {
             ...nextFormFields[fieldName],
-            value: values[fieldName],
+            value: formattedValue,
             cleanValue: cleanHoneyFormFieldValue(fieldConfig.type, filteredValue),
             props: {
               ...nextFormFields[fieldName].props,
-              value: fieldConfig.format?.(filteredValue) ?? filteredValue,
+              value: formattedValue,
             },
           };
         });
 
-        formFieldsRef.current = nextFormFields;
         return nextFormFields;
       });
     },
@@ -325,6 +326,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
         if (errors.length) {
           hasError = true;
         }
+
         formFields[fieldName] = { ...formField, cleanValue, errors };
 
         return formFields;
