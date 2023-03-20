@@ -14,6 +14,7 @@ import type {
   UseHoneyFormAddError,
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
+  UseHoneyFormSetFormValues,
 } from './use-honey-form.types';
 
 import {
@@ -143,6 +144,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   isSubmitting: boolean;
   errors: UseHoneyFormErrors<Form>;
   // functions
+  setFormValues: UseHoneyFormSetFormValues<Form>;
   addFormField: UseHoneyFormAddFormField<Form>;
   removeFormField: UseHoneyFormRemoveFormField<Form>;
   addError: UseHoneyFormAddError<Form>;
@@ -201,6 +203,27 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
+
+  const setFormValues = useCallback<UseHoneyFormSetFormValues<Form>>(values => {
+    setFormFields(formFields => {
+      const nextFormFields = { ...formFields };
+
+      Object.keys(values).forEach((fieldName: keyof Form) => {
+        const fieldConfig = nextFormFields[fieldName].config;
+
+        nextFormFields[fieldName] = {
+          ...nextFormFields[fieldName],
+          value: values[fieldName],
+          cleanValue: cleanHoneyFormFieldValue(
+            fieldConfig.type,
+            fieldConfig.filter ? fieldConfig.filter(values[fieldName]) : values[fieldName]
+          ),
+        };
+      });
+
+      return nextFormFields;
+    });
+  }, []);
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, Value extends Form[FieldName]>(
@@ -326,6 +349,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
     isSubmitting,
     errors,
     // functions
+    setFormValues,
     addFormField,
     removeFormField,
     addError,

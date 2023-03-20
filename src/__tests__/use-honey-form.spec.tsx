@@ -184,6 +184,31 @@ describe('Use honey form. General', () => {
     await waitFor(() => expect(onChange.mock.calls[1][0]).toStrictEqual({ name: 'a', kind: 'f' }));
   });
 
+  test('should set form values via setFormValues() function', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; kind: string }>({
+        fields: {
+          name: {
+            value: 'banana',
+          },
+          kind: {
+            value: 'fruit',
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.name.value).toBe('banana');
+    expect(result.current.formFields.kind.value).toBe('fruit');
+
+    act(() => {
+      result.current.setFormValues({ name: 'apple' });
+    });
+
+    expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.kind.value).toBe('fruit');
+  });
+
   test.skip('use simple yup schema', () => {
     const schema = yup.object({
       name: yup.string(),

@@ -125,6 +125,10 @@ export type UseHoneyFormSubmit<Form extends UseHoneyBaseFormFields, Response> = 
 
 export type UseHoneyFormReset = () => void;
 
+export type UseHoneyFormSetFormValues<Form extends UseHoneyBaseFormFields> = (
+  values: Partial<Form>
+) => void;
+
 export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,
   Value extends Form[FieldName]
