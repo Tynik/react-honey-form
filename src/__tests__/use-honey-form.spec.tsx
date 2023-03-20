@@ -237,9 +237,11 @@ describe('Use honey form. General', () => {
 
     expect(result.current.formFields.name.value).toBe('apple');
     expect(result.current.formFields.name.cleanValue).toBe('apple');
+    expect(result.current.formFields.name.props.value).toBe('apple');
 
     expect(result.current.formFields.kind.value).toBe(undefined);
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
+    expect(result.current.formFields.kind.props.value).toBe(undefined);
   });
 
   test.skip('use simple yup schema', () => {

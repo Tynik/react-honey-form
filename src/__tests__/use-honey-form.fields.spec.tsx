@@ -216,7 +216,9 @@ describe('Use honey form. Dependent fields', () => {
     });
 
     expect(result.current.formFields.city.value).toBe('New Jersey');
+
     expect(result.current.formFields.address.value).toBeUndefined();
+    expect(result.current.formFields.address.props.value).toBeUndefined();
   });
 
   test('dependent field values should be cleared in chain when parent field value is changed', () => {
@@ -249,8 +251,12 @@ describe('Use honey form. Dependent fields', () => {
     });
 
     expect(result.current.formFields.city.value).toBe('New York');
+
     expect(result.current.formFields.address.value).toBeUndefined();
+    expect(result.current.formFields.address.props.value).toBeUndefined();
+
     expect(result.current.formFields.ap.value).toBeUndefined();
+    expect(result.current.formFields.ap.props.value).toBeUndefined();
   });
 
   test('cleared dependent field value should not be submitted', async () => {
@@ -299,14 +305,18 @@ describe('Use honey form. Dependent fields', () => {
     });
 
     expect(result.current.formFields.address1.value).toBeUndefined();
+    expect(result.current.formFields.address1.props.value).toBeUndefined();
+
     expect(result.current.formFields.address2.value).toBe('71st Queens');
 
     act(() => {
       result.current.formFields.address1.setValue('132st Rich-Port');
     });
 
-    expect(result.current.formFields.address2.value).toBeUndefined();
     expect(result.current.formFields.address1.value).toBe('132st Rich-Port');
+
+    expect(result.current.formFields.address2.value).toBeUndefined();
+    expect(result.current.formFields.address2.props.value).toBeUndefined();
   });
 });
 

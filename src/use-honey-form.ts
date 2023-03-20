@@ -215,6 +215,10 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
               ...nextFormFields[fieldName],
               value: undefined,
               cleanValue: undefined,
+              props: {
+                ...nextFormFields[fieldName].props,
+                value: undefined,
+              },
             };
           });
         }

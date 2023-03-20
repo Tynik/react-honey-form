@@ -144,6 +144,10 @@ export const clearHoneyFormDependentFields = <
         ...formFields[otherFieldName],
         value: undefined,
         cleanValue: undefined,
+        props: {
+          ...formFields[fieldName].props,
+          value: undefined,
+        },
       };
 
       if (otherFieldName !== initiatorFieldName) {
