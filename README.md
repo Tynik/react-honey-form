@@ -13,8 +13,8 @@
 
 1. `formFields` - The object of all form fields, where a key is a field name and a value as the field properties.
 1. `setFormValues` - Set form values. Support partial field values setting. The option `clearAll` can be used to clear other fields which were not mentioned.
-1. `areFetchingDefaults` - By default is `false`. Becomes `true` when form defaults values being retrieved from Promise function. Returns to `false` when default values successfully/erred retrieved.
-1. `areFetchingDefaultsErred` - By default is `false`. Becomes `true` when default values cannot be retrieved from Promise function.
+1. `areDefaultsFetching` - By default is `false`. Becomes `true` when form defaults values being retrieved from Promise function. Returns to `false` when default values successfully/erred retrieved.
+1. `areDefaultsFetchingErred` - By default is `false`. Becomes `true` when default values cannot be retrieved from Promise function.
 1. `isDirty` - By default is `false`. Becomes `true` when any field value is changed. Returns to `false` when form successfully submitted.
 1. `isSubmitting` - Becomes `true` when form is submitting.
 1. `errors` - The object that includes all fields errors. By default, is `{}`. When field has any error the field appears in that object as a key and a value is array of field errors.

@@ -147,8 +147,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   onChangeDebounce,
 }: UseHoneyFormOptions<Form, Response>): {
   formFields: UseHoneyFormFields<Form>;
-  areFetchingDefaults: boolean;
-  areFetchingDefaultsErred: boolean;
+  areDefaultsFetching: boolean;
+  areDefaultsFetchingErred: boolean;
   isDirty: boolean;
   isSubmitting: boolean;
   errors: UseHoneyFormErrors<Form>;
@@ -169,8 +169,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   const isDirtyRef = useRef(false);
 
-  const [areFetchingDefaults, setAreFetchingDefaults] = useState(false);
-  const [areFetchingDefaultsErred, setAreFetchingDefaultsErred] = useState(false);
+  const [areDefaultsFetching, setAreFetchingDefaults] = useState(false);
+  const [areDefaultsFetchingErred, setAreFetchingDefaultsErred] = useState(false);
 
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
@@ -401,8 +401,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   return {
     formFields,
-    areFetchingDefaults,
-    areFetchingDefaultsErred,
+    areDefaultsFetching,
+    areDefaultsFetchingErred,
     isDirty: isDirtyRef.current,
     isSubmitting,
     errors,

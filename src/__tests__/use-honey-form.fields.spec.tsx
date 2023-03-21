@@ -227,9 +227,9 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.cleanValue).toBeUndefined();
     expect(result.current.formFields.name.props.value).toBeUndefined();
 
-    await waitFor(() => expect(result.current.areFetchingDefaults).toBeTruthy());
+    await waitFor(() => expect(result.current.areDefaultsFetching).toBeTruthy());
 
-    await waitFor(() => expect(result.current.areFetchingDefaults).toBeFalsy());
+    await waitFor(() => expect(result.current.areDefaultsFetching).toBeFalsy());
 
     expect(result.current.formFields.name.value).toBe('banana');
     expect(result.current.formFields.name.cleanValue).toBe('banana');
