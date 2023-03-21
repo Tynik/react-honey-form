@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect } from 'react';
-import { act, render, renderHook } from '@testing-library/react';
+import { act, render, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -187,6 +187,53 @@ describe('Use honey form. Fields', () => {
     });
 
     expect(result.current.formFields.items.value).toStrictEqual([]);
+  });
+
+  test('set default field values', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        defaults: {
+          name: 'banana',
+        },
+      })
+    );
+
+    expect(result.current.formFields.name.value).toBe('banana');
+    expect(result.current.formFields.name.cleanValue).toBe('banana');
+    expect(result.current.formFields.name.props.value).toBe('banana');
+  });
+
+  test('set default field values via Promise function', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        defaults: () =>
+          new Promise(resolve => {
+            setTimeout(() => {
+              resolve({
+                name: 'banana',
+              });
+            });
+          }),
+      })
+    );
+
+    expect(result.current.formFields.name.value).toBeUndefined();
+    expect(result.current.formFields.name.cleanValue).toBeUndefined();
+    expect(result.current.formFields.name.props.value).toBeUndefined();
+
+    await waitFor(() => expect(result.current.areFetchingDefaults).toBeTruthy());
+
+    await waitFor(() => expect(result.current.areFetchingDefaults).toBeFalsy());
+
+    expect(result.current.formFields.name.value).toBe('banana');
+    expect(result.current.formFields.name.cleanValue).toBe('banana');
+    expect(result.current.formFields.name.props.value).toBe('banana');
   });
 });
 

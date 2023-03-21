@@ -147,6 +147,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   onChangeDebounce,
 }: UseHoneyFormOptions<Form, Response>): {
   formFields: UseHoneyFormFields<Form>;
+  areFetchingDefaults: boolean;
+  areFetchingDefaultsErred: boolean;
   isDirty: boolean;
   isSubmitting: boolean;
   errors: UseHoneyFormErrors<Form>;
@@ -165,7 +167,10 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isDirtyRef = useRef<boolean>(false);
+  const isDirtyRef = useRef(false);
+
+  const [areFetchingDefaults, setAreFetchingDefaults] = useState(false);
+  const [areFetchingDefaultsErred, setAreFetchingDefaultsErred] = useState(false);
 
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
@@ -260,9 +265,17 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   useEffect(() => {
     if (typeof defaults === 'function') {
+      setAreFetchingDefaults(true);
+
       defaults()
-        .then(setFormValues)
-        .catch(() => {});
+        .then(values => {
+          setAreFetchingDefaults(false);
+          setFormValues(values);
+        })
+        .catch(() => {
+          setAreFetchingDefaults(false);
+          setAreFetchingDefaultsErred(true);
+        });
     }
   }, []);
 
@@ -388,6 +401,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
   return {
     formFields,
+    areFetchingDefaults,
+    areFetchingDefaultsErred,
     isDirty: isDirtyRef.current,
     isSubmitting,
     errors,

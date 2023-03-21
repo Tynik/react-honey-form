@@ -184,7 +184,7 @@ describe('Use honey form. General', () => {
     await waitFor(() => expect(onChange.mock.calls[1][0]).toStrictEqual({ name: 'a', kind: 'f' }));
   });
 
-  test('should partially set form values via setFormValues() function', () => {
+  test('should partially set form values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
@@ -217,7 +217,7 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.props.value).toBe('fruit');
   });
 
-  test('should partially set form values with clearing current values via setFormValues() function', () => {
+  test('should partially set form values with clearing all values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
@@ -242,23 +242,6 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.value).toBe(undefined);
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
     expect(result.current.formFields.kind.props.value).toBe(undefined);
-  });
-
-  test('using default field values with defaults form option', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string }>({
-        fields: {
-          name: {},
-        },
-        defaults: {
-          name: 'banana',
-        },
-      })
-    );
-
-    expect(result.current.formFields.name.value).toBe('banana');
-    expect(result.current.formFields.name.cleanValue).toBe('banana');
-    expect(result.current.formFields.name.props.value).toBe('banana');
   });
 
   test.skip('use simple yup schema', () => {
