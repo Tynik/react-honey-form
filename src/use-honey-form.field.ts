@@ -140,21 +140,29 @@ export const clearHoneyFormDependentFields = <
   initiatorFieldName = initiatorFieldName || fieldName;
 
   Object.keys(formFields).forEach((otherFieldName: keyof Form) => {
-    const otherField = formFields[otherFieldName];
+    if (otherFieldName === fieldName) {
+      return;
+    }
 
-    if (fieldName === otherField.config.dependsOn) {
+    const { dependsOn } = formFields[otherFieldName].config;
+
+    const isDependent = Array.isArray(dependsOn)
+      ? dependsOn.includes(fieldName)
+      : fieldName === dependsOn;
+
+    if (isDependent) {
       formFields[otherFieldName] = {
         ...formFields[otherFieldName],
         value: undefined,
         cleanValue: undefined,
         props: {
-          ...formFields[fieldName].props,
+          ...formFields[otherFieldName].props,
           value: undefined,
         },
       };
 
       if (otherFieldName !== initiatorFieldName) {
-        clearHoneyFormDependentFields(formFields, otherFieldName, initiatorFieldName);
+        clearHoneyFormDependentFields(formFields, otherFieldName, fieldName);
       }
     }
   });

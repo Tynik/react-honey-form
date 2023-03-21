@@ -23,7 +23,7 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanVa
   negative?: boolean;
   maxFraction?: number;
   // clear that field value when dependent field is changed
-  dependsOn?: keyof Form;
+  dependsOn?: keyof Form | (keyof Form)[];
   mode?: 'onChange' | 'onBlur';
   validator?: UseHoneyFormFieldValidator<Form, CleanValue>;
   // Remove some chars from value

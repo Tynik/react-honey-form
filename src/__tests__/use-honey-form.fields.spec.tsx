@@ -365,6 +365,38 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.address2.value).toBeUndefined();
     expect(result.current.formFields.address2.props.value).toBeUndefined();
   });
+
+  test('cross dependent fields with clearing each other', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; category: string; customCategory: string }>({
+        fields: {
+          name: {},
+          category: {
+            dependsOn: ['name', 'customCategory'],
+          },
+          customCategory: {
+            dependsOn: 'category',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('apple');
+      result.current.formFields.category.setValue('fruits');
+    });
+
+    expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.category.value).toBe('fruits');
+
+    act(() => {
+      result.current.formFields.customCategory.setValue('my-fruits');
+    });
+
+    expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.category.value).toBeUndefined();
+    expect(result.current.formFields.customCategory.value).toBe('my-fruits');
+  });
 });
 
 describe('Use honey form. Work with dynamic fields', () => {
