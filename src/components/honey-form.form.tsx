@@ -5,11 +5,15 @@ import type { UseHoneyBaseFormFields, UseHoneyFormApi } from '../use-honey-form.
 
 import { useHoneyFormProvider } from './honey-form.provider';
 
+export type FormContent<Form extends UseHoneyBaseFormFields, Response> =
+  | ReactNode
+  | ((honeyFormApi: UseHoneyFormApi<Form, Response>) => ReactNode);
+
 export type HoneyFormFormProps<Form extends UseHoneyBaseFormFields, Response> = Omit<
   FormHTMLAttributes<unknown>,
   'onSubmit' | 'children'
 > & {
-  children?: (honeyFormApi: UseHoneyFormApi<Form, Response>) => ReactNode;
+  children?: FormContent<Form, Response>;
 };
 
 export const HoneyFormForm = <Form extends UseHoneyBaseFormFields, Response>({
@@ -26,7 +30,7 @@ export const HoneyFormForm = <Form extends UseHoneyBaseFormFields, Response>({
 
   return (
     <form data-testid="form" onSubmit={onSubmit} {...props}>
-      {children?.(honeyFormApi as never)}
+      {typeof children === 'function' ? children(honeyFormApi as never) : children}
     </form>
   );
 };

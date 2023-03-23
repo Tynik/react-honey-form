@@ -1,9 +1,8 @@
 import React from 'react';
 
-import type { ReactNode } from 'react';
-import type { UseHoneyBaseFormFields, UseHoneyFormApi } from '../use-honey-form.types';
+import type { UseHoneyBaseFormFields } from '../use-honey-form.types';
 import type { HoneyFormProviderProps } from './honey-form.provider';
-import type { HoneyFormFormProps } from './honey-form.form';
+import type { HoneyFormFormProps, FormContent } from './honey-form.form';
 
 import { HoneyFormProvider } from './honey-form.provider';
 import { HoneyFormForm } from './honey-form.form';
@@ -12,7 +11,7 @@ type HoneyFormProps<Form extends UseHoneyBaseFormFields, Response = void> = Hone
   Form,
   Response
 > & {
-  children?: (honeyFormApi: UseHoneyFormApi<Form, Response>) => ReactNode;
+  children?: FormContent<Form, Response>;
   formProps?: HoneyFormFormProps<Form, Response>;
 };
 

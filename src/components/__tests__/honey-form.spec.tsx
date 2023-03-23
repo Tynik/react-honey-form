@@ -14,12 +14,32 @@ describe('HoneyForm component', () => {
     expect(getByTestId('form')).toBeDefined();
   });
 
-  it('the form should be submitted', async () => {
-    const onSubmit = jest.fn();
-
+  it('the form should accept the function as content', () => {
     type Form = {
       name: string;
     };
+
+    const fields: UseHoneyFormFieldsConfigs<Form> = { name: {} };
+
+    const { getByTestId } = render(
+      <HoneyForm fields={fields}>
+        {honeyFormApi => (
+          <button type="submit" data-testid="save">
+            Save
+          </button>
+        )}
+      </HoneyForm>
+    );
+
+    expect(getByTestId('save')).toBeDefined();
+  });
+
+  it('the form should be submitted when submit btn is clicked', async () => {
+    type Form = {
+      name: string;
+    };
+
+    const onSubmit = jest.fn<Promise<void>, Form[]>();
 
     const fields: UseHoneyFormFieldsConfigs<Form> = {
       name: {
@@ -29,11 +49,9 @@ describe('HoneyForm component', () => {
 
     const { getByTestId } = render(
       <HoneyForm fields={fields} onSubmit={onSubmit}>
-        {honeyFormApi => (
-          <button type="submit" data-testid="save">
-            Save
-          </button>
-        )}
+        <button type="submit" data-testid="save">
+          Save
+        </button>
       </HoneyForm>
     );
 
