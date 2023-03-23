@@ -140,17 +140,12 @@ const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
  * @param onChangeDebounce number: Debounce time for onChange() callback
  */
 export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = void>({
-  fields: fieldsConfig,
-  schema,
+  fields: fieldsConfig = {} as never,
   defaults = {},
   onSubmit,
   onChange,
   onChangeDebounce,
 }: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
-  if (!fieldsConfig && !schema) {
-    throw new Error('[use-honey-form] fields or schema should be provided as option');
-  }
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isDirtyRef = useRef(false);
@@ -266,9 +261,9 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   }, []);
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
-    <FieldName extends keyof Form, Value extends Form[FieldName]>(
+    <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
       fieldName: FieldName,
-      config: UseHoneyFormFieldConfig<Form, Value>
+      config: UseHoneyFormFieldConfig<Form, FieldValue>
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
@@ -278,9 +273,14 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField<Form, FieldName, Value>(fieldName, undefined, config, {
-            setValue: setFieldValue,
-          }),
+          [fieldName]: createHoneyFormField<Form, FieldName, FieldValue>(
+            fieldName,
+            undefined,
+            config,
+            {
+              setValue: setFieldValue,
+            }
+          ),
         };
       });
     },
