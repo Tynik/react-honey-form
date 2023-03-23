@@ -122,6 +122,23 @@ export type UseHoneyFormOptions<Form extends UseHoneyBaseFormFields, Response> =
   onChangeDebounce?: number;
 };
 
+export type UseHoneyFormApi<Form extends UseHoneyBaseFormFields, Response> = {
+  formFields: UseHoneyFormFields<Form>;
+  areDefaultsFetching: boolean;
+  areDefaultsFetchingErred: boolean;
+  isDirty: boolean;
+  isSubmitting: boolean;
+  errors: UseHoneyFormErrors<Form>;
+  // functions
+  setFormValues: UseHoneyFormSetFormValues<Form>;
+  addFormField: UseHoneyFormAddFormField<Form>;
+  removeFormField: UseHoneyFormRemoveFormField<Form>;
+  addError: UseHoneyFormAddError<Form>;
+  resetErrors: UseHoneyFormResetErrors;
+  submit: UseHoneyFormSubmit<Form, Response>;
+  reset: UseHoneyFormReset;
+};
+
 export type UseHoneyFormErrors<Form extends UseHoneyBaseFormFields> =
   | { [K in keyof Form]: UseHoneyFormFieldError[] };
 

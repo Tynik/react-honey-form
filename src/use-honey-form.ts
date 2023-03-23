@@ -16,6 +16,7 @@ import type {
   UseHoneyFormResetErrors,
   UseHoneyFormSetFormValues,
   UseHoneyFormDefaults,
+  UseHoneyFormApi,
 } from './use-honey-form.types';
 
 import {
@@ -145,22 +146,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   onSubmit,
   onChange,
   onChangeDebounce,
-}: UseHoneyFormOptions<Form, Response>): {
-  formFields: UseHoneyFormFields<Form>;
-  areDefaultsFetching: boolean;
-  areDefaultsFetchingErred: boolean;
-  isDirty: boolean;
-  isSubmitting: boolean;
-  errors: UseHoneyFormErrors<Form>;
-  // functions
-  setFormValues: UseHoneyFormSetFormValues<Form>;
-  addFormField: UseHoneyFormAddFormField<Form>;
-  removeFormField: UseHoneyFormRemoveFormField<Form>;
-  addError: UseHoneyFormAddError<Form>;
-  resetErrors: UseHoneyFormResetErrors;
-  submit: UseHoneyFormSubmit<Form, Response>;
-  reset: UseHoneyFormReset;
-} => {
+}: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
   if (!fieldsConfig && !schema) {
     throw new Error('[use-honey-form] fields or schema should be provided as option');
   }
