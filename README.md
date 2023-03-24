@@ -61,7 +61,7 @@ type ProfileForm = {
 }
 
 const Form = () => {
-  const { formFields, submit } = useForm<ProfileForm>({
+  const { formFields, submit } = useHoneyForm<ProfileForm>({
     fields: {
       name: {
         required: true
