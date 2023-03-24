@@ -1,6 +1,5 @@
-# react-honey-form
+# React Honey Form
 
-*Create the simple form using React.*
 
 [![Latest version](https://img.shields.io/npm/v/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Publish status](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml/badge.svg)](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml)
@@ -8,6 +7,8 @@
 [![Downloads statistic](https://img.shields.io/npm/dm/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Commit activity](https://img.shields.io/github/commit-activity/m/tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Licence](https://img.shields.io/npm/l/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
+
+*That's a React library for creating and managing forms with ease. It provides a set of customizable and extensible components that make it easy to create forms that match your application's look and feel.*
 
 ## Intro
 
@@ -83,3 +84,7 @@ const Form = () => {
   </form>;
 }
 ```
+
+## Conclusion
+
+The `react-honey-form` is a powerful and customizable library for creating and managing forms in React. With its set of components and hooks, you can easily create forms that match your application's look and feel, and manage form submission and validation with ease.
