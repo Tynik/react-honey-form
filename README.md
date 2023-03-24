@@ -1,6 +1,6 @@
 # react-honey-form
 
-*Create the simple form using React via configuration.*
+*Create the simple form using React.*
 
 [![Latest version](https://img.shields.io/npm/v/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Publish status](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml/badge.svg)](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml)
@@ -9,9 +9,25 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Licence](https://img.shields.io/npm/l/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 
-## API
+## Intro
 
-1. `formFields` - The object of all form fields, where a key is a field name and a value as the field properties.
+The `useHoneyForm` is a custom React hook that provides a form state management functionality with a set of useful features such as field validation, error handling, form submission and resetting and default values.
+
+## Parameters
+
+The `useHoneyForm` hook takes an options object as a single argument with the following properties:
+
+1. `fields` - An object that defines the fields of the form. Each field is an object that defines its properties such as type, required, value, min, max, etc. See more in the `UseHoneyFormFieldConfig` type.
+1. `defaults` - An optional object that defines the default values for the form fields.
+1. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
+1. `onChange` - An optional callback function that will be called when any field value is changed.
+1. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback.
+
+## Return value
+
+The `useHoneyForm` hook returns an object with the following properties:
+
+1. `formFields` - An object that contains the state of the form fields. Each field has a value, cleanValue, errors, props, and config properties. The `value` property is the current value of the field, `cleanValue` is the parsed value of the field after applying any formatting or cleaning functions, `errors` is an array of error messages if the field is invalid, `props` is an object with the necessary props to bind to the corresponding input element in the form, and `config` is the original configuration object of the field.
 1. `setFormValues` - Set form values. Support partial field values setting. The option `clearAll` can be used to clear other fields which were not mentioned.
 1. `areDefaultsFetching` - By default is `false`. Becomes `true` when form defaults values being retrieved from Promise function. Returns to `false` when default values successfully/erred retrieved.
 1. `areDefaultsFetchingErred` - By default is `false`. Becomes `true` when default values cannot be retrieved from Promise function.
