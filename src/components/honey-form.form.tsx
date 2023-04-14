@@ -29,7 +29,7 @@ export const HoneyFormForm = <Form extends UseHoneyBaseFormFields, Response>({
   };
 
   return (
-    <form data-testid="form" onSubmit={onSubmit} {...props}>
+    <form onSubmit={onSubmit} data-testid="form" noValidate {...props}>
       {typeof children === 'function' ? children(honeyFormApi as never) : children}
     </form>
   );

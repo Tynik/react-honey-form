@@ -23,7 +23,7 @@ describe('HoneyForm component', () => {
 
     const { getByTestId } = render(
       <HoneyForm fields={fields}>
-        {honeyFormApi => (
+        {() => (
           <button type="submit" data-testid="save">
             Save
           </button>
