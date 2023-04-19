@@ -42,6 +42,7 @@ export const createHoneyFormField: CreateHoneyFormField = (
     cleanValue: defaultValue,
     value: defaultValue,
     errors: [],
+    isTouched: false,
     props: {
       ref,
       value: defaultValue,

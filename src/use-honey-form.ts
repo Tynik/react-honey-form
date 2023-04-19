@@ -156,11 +156,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const setFieldValue = <FieldName extends keyof Form, Value extends Form[FieldName]>(
-    fieldName: FieldName,
-    value: Value,
-    validate: boolean
-  ) => {
+  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, value, validate) => {
     isDirtyRef.current = true;
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -169,10 +165,20 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
         clearTimeout(onChangeTimeoutRef.current);
       }
 
-      const nextFormFields = getNextHoneyFormFieldsState<Form, FieldName, Value>(fieldName, value, {
+      const nextFormFields = getNextHoneyFormFieldsState(fieldName, value, {
         formFields,
         validate,
       });
+
+      const fieldConfig = nextFormFields[fieldName].config;
+
+      if (fieldConfig.onChange) {
+        window.setTimeout(() => {
+          fieldConfig.onChange(nextFormFields[fieldName].cleanValue, {
+            setFieldValue,
+          });
+        }, 0);
+      }
 
       // call onChange() on next iteration to do not affect new state return
       if (onChange) {

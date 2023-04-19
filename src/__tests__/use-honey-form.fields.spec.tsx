@@ -235,6 +235,33 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.cleanValue).toBe('banana');
     expect(result.current.formFields.name.props.value).toBe('banana');
   });
+
+  test('should call onChange() when field value is changed', async () => {
+    const onNameChange = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            onChange: onNameChange,
+          },
+        },
+      })
+    );
+
+    expect(onNameChange).not.toBeCalled();
+
+    act(() => {
+      result.current.formFields.name.setValue('Dan');
+    });
+
+    await waitFor(() =>
+      expect(onNameChange).toBeCalledWith('Dan', {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        setFieldValue: expect.any(Function),
+      })
+    );
+  });
 });
 
 describe('Use honey form. Dependent fields', () => {

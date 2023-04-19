@@ -13,6 +13,19 @@ export type UseHoneyFormFieldType = 'number';
  */
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
 
+export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
+  FieldName extends keyof Form,
+  Value extends Form[FieldName]
+>(
+  fieldName: FieldName,
+  value: Value,
+  validate: boolean
+) => void;
+
+type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyBaseFormFields> = {
+  setFieldValue: UseHoneyFormFieldSetValue<Form>;
+};
+
 export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanValue> = {
   value?: CleanValue;
   type?: UseHoneyFormFieldType;
@@ -30,6 +43,7 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanVa
   filter?: (value: CleanValue) => CleanValue;
   // Modify a value
   format?: (value: CleanValue) => unknown;
+  onChange?: (value: CleanValue, formApi: UseHoneyFormFieldOnChangeFormApi<Form>) => void;
 };
 
 export type CreateHoneyFormField = <
@@ -93,6 +107,7 @@ export type UseHoneyFormField<
     onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
   };
   readonly config: UseHoneyFormFieldConfig<Form, CleanValue>;
+  readonly isTouched: boolean;
   // functions
   readonly setValue: (value: CleanValue) => void;
   readonly focus: () => void;
@@ -164,15 +179,6 @@ type UseHoneyFormSetFormValuesOptions = {
 export type UseHoneyFormSetFormValues<Form extends UseHoneyBaseFormFields> = (
   values: Partial<Form>,
   options?: UseHoneyFormSetFormValuesOptions
-) => void;
-
-export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
-  FieldName extends keyof Form,
-  Value extends Form[FieldName]
->(
-  fieldName: FieldName,
-  value: Value,
-  validate: boolean
 ) => void;
 
 export type UseHoneyFormAddFormField<Form extends UseHoneyBaseFormFields> = <

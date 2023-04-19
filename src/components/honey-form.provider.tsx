@@ -31,5 +31,10 @@ export const HoneyFormProvider = <Form extends UseHoneyBaseFormFields, Response 
 };
 
 export const useHoneyFormProvider = () => {
-  return useContext(HoneyFormContext);
+  const formContext = useContext(HoneyFormContext);
+  if (!formContext) {
+    throw new Error('useHoneyFormProvider() can be used only inside <HoneyFormProvider/>');
+  }
+
+  return formContext;
 };
