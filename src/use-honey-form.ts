@@ -97,9 +97,7 @@ const getNextHoneyFormFieldsState = <
 
   const cleanValue = cleanHoneyFormFieldValue(fieldConfig.type, filteredValue);
 
-  const errors = validate
-    ? validateHoneyFormField<Form, FieldName, Value>(cleanValue, fieldConfig, formFields)
-    : [];
+  const errors = validate ? validateHoneyFormField(cleanValue, fieldConfig, formFields) : [];
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
@@ -107,6 +105,7 @@ const getNextHoneyFormFieldsState = <
   nextFormFields[fieldName] = {
     ...formField,
     value: formattedValue as never,
+    // set clean value as undefined if any error is present
     cleanValue: errors.length ? undefined : cleanValue,
     props: {
       ...formField.props,
@@ -279,14 +278,9 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField<Form, FieldName, FieldValue>(
-            fieldName,
-            undefined,
-            config,
-            {
-              setValue: setFieldValue,
-            }
-          ),
+          [fieldName]: createHoneyFormField(fieldName, undefined, config, {
+            setValue: setFieldValue,
+          }),
         };
       });
     },
@@ -341,11 +335,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         const cleanValue = cleanHoneyFormFieldValue(formField.config.type, value);
 
-        const errors = validateHoneyFormField<Form>(
-          cleanValue,
-          formField.config,
-          formFieldsRef.current
-        );
+        const errors = validateHoneyFormField(cleanValue, formField.config, formFieldsRef.current);
         if (errors.length) {
           hasError = true;
         }
