@@ -1,4 +1,5 @@
-import React from 'react';
+import type { Ref } from 'react';
+import React, { forwardRef } from 'react';
 
 import type { UseHoneyBaseFormFields } from '../use-honey-form.types';
 import type { HoneyFormProviderProps } from './honey-form.provider';
@@ -6,6 +7,7 @@ import type { HoneyFormFormProps, FormContent } from './honey-form.form';
 
 import { HoneyFormProvider } from './honey-form.provider';
 import { HoneyFormForm } from './honey-form.form';
+import { genericMemo } from '../use-honey-form.helpers';
 
 type HoneyFormProps<Form extends UseHoneyBaseFormFields, Response = void> = HoneyFormProviderProps<
   Form,
@@ -15,14 +17,21 @@ type HoneyFormProps<Form extends UseHoneyBaseFormFields, Response = void> = Hone
   formProps?: HoneyFormFormProps<Form, Response>;
 };
 
-export const HoneyForm = <Form extends UseHoneyBaseFormFields, Response = void>({
-  children,
-  formProps,
-  ...props
-}: HoneyFormProps<Form, Response>) => {
+const HoneyFormComponent = <Form extends UseHoneyBaseFormFields, Response = void>(
+  { children, formProps, ...props }: HoneyFormProps<Form, Response>,
+  ref: Ref<HTMLFormElement>
+) => {
   return (
     <HoneyFormProvider {...props}>
-      <HoneyFormForm {...formProps}>{children}</HoneyFormForm>
+      <HoneyFormForm ref={ref} {...formProps}>
+        {children}
+      </HoneyFormForm>
     </HoneyFormProvider>
   );
 };
+
+export const HoneyForm = genericMemo(
+  forwardRef(HoneyFormComponent) as <Form extends UseHoneyBaseFormFields, Response = void>(
+    props: HoneyFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>
+  ) => React.ReactElement
+);

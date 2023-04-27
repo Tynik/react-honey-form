@@ -1,6 +1,6 @@
-import React, { forwardRef, memo } from 'react';
+import React, { forwardRef } from 'react';
 
-import type { FormEventHandler, FormHTMLAttributes, ReactNode } from 'react';
+import type { Ref, FormEventHandler, FormHTMLAttributes, ReactNode } from 'react';
 import type { UseHoneyBaseFormFields, UseHoneyFormApi } from '../use-honey-form.types';
 
 import { useHoneyFormProvider } from './honey-form.provider';
@@ -16,20 +16,28 @@ export type HoneyFormFormProps<Form extends UseHoneyBaseFormFields, Response> = 
   children?: FormContent<Form, Response>;
 };
 
-export const HoneyFormForm = memo(
-  forwardRef<HTMLFormElement, HoneyFormFormProps<any, any>>(({ children, ...props }, ref) => {
-    const honeyFormApi = useHoneyFormProvider();
+const HoneyFormFormComponent = <Form extends UseHoneyBaseFormFields, Response = void>(
+  { children, ...props }: HoneyFormFormProps<Form, Response>,
+  ref: Ref<HTMLFormElement>
+) => {
+  const honeyFormApi = useHoneyFormProvider();
 
-    const onSubmit: FormEventHandler<HTMLFormElement> = e => {
-      e.preventDefault();
+  const onSubmit: FormEventHandler<HTMLFormElement> = e => {
+    e.preventDefault();
 
-      honeyFormApi.submit().catch(() => {});
-    };
+    honeyFormApi.submit().catch(() => {});
+  };
 
-    return (
-      <form ref={ref} onSubmit={onSubmit} data-testid="form" noValidate {...props}>
-        {typeof children === 'function' ? children(honeyFormApi) : children}
-      </form>
-    );
-  })
-);
+  return (
+    <form ref={ref} onSubmit={onSubmit} data-testid="form" noValidate {...props}>
+      {typeof children === 'function' ? children(honeyFormApi as never) : children}
+    </form>
+  );
+};
+
+export const HoneyFormForm = forwardRef(HoneyFormFormComponent) as <
+  Form extends UseHoneyBaseFormFields,
+  Response = void
+>(
+  props: HoneyFormFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>
+) => React.ReactElement;
