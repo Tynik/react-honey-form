@@ -26,6 +26,11 @@ type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyBaseFormFields> = {
   setFieldValue: UseHoneyFormFieldSetValue<Form>;
 };
 
+export type UseHoneyFormFieldOnChange<Form extends UseHoneyBaseFormFields, CleanValue> = (
+  value: CleanValue,
+  formApi: UseHoneyFormFieldOnChangeFormApi<Form>
+) => void;
+
 export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanValue> = {
   value?: CleanValue;
   type?: UseHoneyFormFieldType;
@@ -43,7 +48,7 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanVa
   filter?: (value: CleanValue) => CleanValue;
   // Modify a value
   format?: (value: CleanValue) => unknown;
-  onChange?: (value: CleanValue, formApi: UseHoneyFormFieldOnChangeFormApi<Form>) => void;
+  onChange?: UseHoneyFormFieldOnChange<Form, CleanValue>;
 };
 
 export type CreateHoneyFormField = <
