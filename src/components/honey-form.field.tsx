@@ -27,7 +27,7 @@ export const HoneyFormField = <
   name,
   ...props
 }: HoneyFormFieldProps<Form, FieldName, FieldValue>) => {
-  const { formFields, addFormField, removeFormField } = useHoneyFormProvider();
+  const { formFields, addFormField, removeFormField } = useHoneyFormProvider<Form>();
 
   useEffect(() => {
     addFormField(name, props);
@@ -42,5 +42,6 @@ export const HoneyFormField = <
     return null;
   }
 
+  // @ts-ignore
   return <>{children(field)}</>;
 };
