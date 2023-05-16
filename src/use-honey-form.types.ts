@@ -59,7 +59,9 @@ export type CreateHoneyFormField = <
   fieldName: FieldName,
   fieldDefaultValue: Value,
   fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
-  options: { setValue: UseHoneyFormFieldSetValue<Form> }
+  options: {
+    setValue: UseHoneyFormFieldSetValue<Form>;
+  }
 ) => UseHoneyFormField<Form, Value>;
 
 export type UseHoneyFormFieldValidator<Form extends UseHoneyBaseFormFields, Value> = (

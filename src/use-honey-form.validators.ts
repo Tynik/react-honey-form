@@ -56,7 +56,7 @@ export const minValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
     ) {
       errors.push({
         type: 'invalid',
-        message: `The value should be greater or equal to ${fieldConfig.min}`,
+        message: `The value must be greater than or equal to ${fieldConfig.min}`,
       });
     }
   }
@@ -75,7 +75,7 @@ export const maxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
     ) {
       errors.push({
         type: 'invalid',
-        message: `The value should be less or equal to ${fieldConfig.max}`,
+        message: `The value must be less than or equal to ${fieldConfig.max}`,
       });
     }
   }
@@ -94,7 +94,7 @@ export const minMaxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalVa
     ) {
       errors.push({
         type: 'invalid',
-        message: `The value should be between ${fieldConfig.min} and ${fieldConfig.max}`,
+        message: `The value must be between ${fieldConfig.min} and ${fieldConfig.max}`,
       });
     }
   }
@@ -109,7 +109,7 @@ export const minLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
     if (value === undefined || (typeof value === 'string' && value.length < fieldConfig.min)) {
       errors.push({
         type: 'invalid',
-        message: `The length should be greater or equal to ${fieldConfig.min}`,
+        message: `The length must be greater than or equal to ${fieldConfig.min} characters`,
       });
     }
   }
@@ -124,7 +124,7 @@ export const maxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
     if (value === undefined || (typeof value === 'string' && value.length > fieldConfig.max)) {
       errors.push({
         type: 'invalid',
-        message: `The length should be less or equal to ${fieldConfig.max}`,
+        message: `The length must be less than or equal to ${fieldConfig.max} characters`,
       });
     }
   }
@@ -141,9 +141,16 @@ export const minMaxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalV
       (typeof value === 'string' &&
         (value.length < fieldConfig.min || value.length > fieldConfig.max))
     ) {
+      if (fieldConfig.min === fieldConfig.max) {
+        return errors.push({
+          type: 'invalid',
+          message: `The length must be exactly ${fieldConfig.min} characters`,
+        });
+      }
+
       errors.push({
         type: 'invalid',
-        message: `The length should be between ${fieldConfig.min} and ${fieldConfig.max}`,
+        message: `The length must be between ${fieldConfig.min} and ${fieldConfig.max} characters`,
       });
     }
   }

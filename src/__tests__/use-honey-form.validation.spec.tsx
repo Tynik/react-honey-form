@@ -29,7 +29,7 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The value should be greater or equal to 5',
+        message: 'The value must be greater than or equal to 5',
       },
     ]);
   });
@@ -59,7 +59,7 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The value should be less or equal to 65',
+        message: 'The value must be less than or equal to 65',
       },
     ]);
   });
@@ -84,7 +84,7 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The value should be between 5 and 65',
+        message: 'The value must be between 5 and 65',
       },
     ]);
   });
@@ -112,7 +112,7 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The value should be between 5 and 65',
+        message: 'The value must be between 5 and 65',
       },
     ]);
   });
@@ -142,7 +142,7 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The length should be greater or equal to 1',
+        message: 'The length must be greater than or equal to 1 characters',
       },
     ]);
   });
@@ -172,12 +172,12 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The length should be less or equal to 5',
+        message: 'The length must be less than or equal to 5 characters',
       },
     ]);
   });
 
-  test('use min and max length string validation', () => {
+  test('use min and max length for string validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -197,12 +197,37 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
         type: 'invalid',
-        message: 'The length should be between 1 and 5',
+        message: 'The length must be between 1 and 5 characters',
       },
     ]);
   });
 
-  test.only('multiple field validators that affects each other', async () => {
+  test('use equal min and max length for string validation', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ code: string }>({
+        fields: {
+          code: {
+            min: 5,
+            max: 5,
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.code.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.code.setValue('A81J');
+    });
+
+    expect(result.current.formFields.code.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'The length must be exactly 5 characters',
+      },
+    ]);
+  });
+
+  test('multiple field validators that affects each other', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
