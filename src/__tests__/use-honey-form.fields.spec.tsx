@@ -295,6 +295,37 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.address.props.value).toBeUndefined();
   });
 
+  test('dependent field should be cleared to default value', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ country: string; state: string }>({
+        fields: {
+          country: {},
+          state: {
+            dependsOn: 'country',
+            value: 'UNDEFINED',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.country.setValue('USA');
+      result.current.formFields.state.setValue('New Jersey');
+    });
+
+    expect(result.current.formFields.country.value).toBe('USA');
+    expect(result.current.formFields.state.value).toBe('New Jersey');
+
+    act(() => {
+      result.current.formFields.country.setValue('Canada');
+    });
+
+    expect(result.current.formFields.country.value).toBe('Canada');
+
+    expect(result.current.formFields.state.value).toBe('UNDEFINED');
+    expect(result.current.formFields.state.props.value).toBe('UNDEFINED');
+  });
+
   test('dependent field values should be cleared in chain when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string; ap: string }>({
@@ -393,7 +424,7 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.address2.props.value).toBeUndefined();
   });
 
-  test('cross dependent fields with clearing each other', () => {
+  test('multiple cross dependent fields with clearing each other', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; category: string; customCategory: string }>({
         fields: {

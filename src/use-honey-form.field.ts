@@ -28,39 +28,40 @@ const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
 };
 
 export const createHoneyFormField: CreateHoneyFormField = (
-  fieldName,
-  fieldDefaultValue,
+  name,
+  defaultValue,
   { mode = 'onChange', ...config },
   { setValue }
 ) => {
   const ref = createRef<HTMLElement>();
 
-  const defaultValue = fieldDefaultValue ?? config.value;
+  const selectedDefaultValue = defaultValue ?? config.value;
 
   return {
     config,
-    cleanValue: defaultValue,
-    value: defaultValue,
+    defaultValue: selectedDefaultValue,
+    cleanValue: selectedDefaultValue,
+    value: selectedDefaultValue,
     errors: [],
     isTouched: false,
     props: {
       ref,
-      value: defaultValue,
+      value: selectedDefaultValue,
       // TODO: when element is touched
       onFocus: e => {},
       //
       ...(mode === 'onChange' && {
         onChange: e => {
-          setValue(fieldName, e.target.value as never, true);
+          setValue(name, e.target.value as never, true);
         },
       }),
       ...(mode === 'onBlur' && {
         onBlur: e => {
-          setValue(fieldName, e.target.value as never, true);
+          setValue(name, e.target.value as never, true);
         },
       }),
     },
-    setValue: value => setValue(fieldName, value, true),
+    setValue: value => setValue(name, value, true),
     focus: () => {
       ref.current.focus();
     },
@@ -152,13 +153,16 @@ export const clearHoneyFormDependentFields = <
       : fieldName === dependsOn;
 
     if (isDependent) {
+      const otherField = formFields[otherFieldName];
+
       formFields[otherFieldName] = {
-        ...formFields[otherFieldName],
-        value: undefined,
-        cleanValue: undefined,
+        ...otherField,
+        value: otherField.defaultValue,
+        cleanValue: otherField.defaultValue,
+        errors: [],
         props: {
-          ...formFields[otherFieldName].props,
-          value: undefined,
+          ...otherField.props,
+          value: otherField.defaultValue,
         },
       };
 

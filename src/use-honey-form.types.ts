@@ -56,9 +56,9 @@ export type CreateHoneyFormField = <
   FieldName extends keyof Form = keyof Form,
   Value extends Form[FieldName] = Form[FieldName]
 >(
-  fieldName: FieldName,
-  fieldDefaultValue: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
+  name: FieldName,
+  defaultValue: Value,
+  config: UseHoneyFormFieldConfig<Form, Value>,
   options: {
     setValue: UseHoneyFormFieldSetValue<Form>;
   }
@@ -95,24 +95,28 @@ export type UseHoneyFormAddError<Form extends UseHoneyBaseFormFields> = <
 
 export type UseHoneyFormResetErrors = () => void;
 
+export type UseHoneyFormFieldProps<CleanValue> = {
+  ref: RefObject<any>;
+  value: CleanValue;
+  onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
+};
+
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
   CleanValue,
-  FormattedValue = CleanValue
+  FormattedValue = CleanValue,
+  DefaultValue extends Form[keyof Form] = Form[keyof Form]
 > = {
+  readonly defaultValue: DefaultValue;
   // a value should be undefined when error for a field is present
   readonly cleanValue: CleanValue;
   // the value after formatting when specific format function was executed
   readonly value: FormattedValue;
   readonly errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
-  readonly props: {
-    ref: RefObject<any>;
-    value: CleanValue;
-    onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
-    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
-  };
+  readonly props: UseHoneyFormFieldProps<CleanValue>;
   readonly config: UseHoneyFormFieldConfig<Form, CleanValue>;
   readonly isTouched: boolean;
   // functions
