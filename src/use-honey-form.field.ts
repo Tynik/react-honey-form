@@ -173,7 +173,16 @@ export const clearHoneyFormDependentFields = <
   });
 };
 
-export const cleanHoneyFormFieldValue = <
+/**
+ * Sanitizes the value of a Honey form field based on its type.
+ * If a convertor for the provided field type exists in the default map, it uses it to convert the value.
+ * If a convertor does not exist, it returns the original value.
+ *
+ * @param {UseHoneyFormFieldType | undefined} fieldType The type of the form field.
+ * @param {Value} value The value of the form field that needs to be cleaned.
+ * @returns {Value} The cleaned or original value depending on whether a convertor was found.
+ */
+export const sanitizeHoneyFormFieldValue = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
   Value extends Form[FieldName]

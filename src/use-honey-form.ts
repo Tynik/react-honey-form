@@ -20,7 +20,7 @@ import type {
 } from './use-honey-form.types';
 
 import {
-  cleanHoneyFormFieldValue,
+  sanitizeHoneyFormFieldValue,
   clearHoneyFormDependentFields,
   createHoneyFormField,
   validateHoneyFormField,
@@ -95,7 +95,7 @@ const getNextHoneyFormFieldsState = <
 
   clearHoneyFormDependentFields(nextFormFields, fieldName);
 
-  const cleanValue = cleanHoneyFormFieldValue(fieldConfig.type, filteredValue);
+  const cleanValue = sanitizeHoneyFormFieldValue(fieldConfig.type, filteredValue);
 
   const errors = validate ? validateHoneyFormField(cleanValue, fieldConfig, formFields) : [];
 
@@ -104,6 +104,7 @@ const getNextHoneyFormFieldsState = <
 
   nextFormFields[fieldName] = {
     ...formField,
+    errors,
     value: formattedValue as never,
     // set clean value as undefined if any error is present
     cleanValue: errors.length ? undefined : cleanValue,
@@ -111,7 +112,6 @@ const getNextHoneyFormFieldsState = <
       ...formField.props,
       value: formattedValue as never,
     },
-    errors,
   };
 
   return nextFormFields;
@@ -215,6 +215,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
               ...nextFormFields[fieldName],
               value: undefined,
               cleanValue: undefined,
+              errors: [],
               props: {
                 ...nextFormFields[fieldName].props,
                 value: undefined,
@@ -235,7 +236,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
           nextFormFields[fieldName] = {
             ...nextFormFields[fieldName],
             value: formattedValue,
-            cleanValue: cleanHoneyFormFieldValue(fieldConfig.type, filteredValue),
+            cleanValue: sanitizeHoneyFormFieldValue(fieldConfig.type, filteredValue),
+            errors: [],
             props: {
               ...nextFormFields[fieldName].props,
               value: formattedValue,
@@ -254,13 +256,12 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
       setAreFetchingDefaults(true);
 
       defaults()
-        .then(values => {
-          setAreFetchingDefaults(false);
-          setFormValues(values);
-        })
+        .then(setFormValues)
         .catch(() => {
-          setAreFetchingDefaults(false);
           setAreFetchingDefaultsErred(true);
+        })
+        .finally(() => {
+          setAreFetchingDefaults(false);
         });
     }
   }, []);
@@ -333,7 +334,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         const { value } = formField;
 
-        const cleanValue = cleanHoneyFormFieldValue(formField.config.type, value);
+        const cleanValue = sanitizeHoneyFormFieldValue(formField.config.type, value);
 
         const errors = validateHoneyFormField(cleanValue, formField.config, formFieldsRef.current);
         if (errors.length) {
