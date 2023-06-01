@@ -15,10 +15,10 @@ export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormF
 
 export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,
-  Value extends Form[FieldName]
+  FieldValue extends Form[FieldName]
 >(
   fieldName: FieldName,
-  value: Value,
+  value: FieldValue,
   validate: boolean
 ) => void;
 
@@ -26,13 +26,17 @@ type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyBaseFormFields> = {
   setFieldValue: UseHoneyFormFieldSetValue<Form>;
 };
 
-export type UseHoneyFormFieldOnChange<Form extends UseHoneyBaseFormFields, CleanValue> = (
-  value: CleanValue,
+export type UseHoneyFormFieldOnChange<Form extends UseHoneyBaseFormFields, FieldValue> = (
+  value: FieldValue,
   formApi: UseHoneyFormFieldOnChangeFormApi<Form>
 ) => void;
 
-export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanValue> = {
-  value?: CleanValue;
+export type UseHoneyFormFieldConfig<
+  Form extends UseHoneyBaseFormFields,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
+> = {
+  value?: FieldValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
   min?: number;
@@ -43,39 +47,44 @@ export type UseHoneyFormFieldConfig<Form extends UseHoneyBaseFormFields, CleanVa
   // clear that field value when dependent field is changed
   dependsOn?: keyof Form | (keyof Form)[];
   mode?: 'onChange' | 'onBlur';
-  validator?: UseHoneyFormFieldValidator<Form, CleanValue>;
+  validator?: UseHoneyFormFieldValidator<Form, FieldName, FieldValue>;
   // Remove some chars from value
-  filter?: (value: CleanValue) => CleanValue;
+  filter?: (value: FieldValue) => FieldValue;
   // Modify a value
-  format?: (value: CleanValue) => unknown;
-  onChange?: UseHoneyFormFieldOnChange<Form, CleanValue>;
+  format?: (value: FieldValue) => unknown;
+  onChange?: UseHoneyFormFieldOnChange<Form, FieldValue>;
 };
 
 export type CreateHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
-  FieldName extends keyof Form = keyof Form,
-  Value extends Form[FieldName] = Form[FieldName]
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
 >(
   name: FieldName,
-  defaultValue: Value,
-  config: UseHoneyFormFieldConfig<Form, Value>,
+  defaultValue: FieldValue,
+  config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   options: {
     setValue: UseHoneyFormFieldSetValue<Form>;
   }
-) => UseHoneyFormField<Form, Value>;
+) => UseHoneyFormField<Form, FieldName, FieldValue>;
 
-export type UseHoneyFormFieldValidator<Form extends UseHoneyBaseFormFields, Value> = (
-  value: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
+export type UseHoneyFormFieldValidator<
+  Form extends UseHoneyBaseFormFields,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
+> = (
+  value: FieldValue,
+  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   formFields: UseHoneyFormFields<Form>
 ) => UseHoneyFormFieldValidationResult;
 
 export type UseHoneyFormFieldInternalValidator = <
   Form extends UseHoneyBaseFormFields,
-  Value extends Form[keyof Form]
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
 >(
-  value: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
+  value: FieldValue,
+  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   errors: UseHoneyFormFieldError[]
 ) => void;
 
@@ -95,9 +104,13 @@ export type UseHoneyFormAddError<Form extends UseHoneyBaseFormFields> = <
 
 export type UseHoneyFormResetErrors = () => void;
 
-export type UseHoneyFormFieldProps<CleanValue> = {
+export type UseHoneyFormFieldProps<
+  Form extends UseHoneyBaseFormFields,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
+> = {
   ref: RefObject<any>;
-  value: CleanValue;
+  value: FieldValue;
   onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
@@ -105,33 +118,32 @@ export type UseHoneyFormFieldProps<CleanValue> = {
 
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
-  CleanValue,
-  FormattedValue = CleanValue,
-  DefaultValue extends Form[keyof Form] = Form[keyof Form]
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
 > = {
-  readonly defaultValue: DefaultValue;
+  readonly defaultValue: FieldValue;
   // a value should be undefined when error for a field is present
-  readonly cleanValue: CleanValue;
+  readonly cleanValue: FieldValue;
   // the value after formatting when specific format function was executed
-  readonly value: FormattedValue;
+  readonly value: FieldValue;
   readonly errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
-  readonly props: UseHoneyFormFieldProps<CleanValue>;
-  readonly config: UseHoneyFormFieldConfig<Form, CleanValue>;
+  readonly props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
+  readonly config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
   readonly isTouched: boolean;
   // functions
-  readonly setValue: (value: CleanValue) => void;
+  readonly setValue: (value: FieldValue) => void;
   readonly focus: () => void;
 };
 
 export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
 
 export type UseHoneyFormFields<Form extends UseHoneyBaseFormFields> = {
-  [K in keyof Form]: UseHoneyFormField<Form, Form[K]>;
+  [FieldName in keyof Form]: UseHoneyFormField<Form, FieldName, Form[FieldName]>;
 };
 
 export type UseHoneyFormFieldsConfigs<Form extends UseHoneyBaseFormFields> = {
-  [K in keyof Form]: UseHoneyFormFieldConfig<Form, Form[K]>;
+  [FieldName in keyof Form]: UseHoneyFormFieldConfig<Form, FieldName, Form[FieldName]>;
 };
 
 export type UseHoneyFormDefaults<Form extends UseHoneyBaseFormFields> =
@@ -193,11 +205,10 @@ export type UseHoneyFormSetFormValues<Form extends UseHoneyBaseFormFields> = (
 ) => void;
 
 export type UseHoneyFormAddFormField<Form extends UseHoneyBaseFormFields> = <
-  FieldName extends keyof Form,
-  Value extends Form[FieldName]
+  FieldName extends keyof Form
 >(
   fieldName: FieldName,
-  config: UseHoneyFormFieldConfig<Form, Value>
+  config: UseHoneyFormFieldConfig<Form, FieldName, Form[FieldName]>
 ) => void;
 
 /**

@@ -70,11 +70,11 @@ export const createHoneyFormField: CreateHoneyFormField = (
 
 export const validateHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
-  FieldName extends keyof Form = keyof Form,
-  Value extends Form[FieldName] = Form[FieldName]
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName]
 >(
-  value: Value,
-  fieldConfig: UseHoneyFormFieldConfig<Form, Value>,
+  value: FieldValue,
+  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   formFields: UseHoneyFormFields<Form>
 ) => {
   let validationResult: UseHoneyFormFieldValidationResult | null = null;

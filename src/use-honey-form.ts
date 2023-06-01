@@ -38,7 +38,7 @@ const getInitialHoneyFormFieldsGetter =
 
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
 
-      initialFormFields[fieldName] = createHoneyFormField<Form>(
+      initialFormFields[fieldName] = createHoneyFormField(
         fieldName,
         defaultFieldValue,
         fieldConfig,
@@ -64,10 +64,10 @@ const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
 const getNextHoneyFormFieldsState = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  Value extends Form[FieldName]
+  FieldValue extends Form[FieldName]
 >(
   fieldName: FieldName,
-  value: Value,
+  value: FieldValue,
   {
     formFields,
     validate,
@@ -82,7 +82,7 @@ const getNextHoneyFormFieldsState = <
 
   const formField = formFields[fieldName];
 
-  const fieldConfig = formField.config as UseHoneyFormFieldConfig<Form, Value>;
+  const fieldConfig = formField.config as UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
 
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(value);
@@ -269,7 +269,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
       fieldName: FieldName,
-      config: UseHoneyFormFieldConfig<Form, FieldValue>
+      config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {

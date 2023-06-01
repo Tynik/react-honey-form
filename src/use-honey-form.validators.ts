@@ -6,7 +6,7 @@ import type {
 
 export const DEFAULT_HONEY_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator<any, any>
+  UseHoneyFormFieldValidator<any, any, any>
 > = {
   number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
     if (value === '' || value === undefined) {
@@ -142,10 +142,11 @@ export const minMaxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalV
         (value.length < fieldConfig.min || value.length > fieldConfig.max))
     ) {
       if (fieldConfig.min === fieldConfig.max) {
-        return errors.push({
+        errors.push({
           type: 'invalid',
           message: `The length must be exactly ${fieldConfig.min} characters`,
         });
+        return;
       }
 
       errors.push({

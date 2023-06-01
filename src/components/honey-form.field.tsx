@@ -13,9 +13,9 @@ type HoneyFormFieldProps<
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
-> = UseHoneyFormFieldConfig<Form, FieldValue> & {
+> = UseHoneyFormFieldConfig<Form, FieldName, FieldValue> & {
   name: FieldName;
-  children: (field: UseHoneyFormField<Form, FieldValue>) => ReactNode;
+  children: (field: UseHoneyFormField<Form, FieldName, FieldValue>) => ReactNode;
 };
 
 export const HoneyFormField = <
