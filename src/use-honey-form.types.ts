@@ -15,7 +15,7 @@ export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormF
 
 export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
   value: FieldValue,
@@ -34,7 +34,7 @@ export type UseHoneyFormFieldOnChange<Form extends UseHoneyBaseFormFields, Field
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
   value?: FieldValue;
   type?: UseHoneyFormFieldType;
@@ -58,7 +58,7 @@ export type UseHoneyFormFieldConfig<
 export type CreateHoneyFormField = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   name: FieldName,
   defaultValue: FieldValue,
@@ -71,7 +71,7 @@ export type CreateHoneyFormField = <
 export type UseHoneyFormFieldValidator<
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 > = (
   value: FieldValue,
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
@@ -81,7 +81,7 @@ export type UseHoneyFormFieldValidator<
 export type UseHoneyFormFieldInternalValidator = <
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   value: FieldValue,
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
@@ -107,7 +107,7 @@ export type UseHoneyFormResetErrors = () => void;
 export type UseHoneyFormFieldProps<
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
   ref: RefObject<any>;
   value: FieldValue;
@@ -119,7 +119,7 @@ export type UseHoneyFormFieldProps<
 export type UseHoneyFormField<
   Form extends UseHoneyBaseFormFields,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
   readonly defaultValue: FieldValue;
   // a value should be undefined when error for a field is present
