@@ -302,7 +302,7 @@ describe('Use honey form. Dependent fields', () => {
           country: {},
           state: {
             dependsOn: 'country',
-            value: 'UNDEFINED',
+            defaultValue: 'UNDEFINED',
           },
         },
       })

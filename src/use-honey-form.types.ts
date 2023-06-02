@@ -37,6 +37,7 @@ export type UseHoneyFormFieldConfig<
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
   value?: FieldValue;
+  defaultValue?: FieldValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
   min?: number;
@@ -61,7 +62,6 @@ export type CreateHoneyFormField = <
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   name: FieldName,
-  defaultValue: FieldValue,
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   options: {
     setValue: UseHoneyFormFieldSetValue<Form>;

@@ -29,24 +29,23 @@ const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
 
 export const createHoneyFormField: CreateHoneyFormField = (
   name,
-  defaultValue,
   { mode = 'onChange', ...config },
   { setValue }
 ) => {
   const ref = createRef<HTMLElement>();
 
-  const selectedDefaultValue = defaultValue ?? config.value;
+  const value = config.value === undefined ? config.defaultValue : config.value;
 
   return {
     config,
-    defaultValue: selectedDefaultValue,
-    cleanValue: selectedDefaultValue,
-    value: selectedDefaultValue,
+    value,
+    cleanValue: value,
+    defaultValue: config.defaultValue,
     errors: [],
     isTouched: false,
     props: {
       ref,
-      value: selectedDefaultValue,
+      value,
       // TODO: when element is touched
       onFocus: e => {},
       //

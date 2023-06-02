@@ -40,8 +40,10 @@ const getInitialHoneyFormFieldsGetter =
 
       initialFormFields[fieldName] = createHoneyFormField(
         fieldName,
-        defaultFieldValue,
-        fieldConfig,
+        {
+          ...fieldConfig,
+          defaultValue: fieldConfig.defaultValue ?? defaultFieldValue,
+        },
         {
           setValue,
         }
@@ -279,7 +281,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField(fieldName, undefined, config, {
+          [fieldName]: createHoneyFormField(fieldName, config, {
             setValue: setFieldValue,
           }),
         };
