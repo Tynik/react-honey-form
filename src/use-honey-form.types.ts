@@ -7,6 +7,19 @@ type UseFormFieldName = string;
 // TODO: implement date type
 export type UseHoneyFormFieldType = 'number';
 
+type UseHoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max' | 'minMax';
+
+type UseHoneyFormFieldErrorMessage = string;
+
+type UseHoneyFormFieldErrorMessages = Partial<
+  Record<UseHoneyFormFieldErrorType, UseHoneyFormFieldErrorMessage>
+>;
+
+export type UseHoneyFormFieldError = {
+  type: UseHoneyFormFieldErrorType;
+  message: UseHoneyFormFieldErrorMessage;
+};
+
 /**
  * true: when validation is passed and false otherwise
  * string: the custom error string value
@@ -48,6 +61,7 @@ export type UseHoneyFormFieldConfig<
   // clear that field value when dependent field is changed
   dependsOn?: keyof Form | (keyof Form)[];
   mode?: 'onChange' | 'onBlur';
+  errorMessages?: UseHoneyFormFieldErrorMessages;
   validator?: UseHoneyFormFieldValidator<Form, FieldName, FieldValue>;
   // Remove some chars from value
   filter?: (value: FieldValue) => FieldValue;
@@ -89,11 +103,6 @@ export type UseHoneyFormFieldInternalValidator = <
 ) => void;
 
 export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: any) => Value;
-
-export type UseHoneyFormFieldError = {
-  type: 'required' | 'invalid' | 'server';
-  message: string;
-};
 
 export type UseHoneyFormAddError<Form extends UseHoneyBaseFormFields> = <
   FieldName extends keyof Form

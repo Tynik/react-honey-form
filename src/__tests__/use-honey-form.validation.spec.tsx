@@ -28,7 +28,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'min',
         message: 'The value must be greater than or equal to 5',
       },
     ]);
@@ -58,7 +58,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'max',
         message: 'The value must be less than or equal to 65',
       },
     ]);
@@ -83,7 +83,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'minMax',
         message: 'The value must be between 5 and 65',
       },
     ]);
@@ -111,7 +111,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'minMax',
         message: 'The value must be between 5 and 65',
       },
     ]);
@@ -141,7 +141,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'min',
         message: 'The length must be greater than or equal to 1 characters',
       },
     ]);
@@ -171,7 +171,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'max',
         message: 'The length must be less than or equal to 5 characters',
       },
     ]);
@@ -196,7 +196,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'minMax',
         message: 'The length must be between 1 and 5 characters',
       },
     ]);
@@ -221,7 +221,7 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formFields.code.errors).toStrictEqual([
       {
-        type: 'invalid',
+        type: 'minMax',
         message: 'The length must be exactly 5 characters',
       },
     ]);
@@ -290,6 +290,35 @@ describe('Use honey form. Validation', () => {
       {
         type: 'required',
         message: 'The value is required',
+      },
+    ]);
+
+    expect(onSubmit).not.toBeCalled();
+  });
+
+  test('customized required field value message', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            required: true,
+            errorMessages: {
+              required: 'This value must be filled',
+            },
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    await act(() => result.current.submit());
+
+    expect(result.current.formFields.name.errors).toStrictEqual([
+      {
+        type: 'required',
+        message: 'This value must be filled',
       },
     ]);
 

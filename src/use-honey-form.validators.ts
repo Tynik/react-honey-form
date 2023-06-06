@@ -44,7 +44,7 @@ export const requiredInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   ) {
     errors.push({
       type: 'required',
-      message: 'The value is required',
+      message: fieldConfig.errorMessages?.required ?? 'The value is required',
     });
   }
 };
@@ -61,8 +61,10 @@ export const minValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
       (typeof value === 'number' && value < fieldConfig.min)
     ) {
       errors.push({
-        type: 'invalid',
-        message: `The value must be greater than or equal to ${fieldConfig.min}`,
+        type: 'min',
+        message:
+          fieldConfig.errorMessages?.min ??
+          `The value must be greater than or equal to ${fieldConfig.min}`,
       });
     }
   }
@@ -80,8 +82,10 @@ export const maxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
       (typeof value === 'number' && value > fieldConfig.max)
     ) {
       errors.push({
-        type: 'invalid',
-        message: `The value must be less than or equal to ${fieldConfig.max}`,
+        type: 'max',
+        message:
+          fieldConfig.errorMessages?.max ??
+          `The value must be less than or equal to ${fieldConfig.max}`,
       });
     }
   }
@@ -99,8 +103,10 @@ export const minMaxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalVa
       (typeof value === 'number' && (value < fieldConfig.min || value > fieldConfig.max))
     ) {
       errors.push({
-        type: 'invalid',
-        message: `The value must be between ${fieldConfig.min} and ${fieldConfig.max}`,
+        type: 'minMax',
+        message:
+          fieldConfig.errorMessages?.minMax ??
+          `The value must be between ${fieldConfig.min} and ${fieldConfig.max}`,
       });
     }
   }
@@ -114,8 +120,10 @@ export const minLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (value === undefined || (typeof value === 'string' && value.length < fieldConfig.min)) {
       errors.push({
-        type: 'invalid',
-        message: `The length must be greater than or equal to ${fieldConfig.min} characters`,
+        type: 'min',
+        message:
+          fieldConfig.errorMessages?.min ??
+          `The length must be greater than or equal to ${fieldConfig.min} characters`,
       });
     }
   }
@@ -129,8 +137,10 @@ export const maxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (value === undefined || (typeof value === 'string' && value.length > fieldConfig.max)) {
       errors.push({
-        type: 'invalid',
-        message: `The length must be less than or equal to ${fieldConfig.max} characters`,
+        type: 'max',
+        message:
+          fieldConfig.errorMessages?.max ??
+          `The length must be less than or equal to ${fieldConfig.max} characters`,
       });
     }
   }
@@ -149,15 +159,19 @@ export const minMaxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalV
     ) {
       if (fieldConfig.min === fieldConfig.max) {
         errors.push({
-          type: 'invalid',
-          message: `The length must be exactly ${fieldConfig.min} characters`,
+          type: 'minMax',
+          message:
+            fieldConfig.errorMessages?.minMax ??
+            `The length must be exactly ${fieldConfig.min} characters`,
         });
         return;
       }
 
       errors.push({
-        type: 'invalid',
-        message: `The length must be between ${fieldConfig.min} and ${fieldConfig.max} characters`,
+        type: 'minMax',
+        message:
+          fieldConfig.errorMessages?.minMax ??
+          `The length must be between ${fieldConfig.min} and ${fieldConfig.max} characters`,
       });
     }
   }
