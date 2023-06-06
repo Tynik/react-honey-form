@@ -268,4 +268,58 @@ describe('Use honey form. Validation', () => {
 
     expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 });
   });
+
+  test('check required field when submitting', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {},
+        },
+        onSubmit,
+      })
+    );
+
+    await act(() => result.current.submit());
+
+    expect(result.current.formFields.name.errors).toStrictEqual([
+      {
+        type: 'required',
+        message: 'The value is required',
+      },
+    ]);
+
+    expect(onSubmit).not.toBeCalled();
+  });
+
+  test('check required field with empty array value', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ names: string[] }>({
+        fields: {
+          names: {
+            required: true,
+            value: [],
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    await act(() => result.current.submit());
+
+    expect(result.current.formFields.names.errors).toStrictEqual([
+      {
+        type: 'required',
+        message: 'The value is required',
+      },
+    ]);
+
+    expect(onSubmit).not.toBeCalled();
+  });
 });

@@ -26,33 +26,6 @@ describe('Use honey form. Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 });
   });
 
-  test('check required fields when submitting', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string; age: number }>({
-        fields: {
-          name: {
-            required: true,
-          },
-          age: {},
-        },
-        onSubmit,
-      })
-    );
-
-    await act(() => result.current.submit());
-
-    expect(result.current.formFields.name.errors).toStrictEqual([
-      {
-        type: 'required',
-        message: 'The value is required',
-      },
-    ]);
-
-    expect(onSubmit).not.toBeCalled();
-  });
-
   test('use submit handler function passed to submit()', async () => {
     const onSubmit = jest.fn();
 

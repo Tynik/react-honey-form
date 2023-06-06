@@ -35,7 +35,13 @@ export const requiredInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   fieldConfig,
   errors
 ) => {
-  if (fieldConfig.required && (value === undefined || value === null || value === '')) {
+  if (
+    fieldConfig.required &&
+    (value === undefined ||
+      value === null ||
+      value === '' ||
+      (Array.isArray(value) && !value.length))
+  ) {
     errors.push({
       type: 'required',
       message: 'The value is required',
