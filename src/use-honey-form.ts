@@ -25,6 +25,7 @@ import {
   createHoneyFormField,
   validateHoneyFormField,
 } from './use-honey-form.field';
+import { warningMessage } from './use-honey-form.helpers';
 
 const getInitialHoneyFormFieldsGetter =
   <Form extends UseHoneyBaseFormFields>(
@@ -72,10 +73,8 @@ const getNextHoneyFormFieldsState = <
   value: FieldValue,
   {
     formFields,
-    validate,
   }: {
     formFields: UseHoneyFormFields<Form>;
-    validate: boolean;
   }
 ): UseHoneyFormFields<Form> => {
   const nextFormFields = { ...formFields };
@@ -99,10 +98,37 @@ const getNextHoneyFormFieldsState = <
 
   const cleanValue = sanitizeHoneyFormFieldValue(fieldConfig.type, filteredValue);
 
-  const errors = validate ? validateHoneyFormField(cleanValue, fieldConfig, formFields) : [];
+  const errors = validateHoneyFormField(cleanValue, fieldConfig, formFields);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
+
+  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
+    if (fieldName === otherFieldName) {
+      return;
+    }
+
+    // eslint-disable-next-line no-underscore-dangle
+    if (nextFormFields[otherFieldName].__meta__.isScheduleValidation) {
+      const otherFormField = nextFormFields[otherFieldName];
+
+      const otherFieldErrors = validateHoneyFormField(
+        otherFormField.cleanValue,
+        otherFormField.config,
+        formFields
+      );
+
+      nextFormFields[otherFieldName] = {
+        ...otherFormField,
+        errors: otherFieldErrors,
+        // set clean value as undefined if any error is present
+        cleanValue: otherFieldErrors.length ? undefined : otherFormField.cleanValue,
+      };
+
+      // eslint-disable-next-line no-underscore-dangle
+      nextFormFields[otherFieldName].__meta__.isScheduleValidation = false;
+    }
+  });
 
   nextFormFields[fieldName] = {
     ...formField,
@@ -157,7 +183,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, value, validate) => {
+  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, value) => {
     isDirtyRef.current = true;
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -168,7 +194,6 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
 
       const nextFormFields = getNextHoneyFormFieldsState(fieldName, value, {
         formFields,
-        validate,
       });
 
       const fieldConfig = nextFormFields[fieldName].config;
@@ -275,8 +300,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
-          // eslint-disable-next-line no-console
-          console.warn(`[use-honey-form] Form field "${fieldName.toString()}" is already present`);
+          warningMessage(`Form field "${fieldName.toString()}" is already present`);
         }
 
         return {
@@ -330,7 +354,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   const validate = () => {
     let hasError = false;
 
-    const newFormFields = Object.keys(formFieldsRef.current).reduce(
+    const nextFormFields = Object.keys(formFieldsRef.current).reduce(
       (formFields, fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
@@ -350,8 +374,8 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
       {} as UseHoneyFormFields<Form>
     );
 
-    formFieldsRef.current = newFormFields;
-    setFormFields(newFormFields);
+    formFieldsRef.current = nextFormFields;
+    setFormFields(nextFormFields);
 
     return !hasError;
   };

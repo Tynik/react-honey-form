@@ -9,6 +9,7 @@ import type {
   UseHoneyFormFieldValidationResult,
   UseHoneyFormFieldType,
   UseHoneyFormFieldValueConvertor,
+  UseHoneyFormFieldProps,
 } from './use-honey-form.types';
 import {
   DEFAULT_HONEY_VALIDATORS_MAP,
@@ -32,38 +33,49 @@ export const createHoneyFormField: CreateHoneyFormField = (
   { mode = 'onChange', ...config },
   { setValue }
 ) => {
-  const ref = createRef<HTMLElement>();
+  const fieldRef = createRef<HTMLElement>();
 
   const value = config.value === undefined ? config.defaultValue : config.value;
+
+  const props: UseHoneyFormFieldProps<any, any> = {
+    ref: fieldRef,
+    value,
+    // TODO: when element is touched
+    onFocus: e => {},
+    //
+    ...(mode === 'onChange' && {
+      onChange: e => {
+        setValue(name, e.target.value as never);
+      },
+    }),
+    ...(mode === 'onBlur' && {
+      onBlur: e => {
+        setValue(name, e.target.value as never);
+      },
+    }),
+  };
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention,no-underscore-dangle
+  const __meta__ = {
+    isScheduleValidation: false,
+  };
 
   return {
     config,
     value,
+    props,
     cleanValue: value,
     defaultValue: config.defaultValue,
     errors: [],
     isTouched: false,
-    props: {
-      ref,
-      value,
-      // TODO: when element is touched
-      onFocus: e => {},
-      //
-      ...(mode === 'onChange' && {
-        onChange: e => {
-          setValue(name, e.target.value as never, true);
-        },
-      }),
-      ...(mode === 'onBlur' && {
-        onBlur: e => {
-          setValue(name, e.target.value as never, true);
-        },
-      }),
+    setValue: value => setValue(name, value),
+    scheduleValidation: () => {
+      __meta__.isScheduleValidation = true;
     },
-    setValue: value => setValue(name, value, true),
     focus: () => {
-      ref.current.focus();
+      fieldRef.current.focus();
     },
+    __meta__,
   };
 };
 
@@ -101,7 +113,7 @@ export const validateHoneyFormField = <
       minLengthInternalHoneyFieldValidator,
       maxLengthInternalHoneyFieldValidator,
       minMaxLengthInternalHoneyFieldValidator,
-    ].forEach(fn => fn(value, fieldConfig, errors));
+    ].forEach(validator => validator(value, fieldConfig, errors));
 
     // execute custom validator. Can be run only when default validator return true or not run at all
     if (fieldConfig.validator) {
@@ -123,7 +135,7 @@ export const validateHoneyFormField = <
   } else if (validationResult === false) {
     errors.push({
       type: 'invalid',
-      message: 'Invalid value',
+      message: fieldConfig.errorMessages?.invalid ?? 'Invalid value',
     });
   }
 

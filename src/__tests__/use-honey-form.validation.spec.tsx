@@ -351,4 +351,56 @@ describe('Use honey form. Validation', () => {
 
     expect(onSubmit).not.toBeCalled();
   });
+
+  test('validate another field inside validator', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amountFrom: number; amountTo: number }>({
+        fields: {
+          amountFrom: {
+            value: 0,
+            validator: (value, fieldConfig, formFields) => {
+              formFields.amountTo.scheduleValidation();
+
+              if (value > formFields.amountTo.value) {
+                return 'The `amountFrom` field value must be less than `amountTo`';
+              }
+
+              return true;
+            },
+          },
+          amountTo: {
+            value: 0,
+            validator: (value, fieldConfig, formFields) => {
+              formFields.amountFrom.scheduleValidation();
+
+              if (value < formFields.amountFrom.value) {
+                return 'The `amountTo` field value must be greater than `amountFrom`';
+              }
+
+              return true;
+            },
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.amountFrom.setValue(10);
+    });
+
+    expect(result.current.errors).toStrictEqual({
+      amountFrom: [
+        {
+          type: 'invalid',
+          message: 'The `amountFrom` field value must be less than `amountTo`',
+        },
+      ],
+    });
+
+    act(() => {
+      result.current.formFields.amountTo.setValue(15);
+    });
+
+    expect(result.current.errors).toStrictEqual({});
+  });
 });

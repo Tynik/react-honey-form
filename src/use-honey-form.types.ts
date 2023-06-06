@@ -31,8 +31,7 @@ export type UseHoneyFormFieldSetValue<Form extends UseHoneyBaseFormFields> = <
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
-  value: FieldValue,
-  validate: boolean
+  value: FieldValue
 ) => void;
 
 type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyBaseFormFields> = {
@@ -130,19 +129,23 @@ export type UseHoneyFormField<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
-  readonly defaultValue: FieldValue;
+  defaultValue: FieldValue;
   // a value should be undefined when error for a field is present
-  readonly cleanValue: FieldValue;
+  cleanValue: FieldValue;
   // the value after formatting when specific format function was executed
-  readonly value: FieldValue;
-  readonly errors: UseHoneyFormFieldError[];
+  value: FieldValue;
+  errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
-  readonly props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
-  readonly config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
-  readonly isTouched: boolean;
+  props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
+  config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
+  isTouched: boolean;
   // functions
-  readonly setValue: (value: FieldValue) => void;
-  readonly focus: () => void;
+  setValue: (value: FieldValue) => void;
+  scheduleValidation: () => void;
+  focus: () => void;
+  __meta__: {
+    isScheduleValidation: boolean;
+  };
 };
 
 export type UseHoneyBaseFormFields = Record<UseFormFieldName, unknown>;
