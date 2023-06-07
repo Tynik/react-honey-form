@@ -352,7 +352,7 @@ describe('Use honey form. Validation', () => {
     expect(onSubmit).not.toBeCalled();
   });
 
-  test('validate another field inside validator', async () => {
+  test('schedule validation for another field inside validator', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
         fields: {
@@ -393,6 +393,12 @@ describe('Use honey form. Validation', () => {
         {
           type: 'invalid',
           message: 'The `amountFrom` field value must be less than `amountTo`',
+        },
+      ],
+      amountTo: [
+        {
+          type: 'invalid',
+          message: 'The `amountTo` field value must be greater than `amountFrom`',
         },
       ],
     });

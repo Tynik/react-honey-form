@@ -103,6 +103,18 @@ const getNextHoneyFormFieldsState = <
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
 
+  nextFormFields[fieldName] = {
+    ...formField,
+    errors,
+    value: formattedValue as never,
+    // set clean value as undefined if any error is present
+    cleanValue: errors.length ? undefined : cleanValue,
+    props: {
+      ...formField.props,
+      value: formattedValue as never,
+    },
+  };
+
   Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
     if (fieldName === otherFieldName) {
       return;
@@ -115,7 +127,7 @@ const getNextHoneyFormFieldsState = <
       const otherFieldErrors = validateHoneyFormField(
         otherFormField.cleanValue,
         otherFormField.config,
-        formFields
+        nextFormFields
       );
 
       nextFormFields[otherFieldName] = {
@@ -129,18 +141,6 @@ const getNextHoneyFormFieldsState = <
       nextFormFields[otherFieldName].__meta__.isScheduleValidation = false;
     }
   });
-
-  nextFormFields[fieldName] = {
-    ...formField,
-    errors,
-    value: formattedValue as never,
-    // set clean value as undefined if any error is present
-    cleanValue: errors.length ? undefined : cleanValue,
-    props: {
-      ...formField.props,
-      value: formattedValue as never,
-    },
-  };
 
   return nextFormFields;
 };
