@@ -134,7 +134,9 @@ const getNextHoneyFormFieldsState = <
         ...otherFormField,
         errors: otherFieldErrors,
         // set clean value as undefined if any error is present
-        cleanValue: otherFieldErrors.length ? undefined : otherFormField.cleanValue,
+        cleanValue: otherFieldErrors.length
+          ? undefined
+          : sanitizeHoneyFormFieldValue(otherFormField.config.type, otherFormField.value),
       };
 
       // eslint-disable-next-line no-underscore-dangle
