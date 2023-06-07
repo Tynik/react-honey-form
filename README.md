@@ -19,7 +19,7 @@ The `useHoneyForm` is a custom React hook that provides a form state management 
 The `useHoneyForm` hook takes an options object as a single argument with the following properties:
 
 1. `fields` - An object that defines the fields of the form. Each field is an object that defines its properties such as type, required, value, min, max, etc. See more in the `UseHoneyFormFieldConfig` type.
-1. `defaults` - An optional object that defines the default values for the form fields.
+1. `defaults` - An optional object that defines the default values for the form fields. It allows you to pre-populate the form fields with initial values. If the `defaults` argument is a regular object, it is expected to have keys corresponding to the field names and values representing the default values for those fields. If the `defaults` argument is a function, it should return an object with the same structure, allowing for more dynamic default values based on some logic or external data.
 1. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
 1. `onChange` - An optional callback function that will be called when any field value is changed.
 1. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback.
@@ -48,6 +48,7 @@ The `useHoneyForm` hook returns an object with the following properties:
 1. `cleanValue` - The converted, but not formatted current field value. The value is used for submitting form data. Converting process is used when field type was set (e.g.: string to number).  
 1. `errors` - The list of field errors. By default, is `[]`. Each error object has a type `required | invalid | server` and a message.
 1. `setValue` - Set a field value.
+1. `scheduleValidation` - Can be used to schedule the validation of another field inside the `validator` function of a field. It allows you to trigger the validation of a dependent field based on the current field's value. The purpose of scheduling validation for the other field is to ensure that when the value of one field changes, the validation of the other field is triggered to check for any validation errors based on the updated values. For example, in the `validator` function of `amountFrom`, if the value of `amountFrom` is greater than the value of `amountTo`, an error message is returned indicating that the `amountFrom` field value must be less than `amountTo`. By calling `formFields.amountTo.scheduleValidation()`, the validation of the `amountTo` field is scheduled, ensuring that any potential error related to the `amountTo` field will be checked and updated accordingly. By using `scheduleValidation()`, you can ensure that the validation of the dependent fields is triggered and their errors are updated whenever the value of the current field changes, maintaining the integrity of the validation rules between related fields.
 1. `focus` - Focus a field.
 
 ## Examples
