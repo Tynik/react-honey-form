@@ -124,8 +124,13 @@ const getNextHoneyFormFieldsState = <
     if (nextFormFields[otherFieldName].__meta__.isScheduleValidation) {
       const otherFormField = nextFormFields[otherFieldName];
 
+      const otherFieldCleanValue = sanitizeHoneyFormFieldValue(
+        otherFormField.config.type,
+        otherFormField.value
+      );
+
       const otherFieldErrors = validateHoneyFormField(
-        otherFormField.cleanValue,
+        otherFieldCleanValue,
         otherFormField.config,
         nextFormFields
       );
@@ -134,9 +139,7 @@ const getNextHoneyFormFieldsState = <
         ...otherFormField,
         errors: otherFieldErrors,
         // set clean value as undefined if any error is present
-        cleanValue: otherFieldErrors.length
-          ? undefined
-          : sanitizeHoneyFormFieldValue(otherFormField.config.type, otherFormField.value),
+        cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
       };
 
       // eslint-disable-next-line no-underscore-dangle
