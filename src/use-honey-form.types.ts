@@ -144,7 +144,7 @@ export type UseHoneyFormField<
   scheduleValidation: () => void;
   focus: () => void;
   __meta__: {
-    isScheduleValidation: boolean;
+    isValidationScheduled: boolean;
   };
 };
 

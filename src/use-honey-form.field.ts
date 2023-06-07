@@ -57,7 +57,7 @@ export const createHoneyFormField: CreateHoneyFormField = (
 
   // eslint-disable-next-line @typescript-eslint/naming-convention,no-underscore-dangle
   const __meta__ = {
-    isScheduleValidation: false,
+    isValidationScheduled: false,
   };
 
   return {
@@ -70,7 +70,7 @@ export const createHoneyFormField: CreateHoneyFormField = (
     isTouched: false,
     setValue: value => setValue(name, value),
     scheduleValidation: () => {
-      __meta__.isScheduleValidation = true;
+      __meta__.isValidationScheduled = true;
     },
     focus: () => {
       fieldRef.current.focus();
@@ -180,7 +180,7 @@ export const triggerScheduledHoneyFormFieldsValidations = <
     }
 
     // eslint-disable-next-line no-underscore-dangle
-    if (nextFormFields[otherFieldName].__meta__.isScheduleValidation) {
+    if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
       const otherFormField = nextFormFields[otherFieldName];
 
       const otherFieldCleanValue = sanitizeHoneyFormFieldValue(
@@ -202,7 +202,7 @@ export const triggerScheduledHoneyFormFieldsValidations = <
       };
 
       // eslint-disable-next-line no-underscore-dangle
-      nextFormFields[otherFieldName].__meta__.isScheduleValidation = false;
+      nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;
     }
   });
 };
