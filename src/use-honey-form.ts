@@ -24,6 +24,7 @@ import {
   clearHoneyFormDependentFields,
   createHoneyFormField,
   validateHoneyFormField,
+  triggerScheduledHoneyFormFieldsValidations,
 } from './use-honey-form.field';
 import { warningMessage } from './use-honey-form.helpers';
 
@@ -115,37 +116,7 @@ const getNextHoneyFormFieldsState = <
     },
   };
 
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
-    if (fieldName === otherFieldName) {
-      return;
-    }
-
-    // eslint-disable-next-line no-underscore-dangle
-    if (nextFormFields[otherFieldName].__meta__.isScheduleValidation) {
-      const otherFormField = nextFormFields[otherFieldName];
-
-      const otherFieldCleanValue = sanitizeHoneyFormFieldValue(
-        otherFormField.config.type,
-        otherFormField.value
-      );
-
-      const otherFieldErrors = validateHoneyFormField(
-        otherFieldCleanValue,
-        otherFormField.config,
-        nextFormFields
-      );
-
-      nextFormFields[otherFieldName] = {
-        ...otherFormField,
-        errors: otherFieldErrors,
-        // set clean value as undefined if any error is present
-        cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
-      };
-
-      // eslint-disable-next-line no-underscore-dangle
-      nextFormFields[otherFieldName].__meta__.isScheduleValidation = false;
-    }
-  });
+  triggerScheduledHoneyFormFieldsValidations(fieldName, nextFormFields);
 
   return nextFormFields;
 };
