@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
-  UseHoneyBaseFormFields,
+  UseHoneyForm,
   UseHoneyFormAddFormField,
   UseHoneyFormErrors,
   UseHoneyFormFieldConfig,
@@ -26,10 +26,10 @@ import {
   validateHoneyFormField,
   triggerScheduledHoneyFormFieldsValidations,
 } from './use-honey-form.field';
-import { warningMessage } from './use-honey-form.helpers';
+import { getSubmitHoneyFormData, warningMessage } from './use-honey-form.helpers';
 
 const getInitialHoneyFormFieldsGetter =
-  <Form extends UseHoneyBaseFormFields>(
+  <Form extends UseHoneyForm>(
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
     defaults: UseHoneyFormDefaults<Form>,
     setValue: UseHoneyFormFieldSetValue<Form>
@@ -54,19 +54,8 @@ const getInitialHoneyFormFieldsGetter =
       return initialFormFields;
     }, {} as UseHoneyFormFields<Form>);
 
-const getSubmitHoneyFormData = <Form extends UseHoneyBaseFormFields>(
-  formFields: UseHoneyFormFields<Form>
-) =>
-  Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
-    const formField = formFields[fieldName];
-
-    formData[fieldName] = formField.cleanValue;
-
-    return formData;
-  }, {} as Form);
-
 const getNextHoneyFormFieldsState = <
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 >(
@@ -121,9 +110,7 @@ const getNextHoneyFormFieldsState = <
   return nextFormFields;
 };
 
-const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
-  formFields: UseHoneyFormFields<Form>
-) =>
+const getHoneyFormErrors = <Form extends UseHoneyForm>(formFields: UseHoneyFormFields<Form>) =>
   Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
     const formField = formFields[fieldName];
 
@@ -142,7 +129,9 @@ const getHoneyFormErrors = <Form extends UseHoneyBaseFormFields>(
  *  That callback function is called on next iteration after any change
  * @param onChangeDebounce number: Debounce time for onChange() callback
  */
-export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = void>({
+export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
+  formIndex,
+  parentField,
   fields: fieldsConfig = {} as never,
   defaults = {},
   onSubmit,
@@ -187,10 +176,7 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(
-            getSubmitHoneyFormData<Form>(nextFormFields),
-            getHoneyFormErrors(nextFormFields)
-          );
+          onChange(getSubmitHoneyFormData(nextFormFields), getHoneyFormErrors(nextFormFields));
         }, onChangeDebounce || 0);
       }
 
@@ -255,6 +241,17 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
   );
 
   useEffect(() => {
+    if (parentField) {
+      if (formIndex === undefined) {
+        throw new Error(
+          '[use-honey-form]: When using `parentField`, the `formIndex` option must be provided.'
+        );
+      }
+
+      parentField.__meta__.childrenForms = parentField.__meta__.childrenForms || [];
+      parentField.__meta__.childrenForms.splice(formIndex, 0, formFieldsRef);
+    }
+
     if (typeof defaults === 'function') {
       setAreFetchingDefaults(true);
 
@@ -267,6 +264,12 @@ export const useHoneyForm = <Form extends UseHoneyBaseFormFields, Response = voi
           setAreFetchingDefaults(false);
         });
     }
+
+    return () => {
+      if (parentField) {
+        parentField.__meta__.childrenForms.splice(formIndex, 1);
+      }
+    };
   }, []);
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(

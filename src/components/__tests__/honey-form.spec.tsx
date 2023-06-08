@@ -34,7 +34,7 @@ describe('HoneyForm component', () => {
     expect(getByTestId('save')).toBeDefined();
   });
 
-  it('the form should be submitted when submit btn is clicked', async () => {
+  it('the form should be submitted when submit button is clicked', async () => {
     type Form = {
       name: string;
     };

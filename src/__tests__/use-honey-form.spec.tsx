@@ -1,6 +1,5 @@
 import React from 'react';
 import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/react';
-import * as yup from 'yup';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -242,24 +241,6 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.value).toBe(undefined);
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
     expect(result.current.formFields.kind.props.value).toBe(undefined);
-  });
-
-  test.skip('use simple yup schema', () => {
-    const schema = yup.object({
-      name: yup.string(),
-    });
-
-    const { result } = renderHook(() =>
-      useHoneyForm<yup.InferType<typeof schema>>({
-        schema,
-      })
-    );
-
-    act(() => {
-      result.current.formFields.name.setValue('Kris');
-    });
-
-    expect(result.current.formFields.name.value).toBe('Kris');
   });
 });
 

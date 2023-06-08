@@ -1,27 +1,20 @@
 import React, { createContext, useContext } from 'react';
 
 import type { PropsWithChildren } from 'react';
-import type {
-  UseHoneyBaseFormFields,
-  UseHoneyFormApi,
-  UseHoneyFormOptions,
-} from '../use-honey-form.types';
+import type { UseHoneyForm, UseHoneyFormApi, UseHoneyFormOptions } from '../use-honey-form.types';
 
 import { useHoneyForm } from '../use-honey-form';
 
-type HoneyFormContextValue<Form extends UseHoneyBaseFormFields, Response> = UseHoneyFormApi<
-  Form,
-  Response
->;
+type HoneyFormContextValue<Form extends UseHoneyForm, Response> = UseHoneyFormApi<Form, Response>;
 
 const HoneyFormContext = createContext<HoneyFormContextValue<any, any> | undefined>(undefined);
 
 export type HoneyFormProviderProps<
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   Response = void
 > = UseHoneyFormOptions<Form, Response>;
 
-export const HoneyFormProvider = <Form extends UseHoneyBaseFormFields, Response = void>({
+export const HoneyFormProvider = <Form extends UseHoneyForm, Response = void>({
   children,
   ...props
 }: PropsWithChildren<HoneyFormProviderProps<Form, Response>>) => {
@@ -30,10 +23,12 @@ export const HoneyFormProvider = <Form extends UseHoneyBaseFormFields, Response 
   return <HoneyFormContext.Provider value={honeyFormApi}>{children}</HoneyFormContext.Provider>;
 };
 
-export const useHoneyFormProvider = <Form extends UseHoneyBaseFormFields, Response = void>() => {
+export const useHoneyFormProvider = <Form extends UseHoneyForm, Response = void>() => {
   const formContext = useContext<HoneyFormContextValue<Form, Response>>(HoneyFormContext);
   if (!formContext) {
-    throw new Error('useHoneyFormProvider() can be used only inside <HoneyFormProvider/>');
+    throw new Error(
+      '[use-honey-form]: useHoneyFormProvider() can be used only inside <HoneyFormProvider/>'
+    );
   }
 
   return formContext;

@@ -352,12 +352,11 @@ describe('Use honey form. Validation', () => {
     expect(onSubmit).not.toBeCalled();
   });
 
-  test('schedule validation for another field inside validator', async () => {
+  test('schedule validation for another field inside field validator', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
         fields: {
           amountFrom: {
-            value: 0,
             validator: (value, fieldConfig, formFields) => {
               formFields.amountTo.scheduleValidation();
 
@@ -369,7 +368,6 @@ describe('Use honey form. Validation', () => {
             },
           },
           amountTo: {
-            value: 0,
             validator: (value, fieldConfig, formFields) => {
               formFields.amountFrom.scheduleValidation();
 
@@ -385,7 +383,14 @@ describe('Use honey form. Validation', () => {
     );
 
     act(() => {
-      result.current.formFields.amountFrom.setValue(10);
+      result.current.formFields.amountFrom.setValue(5);
+    });
+
+    // errors should not be shown when only one field is filled
+    expect(result.current.errors).toStrictEqual({});
+
+    act(() => {
+      result.current.formFields.amountTo.setValue(3);
     });
 
     expect(result.current.errors).toStrictEqual({
@@ -404,7 +409,7 @@ describe('Use honey form. Validation', () => {
     });
 
     act(() => {
-      result.current.formFields.amountTo.setValue(15);
+      result.current.formFields.amountFrom.setValue(2);
     });
 
     expect(result.current.errors).toStrictEqual({});

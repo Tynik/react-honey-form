@@ -1,8 +1,7 @@
 import { createRef } from 'react';
 
 import type {
-  CreateHoneyFormField,
-  UseHoneyBaseFormFields,
+  UseHoneyForm,
   UseHoneyFormFieldConfig,
   UseHoneyFormFieldError,
   UseHoneyFormFields,
@@ -10,6 +9,9 @@ import type {
   UseHoneyFormFieldType,
   UseHoneyFormFieldValueConvertor,
   UseHoneyFormFieldProps,
+  UseHoneyFormField,
+  UseHoneyFormFieldMeta,
+  UseHoneyFormFieldSetValue,
 } from './use-honey-form.types';
 import {
   DEFAULT_HONEY_VALIDATORS_MAP,
@@ -21,6 +23,7 @@ import {
   minValueInternalHoneyFieldValidator,
   requiredInternalHoneyFieldValidator,
 } from './use-honey-form.validators';
+import { getSubmitHoneyFormData } from './use-honey-form.helpers';
 
 const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -28,16 +31,24 @@ const DEFAULT_HONEY_VALUE_CONVERTORS_MAP: Partial<
   number: value => (value ? Number(value) : undefined),
 };
 
-export const createHoneyFormField: CreateHoneyFormField = (
-  name,
-  { mode = 'onChange', ...config },
-  { setValue }
-) => {
+export const createHoneyFormField = <
+  Form extends UseHoneyForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName] = Form[FieldName]
+>(
+  name: FieldName,
+  { mode = 'onChange', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
+  {
+    setValue,
+  }: {
+    setValue: UseHoneyFormFieldSetValue<Form>;
+  }
+): UseHoneyFormField<Form, FieldName, FieldValue> => {
   const fieldRef = createRef<HTMLElement>();
 
   const value = config.value === undefined ? config.defaultValue : config.value;
 
-  const props: UseHoneyFormFieldProps<any, any> = {
+  const props: UseHoneyFormFieldProps<Form, FieldName, FieldValue> = {
     ref: fieldRef,
     value,
     // TODO: when element is touched
@@ -55,12 +66,13 @@ export const createHoneyFormField: CreateHoneyFormField = (
     }),
   };
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention,no-underscore-dangle
-  const __meta__ = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const __meta__: UseHoneyFormFieldMeta<Form> = {
     isValidationScheduled: false,
+    childrenForms: undefined,
   };
 
-  return {
+  const nextFieldState: UseHoneyFormField<Form, FieldName, FieldValue> = {
     config,
     value,
     props,
@@ -77,10 +89,22 @@ export const createHoneyFormField: CreateHoneyFormField = (
     },
     __meta__,
   };
+
+  Object.defineProperty(nextFieldState, 'value', {
+    get() {
+      if (__meta__.childrenForms) {
+        return __meta__.childrenForms.map(childForm => getSubmitHoneyFormData(childForm.current));
+      }
+
+      return value;
+    },
+  });
+
+  return nextFieldState;
 };
 
 export const validateHoneyFormField = <
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 >(
@@ -152,7 +176,7 @@ export const validateHoneyFormField = <
  * @returns {Value} The cleaned or original value depending on whether a convertor was found.
  */
 export const sanitizeHoneyFormFieldValue = <
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   FieldName extends keyof Form,
   Value extends Form[FieldName]
 >(
@@ -167,7 +191,7 @@ export const sanitizeHoneyFormFieldValue = <
 };
 
 export const triggerScheduledHoneyFormFieldsValidations = <
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 >(
@@ -179,7 +203,6 @@ export const triggerScheduledHoneyFormFieldsValidations = <
       return;
     }
 
-    // eslint-disable-next-line no-underscore-dangle
     if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
       const otherFormField = nextFormFields[otherFieldName];
 
@@ -201,14 +224,13 @@ export const triggerScheduledHoneyFormFieldsValidations = <
         cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
       };
 
-      // eslint-disable-next-line no-underscore-dangle
       nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;
     }
   });
 };
 
 export const clearHoneyFormDependentFields = <
-  Form extends UseHoneyBaseFormFields,
+  Form extends UseHoneyForm,
   FieldName extends keyof Form
 >(
   formFields: UseHoneyFormFields<Form>,

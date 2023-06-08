@@ -43,7 +43,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe('12');
   });
 
-  test('by default number type field values should be undefined', () => {
+  test('initially the number field type value should be undefined', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -58,7 +58,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
   });
 
-  test('string value should be converted to number with number type', () => {
+  test('string value should be converted to number using number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -79,7 +79,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe(35);
   });
 
-  test('empty string value should be converted to undefined with number type', () => {
+  test('empty string value should be converted to undefined using number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -151,7 +151,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('focus form field using focus() field function', () => {
+  test('focus form field', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
@@ -169,24 +169,6 @@ describe('Use honey form. Fields', () => {
     const { getByTestId } = render(<Comp />);
 
     expect(document.activeElement).toBe(getByTestId('name'));
-  });
-
-  test('should recognize array field value type', () => {
-    type Item = { name: string; weight: number };
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ items: Item[] }>({
-        fields: {
-          items: {},
-        },
-      })
-    );
-
-    act(() => {
-      result.current.formFields.items.setValue([]);
-    });
-
-    expect(result.current.formFields.items.value).toStrictEqual([]);
   });
 
   test('set default field values', () => {
@@ -261,6 +243,143 @@ describe('Use honey form. Fields', () => {
         setFieldValue: expect.any(Function),
       })
     );
+  });
+});
+
+describe('Use honey form. Array fields', () => {
+  test('should correctly identify the value type of an array field', () => {
+    type Item = {
+      name: string;
+      weight: number;
+    };
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: Item[] }>({
+        fields: {
+          items: {},
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.items.setValue([]);
+    });
+
+    expect(result.current.formFields.items.value).toStrictEqual([]);
+  });
+
+  test('should populate the parent field with default values from the child form initially', () => {
+    type Item = {
+      name: string;
+      weight: number;
+    };
+
+    const { result: itemsResult } = renderHook(() =>
+      useHoneyForm<{ items: Item[] }>({
+        fields: {
+          items: {},
+        },
+      })
+    );
+
+    const { unmount } = renderHook(() =>
+      useHoneyForm<Item>({
+        formIndex: 0,
+        parentField: itemsResult.current.formFields.items,
+        fields: {
+          name: {},
+          weight: {
+            type: 'number',
+          },
+        },
+        defaults: {
+          name: '',
+          weight: 0,
+        },
+      })
+    );
+
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
+      {
+        name: '',
+        weight: 0,
+      },
+    ]);
+
+    unmount();
+
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([]);
+  });
+
+  test('should synchronize child form field values with the parent form field', () => {
+    type Item = {
+      name: string;
+      weight: number;
+    };
+
+    const { result: itemsResult } = renderHook(() =>
+      useHoneyForm<{ items: Item[] }>({
+        fields: {
+          items: {},
+        },
+      })
+    );
+
+    const { result: itemResult1 } = renderHook(() =>
+      useHoneyForm<Item>({
+        formIndex: 0,
+        parentField: itemsResult.current.formFields.items,
+        fields: {
+          name: {},
+          weight: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    const { result: itemResult2 } = renderHook(() =>
+      useHoneyForm<Item>({
+        formIndex: 1,
+        parentField: itemsResult.current.formFields.items,
+        fields: {
+          name: {},
+          weight: {
+            type: 'number',
+          },
+        },
+      })
+    );
+
+    act(() => {
+      itemResult1.current.formFields.name.setValue('Apple');
+    });
+
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
+      {
+        name: 'Apple',
+        weight: undefined,
+      },
+      {
+        name: undefined,
+        weight: undefined,
+      },
+    ]);
+
+    act(() => {
+      itemResult2.current.formFields.name.setValue('Banana');
+    });
+
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
+      {
+        name: 'Apple',
+        weight: undefined,
+      },
+      {
+        name: 'Banana',
+        weight: undefined,
+      },
+    ]);
   });
 });
 
