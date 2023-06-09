@@ -30,7 +30,7 @@ export type UseHoneyFormFieldError = {
  */
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
 
-export type UseHoneyFormFieldSetValue<Form extends UseHoneyFormForm> = <
+export type UseHoneyFormSetFieldValue<Form extends UseHoneyFormForm> = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
@@ -38,7 +38,7 @@ export type UseHoneyFormFieldSetValue<Form extends UseHoneyFormForm> = <
   value: FieldValue
 ) => void;
 
-export type UseHoneyFormFieldAddValue<Form extends UseHoneyFormForm> = <
+export type UseHoneyFormPushFieldValue<Form extends UseHoneyFormForm> = <
   FieldName extends keyof { [F in keyof Form]: Form[F] extends unknown[] ? F : never },
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
@@ -46,8 +46,15 @@ export type UseHoneyFormFieldAddValue<Form extends UseHoneyFormForm> = <
   value: FieldValue extends (infer Item)[] ? Item : never
 ) => void;
 
+export type UseHoneyFormRemoveFieldValue<Form extends UseHoneyFormForm> = <
+  FieldName extends keyof { [F in keyof Form]: Form[F] extends unknown[] ? F : never }
+>(
+  fieldName: FieldName,
+  formIndex: number
+) => void;
+
 type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyFormForm> = {
-  setFieldValue: UseHoneyFormFieldSetValue<Form>;
+  setFieldValue: UseHoneyFormSetFieldValue<Form>;
 };
 
 export type UseHoneyFormFieldOnChange<
@@ -132,7 +139,8 @@ export type UseHoneyFormField<
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
   // functions
   setValue: (value: FieldValue) => void;
-  addValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+  pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+  removeValue: (formIndex: number) => void;
   scheduleValidation: () => void;
   focus: () => void;
   __meta__: UseHoneyFormFieldMeta<Form>;
@@ -222,7 +230,7 @@ type UseHoneyFormSetFormValuesOptions = {
 
 export type UseHoneyFormReset = () => void;
 
-type UseHoneyFormChildForm<Form extends UseHoneyFormForm, Response> = {
+export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
   formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
   submit: UseHoneyFormSubmit<Form, Response>;
   validate: UseHoneyFormValidate;
@@ -234,7 +242,7 @@ export type UseHoneyFormFieldMeta<Form extends UseHoneyFormForm> = {
    * undefined: as initial state when child forms are not mounted yet.
    * When child forms are mounted/unmounted the array or empty array is present
    */
-  childrenForms: UseHoneyFormChildForm<Form, any>[] | undefined;
+  childrenForms: UseHoneyFormChildFormApi<Form, any>[] | undefined;
 };
 
 export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {

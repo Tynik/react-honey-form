@@ -91,10 +91,12 @@ describe('HoneyForm component. Nested forms', () => {
         fields: {
           name: {
             required: true,
+            value: '',
           },
           price: {
             type: 'number',
             required: true,
+            value: 0,
           },
         },
       });
@@ -103,6 +105,12 @@ describe('HoneyForm component. Nested forms', () => {
         <>
           <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
           <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+
+          <button
+            type="button"
+            data-testid={`item[${formIndex}].removeItem`}
+            onClick={() => itemsFormFields.items.removeValue(formIndex)}
+          />
         </>
       );
     };
@@ -113,19 +121,20 @@ describe('HoneyForm component. Nested forms', () => {
       },
     };
 
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <HoneyForm fields={fields} onSubmit={onSubmit}>
         {({ formFields }) => (
           <>
             {formFields.items.value.map((_, itemFormIndex) => (
-              <ItemLineForm formIndex={itemFormIndex} />
+              // eslint-disable-next-line react/no-array-index-key
+              <ItemLineForm key={itemFormIndex} formIndex={itemFormIndex} />
             ))}
 
             <button
               type="button"
               data-testid="addItem"
               onClick={() =>
-                formFields.items.addValue({
+                formFields.items.pushValue({
                   name: '',
                   price: undefined,
                 })
@@ -195,6 +204,24 @@ describe('HoneyForm component. Nested forms', () => {
             name: 'Apple',
             price: 10,
           },
+          {
+            name: 'Pear',
+            price: 30,
+          },
+        ],
+      })
+    );
+    onSubmit.mockClear();
+
+    fireEvent.click(getByTestId('item[0].removeItem'));
+
+    expect(queryByTestId('item[1].price')).toBeNull();
+
+    fireEvent.click(getByTestId('save'));
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        items: [
           {
             name: 'Pear',
             price: 30,

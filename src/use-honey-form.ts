@@ -6,7 +6,7 @@ import type {
   UseHoneyFormErrors,
   UseHoneyFormFieldConfig,
   UseHoneyFormFields,
-  UseHoneyFormFieldSetValue,
+  UseHoneyFormSetFieldValue,
   UseHoneyFormOptions,
   UseHoneyFormFieldsConfigs,
   UseHoneyFormRemoveFormField,
@@ -17,8 +17,9 @@ import type {
   UseHoneyFormSetFormValues,
   UseHoneyFormDefaults,
   UseHoneyFormApi,
-  UseHoneyFormFieldAddValue,
+  UseHoneyFormPushFieldValue,
   UseHoneyFormValidate,
+  UseHoneyFormRemoveFieldValue,
 } from './use-honey-form.types';
 
 import {
@@ -33,14 +34,17 @@ import {
   getFieldsCleanValues,
   captureNestedFieldValues,
   warningMessage,
+  unregisterChildForm,
+  registerChildForm,
 } from './use-honey-form.helpers';
 
 const createInitialFormFieldsGetter =
   <Form extends UseHoneyFormForm>(
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
     defaults: UseHoneyFormDefaults<Form>,
-    setFieldValue: UseHoneyFormFieldSetValue<Form>,
-    addFieldValue: UseHoneyFormFieldAddValue<Form>
+    setFieldValue: UseHoneyFormSetFieldValue<Form>,
+    pushFieldValue: UseHoneyFormPushFieldValue<Form>,
+    removeFieldValue: UseHoneyFormRemoveFieldValue<Form>
   ) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
@@ -56,7 +60,8 @@ const createInitialFormFieldsGetter =
         },
         {
           setFieldValue,
-          addFieldValue,
+          pushFieldValue,
+          removeFieldValue,
         }
       );
 
@@ -147,7 +152,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, fieldValue) => {
+  const setFieldValue: UseHoneyFormSetFieldValue<Form> = (fieldName, fieldValue) => {
     isFormDirtyRef.current = true;
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -183,18 +188,32 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     });
   };
 
-  const addFieldValue: UseHoneyFormFieldAddValue<Form> = (fieldName, value) => {
+  const pushFieldValue: UseHoneyFormPushFieldValue<Form> = (fieldName, value) => {
     const formField = formFieldsRef.current[fieldName];
 
-    // @ts-ignore
+    // @ts-expect-error
     setFieldValue(fieldName, [...formField.value, value]);
+  };
+
+  const removeFieldValue: UseHoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
+    const formField = formFieldsRef.current[fieldName];
+
+    unregisterChildForm(formField, formIndex);
+
+    setFieldValue(
+      fieldName,
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      formField.value.filter((_, index) => index !== formIndex)
+    );
   };
 
   const initialFormFieldsGetter = createInitialFormFieldsGetter(
     fieldsConfig,
     defaults,
     setFieldValue,
-    addFieldValue
+    pushFieldValue,
+    removeFieldValue
   );
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
@@ -261,7 +280,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           ...formFields,
           [fieldName]: createField(fieldName, config, {
             setFieldValue,
-            addFieldValue,
+            pushFieldValue,
+            removeFieldValue,
           }),
         };
       });
@@ -387,8 +407,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         );
       }
 
-      parentField.__meta__.childrenForms = parentField.__meta__.childrenForms || [];
-      parentField.__meta__.childrenForms.splice(formIndex, 1, {
+      registerChildForm(parentField, formIndex, {
         formFieldsRef,
         submit: submitForm,
         validate: validateForm,
@@ -410,7 +429,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     return () => {
       if (parentField) {
-        parentField.__meta__.childrenForms.splice(formIndex, 1);
+        unregisterChildForm(parentField, formIndex);
       }
     };
   }, []);

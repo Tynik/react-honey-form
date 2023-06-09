@@ -11,8 +11,9 @@ import type {
   UseHoneyFormFieldProps,
   UseHoneyFormField,
   UseHoneyFormFieldMeta,
-  UseHoneyFormFieldSetValue,
-  UseHoneyFormFieldAddValue,
+  UseHoneyFormSetFieldValue,
+  UseHoneyFormPushFieldValue,
+  UseHoneyFormRemoveFieldValue,
 } from './use-honey-form.types';
 import {
   DEFAULT_VALIDATORS_MAP,
@@ -41,10 +42,12 @@ export const createField = <
   { mode = 'onChange', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   {
     setFieldValue,
-    addFieldValue,
+    pushFieldValue,
+    removeFieldValue,
   }: {
-    setFieldValue: UseHoneyFormFieldSetValue<Form>;
-    addFieldValue: UseHoneyFormFieldAddValue<Form>;
+    setFieldValue: UseHoneyFormSetFieldValue<Form>;
+    pushFieldValue: UseHoneyFormPushFieldValue<Form>;
+    removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
   }
 ): UseHoneyFormField<Form, FieldName, FieldValue> => {
   const fieldRef = createRef<HTMLElement>();
@@ -82,7 +85,8 @@ export const createField = <
     errors: [],
     // functions
     setValue: value => setFieldValue(fieldName, value),
-    addValue: value => addFieldValue(fieldName, value),
+    pushValue: value => pushFieldValue(fieldName, value),
+    removeValue: formIndex => removeFieldValue(fieldName, formIndex),
     scheduleValidation: () => {
       __meta__.isValidationScheduled = true;
     },

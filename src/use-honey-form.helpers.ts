@@ -4,6 +4,7 @@ import type {
   UseHoneyFormFields,
   UseHoneyFormField,
   UseHoneyFormErrors,
+  UseHoneyFormChildFormApi,
 } from './use-honey-form.types';
 
 export const genericMemo: <T>(component: T) => T = React.memo;
@@ -42,6 +43,22 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
 
     return formData;
   }, {} as Form);
+
+export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
+  formField: UseHoneyFormField<Form, any>,
+  formIndex: number,
+  childFormApi: UseHoneyFormChildFormApi<Form, Response>
+) => {
+  formField.__meta__.childrenForms = formField.__meta__.childrenForms || [];
+  formField.__meta__.childrenForms.splice(formIndex, 1, childFormApi);
+};
+
+export const unregisterChildForm = <Form extends UseHoneyFormForm>(
+  formField: UseHoneyFormField<Form, any>,
+  formIndex: number
+) => {
+  formField.__meta__.childrenForms.splice(formIndex, 1);
+};
 
 /**
  * Captures the nested field values of a form field, including values from child forms.
