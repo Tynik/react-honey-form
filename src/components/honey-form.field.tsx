@@ -4,13 +4,13 @@ import type { ReactNode } from 'react';
 import type {
   UseHoneyFormField,
   UseHoneyFormFieldConfig,
-  UseHoneyForm,
+  UseHoneyFormForm,
 } from '../use-honey-form.types';
 
 import { useHoneyFormProvider } from './honey-form.provider';
 
 type HoneyFormFieldProps<
-  Form extends UseHoneyForm,
+  Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 > = UseHoneyFormFieldConfig<Form, FieldName, FieldValue> & {
@@ -19,7 +19,7 @@ type HoneyFormFieldProps<
 };
 
 export const HoneyFormField = <
-  Form extends UseHoneyForm,
+  Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 >({

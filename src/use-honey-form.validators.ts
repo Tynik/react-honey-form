@@ -4,7 +4,7 @@ import type {
   UseHoneyFormFieldValidator,
 } from './use-honey-form.types';
 
-export const DEFAULT_HONEY_VALIDATORS_MAP: Record<
+export const DEFAULT_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any, any>
 > = {
@@ -30,7 +30,7 @@ export const DEFAULT_HONEY_VALIDATORS_MAP: Record<
   },
 };
 
-export const requiredInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -49,7 +49,7 @@ export const requiredInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   }
 };
 
-export const minValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -70,7 +70,7 @@ export const minValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   }
 };
 
-export const maxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -91,7 +91,7 @@ export const maxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValid
   }
 };
 
-export const minMaxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -112,7 +112,7 @@ export const minMaxValueInternalHoneyFieldValidator: UseHoneyFormFieldInternalVa
   }
 };
 
-export const minLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -129,7 +129,7 @@ export const minLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   }
 };
 
-export const maxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors
@@ -146,7 +146,7 @@ export const maxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalVali
   }
 };
 
-export const minMaxLengthInternalHoneyFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   value,
   fieldConfig,
   errors

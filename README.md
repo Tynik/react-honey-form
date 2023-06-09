@@ -32,24 +32,26 @@ The `useHoneyForm` hook returns an object with the following properties:
 
 1. `formFields` - An object that contains the state of the form fields. Each field has a value, cleanValue, errors, props, and config properties. The `value` property is the current value of the field, `cleanValue` is the parsed value of the field after applying cleaning functions, `errors` is an array of error messages if the field is invalid, `props` is an object with the necessary props to bind to the corresponding input element in the form, and `config` is the original configuration object of the field.
 1. `setFormValues` - Set form values. Support partial field values setting. The option `clearAll` can be used to clear other fields which were not mentioned.
-1. `areDefaultsFetching` - By default is `false`. Becomes `true` when form defaults values being retrieved from Promise function. Returns to `false` when default values successfully/erred retrieved.
-1. `areDefaultsFetchingErred` - By default is `false`. Becomes `true` when default values cannot be retrieved from Promise function.
-1. `isDirty` - By default is `false`. Becomes `true` when any field value is changed. Returns to `false` when form successfully submitted.
-1. `isSubmitting` - Becomes `true` when form is submitting.
-1. `errors` - The object that includes all fields errors. By default, is `{}`. When field has any error the field appears in that object as a key and a value is array of field errors.
+1. `isFormDefaultsFetching` - By default is `false`. Becomes `true` when form defaults values being retrieved from Promise function. Returns to `false` when default values successfully/erred retrieved.
+1. `isFormDefaultsFetchingErred` - By default is `false`. Becomes `true` when default values cannot be retrieved from Promise function.
+1. `isFormDirty` - By default is `false`. Becomes `true` when any field value is changed. Returns to `false` when form successfully submitted.
+1. `isFormSubmitting` - Becomes `true` when form is submitting.
+1. `formErrors` - The object that includes all fields errors. By default, is `{}`. When field has any error the field appears in that object as a key and a value is array of field errors.
 1. `addFormField` - Dynamically allows to add a new form field.
 1. `removeFormField` - Remove a form field. You can remove only optional form fields.
-1. `addError` - Add a new error related to specific field. All previous field errors stay present.
-1. `resetErrors` - Reset all form field errors. Can be used to remove all custom added errors.
-1. `submit` - Submit a form. Can accept async function that will be called with clean form data.
-1. `reset` - Reset all form field values to initial state.
+1. `addFormFieldError` - Add a new error related to specific field. All previous field errors stay present.
+1. `resetFormErrors` - Reset all form field errors. Can be used to remove all custom added errors.
+1. `validateForm` - Validate a form.
+1. `submitForm` - Submit a form. Can accept async function that will be called with clean form data.
+1. `resetForm` - Reset all form field values to initial state.
 
 ## Field Properties
 
 1. `value` - The current field value. Contains formatted value when `format` function is used for the field.
 1. `cleanValue` - The converted, but not formatted current field value. The value is used for submitting form data. Converting process is used when field type was set (e.g.: string to number).  
-1. `errors` - The list of field errors. By default, is `[]`. Each error object has a type `required | invalid | server` and a message.
+1. `errors` - The list of field errors. By default, is `[]`. Each error object can have the next type: `required`, `invalid` `server`, `min`, `max` or `minMax` and a message that describes an error.
 1. `setValue` - Set a field value.
+1. `addValue` - Add a new value to the array field.
 1. `scheduleValidation` - Can be used to schedule the validation of another field inside the `validator` function of a field. It allows you to trigger the validation of a dependent field based on the current field's value. The purpose of scheduling validation for the other field is to ensure that when the value of one field changes, the validation of the other field is triggered to check for any validation errors based on the updated values. For example, in the `validator` function of `amountFrom`, if the value of `amountFrom` is greater than the value of `amountTo`, an error message is returned indicating that the `amountFrom` field value must be less than `amountTo`. By calling `formFields.amountTo.scheduleValidation()`, the validation of the `amountTo` field is scheduled, ensuring that any potential error related to the `amountTo` field will be checked and updated accordingly. By using `scheduleValidation()`, you can ensure that the validation of the dependent fields is triggered and their errors are updated whenever the value of the current field changes, maintaining the integrity of the validation rules between related fields.
 1. `focus` - Focus a field.
 

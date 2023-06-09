@@ -3,13 +3,13 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. Work with errors', () => {
-  test('errors initially should have empty object', () => {
+  it('errors initially should have empty object', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 
-    expect(result.current.errors).toStrictEqual({});
+    expect(result.current.formErrors).toStrictEqual({});
   });
 
-  test('error should not be present for just declared field', () => {
+  it('error should not be present for just declared field', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -18,10 +18,10 @@ describe('Use honey form. Work with errors', () => {
       })
     );
 
-    expect(result.current.errors.name).toBeUndefined();
+    expect(result.current.formErrors.name).toBeUndefined();
   });
 
-  test('decimal value should not be allowed by default for number type', () => {
+  it('decimal value should not be allowed by default for number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -39,7 +39,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.value).toBe(1.5);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
 
-    expect(result.current.errors).toStrictEqual({
+    expect(result.current.formErrors).toStrictEqual({
       age: [
         {
           message: 'Only numerics are allowed',
@@ -49,7 +49,7 @@ describe('Use honey form. Work with errors', () => {
     });
   });
 
-  test('decimal value should not be allowed by default for number type with custom validator', () => {
+  it('decimal value should not be allowed by default for number type with custom validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -68,7 +68,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.value).toBe(1.5);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
 
-    expect(result.current.errors).toStrictEqual({
+    expect(result.current.formErrors).toStrictEqual({
       age: [
         {
           message: 'Only numerics are allowed',
@@ -78,7 +78,7 @@ describe('Use honey form. Work with errors', () => {
     });
   });
 
-  test('use custom errors return from field validator', () => {
+  it('use custom errors return from field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -121,7 +121,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('add new server error to existed field', () => {
+  it('add new server error to existed field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -132,7 +132,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
     act(() => {
-      result.current.addError('age', {
+      result.current.addFormFieldError('age', {
         type: 'server',
         message: 'age should be less than 55',
       });
@@ -146,7 +146,7 @@ describe('Use honey form. Work with errors', () => {
     ]);
   });
 
-  test('add server error to non existed field', () => {
+  it('add server error to non existed field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -157,13 +157,13 @@ describe('Use honey form. Work with errors', () => {
 
     act(() => {
       // there are some cases when the form can have alien field errors when the server can return non existed form fields
-      result.current.addError('name' as never, {
+      result.current.addFormFieldError('name' as never, {
         type: 'server',
         message: 'name should be less than 255',
       });
     });
 
-    expect(result.current.errors).toStrictEqual({
+    expect(result.current.formErrors).toStrictEqual({
       name: [
         {
           message: 'name should be less than 255',

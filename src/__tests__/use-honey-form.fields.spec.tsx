@@ -5,7 +5,7 @@ import { act, render, renderHook, waitFor } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. Fields', () => {
-  test('set a new value via onChange() function', () => {
+  it('set a new value via onChange() function', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -23,7 +23,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.value).toBe('Peter');
   });
 
-  test('use filter() function for a field value', () => {
+  it('use filter() function for a field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -43,7 +43,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe('12');
   });
 
-  test('initially the number field type value should be undefined', () => {
+  it('initially the number field type value should be undefined', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -58,7 +58,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
   });
 
-  test('string value should be converted to number using number type', () => {
+  it('string value should be converted to number using number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -79,7 +79,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBe(35);
   });
 
-  test('empty string value should be converted to undefined using number type', () => {
+  it('empty string value should be converted to undefined using number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -100,7 +100,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
   });
 
-  test('use custom boolean field validator', () => {
+  it('use custom boolean field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -131,7 +131,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('negative value should be allowed by default for number type', () => {
+  it('negative value should be allowed by default for number type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -151,7 +151,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  test('focus form field', () => {
+  it('focus form field', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
@@ -171,7 +171,7 @@ describe('Use honey form. Fields', () => {
     expect(document.activeElement).toBe(getByTestId('name'));
   });
 
-  test('set default field values', () => {
+  it('set default field values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -188,7 +188,7 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.props.value).toBe('banana');
   });
 
-  test('set default field values via Promise function', async () => {
+  it('set default field values via Promise function', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -209,16 +209,16 @@ describe('Use honey form. Fields', () => {
     expect(result.current.formFields.name.cleanValue).toBeUndefined();
     expect(result.current.formFields.name.props.value).toBeUndefined();
 
-    await waitFor(() => expect(result.current.areDefaultsFetching).toBeTruthy());
+    await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeTruthy());
 
-    await waitFor(() => expect(result.current.areDefaultsFetching).toBeFalsy());
+    await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeFalsy());
 
     expect(result.current.formFields.name.value).toBe('banana');
     expect(result.current.formFields.name.cleanValue).toBe('banana');
     expect(result.current.formFields.name.props.value).toBe('banana');
   });
 
-  test('should call onChange() when field value is changed', async () => {
+  it('should call onChange() when field value is changed', async () => {
     const onNameChange = jest.fn();
 
     const { result } = renderHook(() =>
@@ -247,7 +247,7 @@ describe('Use honey form. Fields', () => {
 });
 
 describe('Use honey form. Array fields', () => {
-  test('should correctly identify the value type of an array field', () => {
+  it('should correctly identify the value type of an array field', () => {
     type Item = {
       name: string;
       weight: number;
@@ -268,7 +268,7 @@ describe('Use honey form. Array fields', () => {
     expect(result.current.formFields.items.value).toStrictEqual([]);
   });
 
-  test('should populate the parent field with default values from the child form initially', () => {
+  it('should populate the parent field with default values from the child form initially', () => {
     type Item = {
       name: string;
       weight: number;
@@ -311,7 +311,7 @@ describe('Use honey form. Array fields', () => {
     expect(itemsResult.current.formFields.items.value).toStrictEqual([]);
   });
 
-  test('should synchronize child form field values with the parent form field', () => {
+  it('should synchronize child form field values with the parent form field', () => {
     type Item = {
       name: string;
       weight: number;
@@ -384,7 +384,7 @@ describe('Use honey form. Array fields', () => {
 });
 
 describe('Use honey form. Dependent fields', () => {
-  test('dependent field value should be cleared when parent field value is changed', () => {
+  it('dependent field value should be cleared when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
         fields: {
@@ -414,7 +414,7 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.address.props.value).toBeUndefined();
   });
 
-  test('dependent field should be cleared to default value', () => {
+  it('dependent field should be cleared to default value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ country: string; state: string }>({
         fields: {
@@ -445,7 +445,7 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.state.props.value).toBe('UNDEFINED');
   });
 
-  test('dependent field values should be cleared in chain when parent field value is changed', () => {
+  it('dependent field values should be cleared in chain when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string; ap: string }>({
         fields: {
@@ -483,7 +483,7 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.ap.props.value).toBeUndefined();
   });
 
-  test('cleared dependent field value should not be submitted', async () => {
+  it('cleared dependent field value should not be submitted', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -504,12 +504,12 @@ describe('Use honey form. Dependent fields', () => {
       result.current.formFields.city.setValue('New Jersey');
     });
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(onSubmit).toBeCalledWith({ city: 'New Jersey', address: undefined });
   });
 
-  test('cross dependent fields should clear each other', () => {
+  it('cross dependent fields should clear each other', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ address1: string; address2: string }>({
         fields: {
@@ -543,7 +543,7 @@ describe('Use honey form. Dependent fields', () => {
     expect(result.current.formFields.address2.props.value).toBeUndefined();
   });
 
-  test('multiple cross dependent fields with clearing each other', () => {
+  it('multiple cross dependent fields with clearing each other', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; category: string; customCategory: string }>({
         fields: {
@@ -577,7 +577,7 @@ describe('Use honey form. Dependent fields', () => {
 });
 
 describe('Use honey form. Work with dynamic fields', () => {
-  test('dynamically add a new form field', () => {
+  it('dynamically add a new form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
         fields: {},
@@ -593,7 +593,7 @@ describe('Use honey form. Work with dynamic fields', () => {
     expect(result.current.formFields.gender?.value).toBe('female');
   });
 
-  test('dynamically added the new form field should be submitted with other fields', async () => {
+  it('dynamically added the new form field should be submitted with other fields', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -613,12 +613,12 @@ describe('Use honey form. Work with dynamic fields', () => {
       });
     });
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' });
   });
 
-  test('remove dynamically added the form field', () => {
+  it('remove dynamically added the form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age?: number }>({
         fields: {

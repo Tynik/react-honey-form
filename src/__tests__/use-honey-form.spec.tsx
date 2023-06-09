@@ -4,7 +4,7 @@ import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/re
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. General', () => {
-  test('should set initial form fields', () => {
+  it('should set initial form fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -22,7 +22,7 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.age.value).toBe(45);
   });
 
-  test('should reset to initial field values', () => {
+  it('should reset to initial field values', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -45,14 +45,14 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.name.value).toBe('Dima');
 
     act(() => {
-      result.current.reset();
+      result.current.resetForm();
     });
 
     expect(result.current.formFields.name.value).toBe('Alex');
     expect(result.current.formFields.age.value).toBe(45);
   });
 
-  test('a form should be dirty after setting value', () => {
+  it('a form should be dirty after setting value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -62,16 +62,16 @@ describe('Use honey form. General', () => {
         },
       })
     );
-    expect(result.current.isDirty).toBeFalsy();
+    expect(result.current.isFormDirty).toBeFalsy();
 
     act(() => {
       result.current.formFields.age.setValue(56);
     });
 
-    expect(result.current.isDirty).toBeTruthy();
+    expect(result.current.isFormDirty).toBeTruthy();
   });
 
-  test('a form should not be dirty when successfully submitted', async () => {
+  it('a form should not be dirty when successfully submitted', async () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -86,16 +86,16 @@ describe('Use honey form. General', () => {
       result.current.formFields.age.setValue(56);
     });
 
-    expect(result.current.isDirty).toBeTruthy();
+    expect(result.current.isFormDirty).toBeTruthy();
 
     await act(async () => {
-      await result.current.submit();
+      await result.current.submitForm();
     });
 
-    expect(result.current.isDirty).toBeFalsy();
+    expect(result.current.isFormDirty).toBeFalsy();
   });
 
-  test('reset manually added errors', () => {
+  it('reset manually added errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
         fields: {
@@ -106,27 +106,27 @@ describe('Use honey form. General', () => {
     );
 
     act(() => {
-      result.current.addError('name', {
+      result.current.addFormFieldError('name', {
         type: 'server',
         message: 'name should be less than 255 chars',
       });
 
-      result.current.addError('age', {
+      result.current.addFormFieldError('age', {
         type: 'server',
         message: 'age should be less than 55',
       });
     });
 
-    expect(Object.keys(result.current.errors).length).toBe(2);
+    expect(Object.keys(result.current.formErrors).length).toBe(2);
 
     act(() => {
-      result.current.resetErrors();
+      result.current.resetFormErrors();
     });
 
-    expect(Object.keys(result.current.errors).length).toBe(0);
+    expect(Object.keys(result.current.formErrors).length).toBe(0);
   });
 
-  test('should re-render form one time when onChange() is triggered', () => {
+  it('should re-render form one time when onChange() is triggered', () => {
     let renderers = 0;
 
     const Comp = () => {
@@ -151,7 +151,7 @@ describe('Use honey form. General', () => {
     expect(renderers).toBe(2);
   });
 
-  test('call onChange() with form data when any field value is changed', async () => {
+  it('call onChange() with form data when any field value is changed', async () => {
     const onChange = jest.fn();
 
     const { result } = renderHook(() =>
@@ -183,7 +183,7 @@ describe('Use honey form. General', () => {
     await waitFor(() => expect(onChange.mock.calls[1][0]).toStrictEqual({ name: 'a', kind: 'f' }));
   });
 
-  test('should partially set form values', () => {
+  it('should partially set form values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
@@ -216,7 +216,7 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.props.value).toBe('fruit');
   });
 
-  test('should partially set form values with clearing all values', () => {
+  it('should partially set form values with clearing all values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
@@ -277,7 +277,7 @@ describe('Use honey form. Filter function', () => {
 });
 
 describe('Use honey form. Format function', () => {
-  test('a value should have formatted value', () => {
+  it('a value should have formatted value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ price: number }>({
         fields: {

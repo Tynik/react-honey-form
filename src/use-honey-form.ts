@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
-  UseHoneyForm,
+  UseHoneyFormForm,
   UseHoneyFormAddFormField,
   UseHoneyFormErrors,
   UseHoneyFormFieldConfig,
@@ -11,28 +11,36 @@ import type {
   UseHoneyFormFieldsConfigs,
   UseHoneyFormRemoveFormField,
   UseHoneyFormSubmit,
-  UseHoneyFormAddError,
+  UseHoneyFormAddFieldError,
   UseHoneyFormReset,
   UseHoneyFormResetErrors,
   UseHoneyFormSetFormValues,
   UseHoneyFormDefaults,
   UseHoneyFormApi,
+  UseHoneyFormFieldAddValue,
+  UseHoneyFormValidate,
 } from './use-honey-form.types';
 
 import {
-  sanitizeHoneyFormFieldValue,
-  clearHoneyFormDependentFields,
-  createHoneyFormField,
-  validateHoneyFormField,
-  triggerScheduledHoneyFormFieldsValidations,
+  sanitizeFieldValue,
+  clearDependentFields,
+  createField,
+  validateField,
+  triggerScheduledFieldsValidations,
 } from './use-honey-form.field';
-import { getSubmitHoneyFormData, warningMessage } from './use-honey-form.helpers';
+import {
+  getFormErrors,
+  getFieldsCleanValues,
+  captureNestedFieldValues,
+  warningMessage,
+} from './use-honey-form.helpers';
 
-const getInitialHoneyFormFieldsGetter =
-  <Form extends UseHoneyForm>(
+const createInitialFormFieldsGetter =
+  <Form extends UseHoneyFormForm>(
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
     defaults: UseHoneyFormDefaults<Form>,
-    setValue: UseHoneyFormFieldSetValue<Form>
+    setFieldValue: UseHoneyFormFieldSetValue<Form>,
+    addFieldValue: UseHoneyFormFieldAddValue<Form>
   ) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
@@ -40,14 +48,15 @@ const getInitialHoneyFormFieldsGetter =
 
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
 
-      initialFormFields[fieldName] = createHoneyFormField(
+      initialFormFields[fieldName] = createField(
         fieldName,
         {
           ...fieldConfig,
           defaultValue: fieldConfig.defaultValue ?? defaultFieldValue,
         },
         {
-          setValue,
+          setFieldValue,
+          addFieldValue,
         }
       );
 
@@ -55,12 +64,12 @@ const getInitialHoneyFormFieldsGetter =
     }, {} as UseHoneyFormFields<Form>);
 
 const getNextHoneyFormFieldsState = <
-  Form extends UseHoneyForm,
+  Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
 >(
   fieldName: FieldName,
-  value: FieldValue,
+  fieldValue: FieldValue,
   {
     formFields,
   }: {
@@ -69,14 +78,14 @@ const getNextHoneyFormFieldsState = <
 ): UseHoneyFormFields<Form> => {
   const nextFormFields = { ...formFields };
 
-  let filteredValue = value;
+  let filteredValue = fieldValue;
 
   const formField = formFields[fieldName];
 
   const fieldConfig = formField.config as UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
 
   if (fieldConfig.filter) {
-    filteredValue = fieldConfig.filter(value);
+    filteredValue = fieldConfig.filter(fieldValue);
 
     if (filteredValue === formField.props.value) {
       // Do not re-render, nothing change. Return previous state
@@ -84,11 +93,11 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  clearHoneyFormDependentFields(nextFormFields, fieldName);
+  clearDependentFields(nextFormFields, fieldName);
 
-  const cleanValue = sanitizeHoneyFormFieldValue(fieldConfig.type, filteredValue);
+  const cleanValue = sanitizeFieldValue(fieldConfig.type, filteredValue);
 
-  const errors = validateHoneyFormField(cleanValue, fieldConfig, formFields);
+  const errors = validateField(cleanValue, fieldConfig, formFields);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
@@ -105,20 +114,10 @@ const getNextHoneyFormFieldsState = <
     },
   };
 
-  triggerScheduledHoneyFormFieldsValidations(fieldName, nextFormFields);
+  triggerScheduledFieldsValidations(fieldName, nextFormFields);
 
   return nextFormFields;
 };
-
-const getHoneyFormErrors = <Form extends UseHoneyForm>(formFields: UseHoneyFormFields<Form>) =>
-  Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
-    const formField = formFields[fieldName];
-
-    if (formField.errors.length) {
-      result[fieldName] = formField.errors;
-    }
-    return result;
-  }, {} as UseHoneyFormErrors<Form>);
 
 /**
  *
@@ -129,7 +128,7 @@ const getHoneyFormErrors = <Form extends UseHoneyForm>(formFields: UseHoneyFormF
  *  That callback function is called on next iteration after any change
  * @param onChangeDebounce number: Debounce time for onChange() callback
  */
-export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
+export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   formIndex,
   parentField,
   fields: fieldsConfig = {} as never,
@@ -138,18 +137,18 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
   onChange,
   onChangeDebounce,
 }: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
-  const isDirtyRef = useRef(false);
+  const isFormDirtyRef = useRef(false);
 
-  const [areDefaultsFetching, setAreFetchingDefaults] = useState(false);
-  const [areDefaultsFetchingErred, setAreFetchingDefaultsErred] = useState(false);
+  const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
+  const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, value) => {
-    isDirtyRef.current = true;
+  const setFieldValue: UseHoneyFormFieldSetValue<Form> = (fieldName, fieldValue) => {
+    isFormDirtyRef.current = true;
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
@@ -157,7 +156,7 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
         clearTimeout(onChangeTimeoutRef.current);
       }
 
-      const nextFormFields = getNextHoneyFormFieldsState(fieldName, value, {
+      const nextFormFields = getNextHoneyFormFieldsState(fieldName, fieldValue, {
         formFields,
       });
 
@@ -176,18 +175,26 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getSubmitHoneyFormData(nextFormFields), getHoneyFormErrors(nextFormFields));
-        }, onChangeDebounce || 0);
+          onChange(getFieldsCleanValues(nextFormFields), getFormErrors(nextFormFields));
+        }, onChangeDebounce ?? 0);
       }
 
       return nextFormFields;
     });
   };
 
-  const initialFormFieldsGetter = getInitialHoneyFormFieldsGetter<Form>(
+  const addFieldValue: UseHoneyFormFieldAddValue<Form> = (fieldName, value) => {
+    const formField = formFieldsRef.current[fieldName];
+
+    // @ts-ignore
+    setFieldValue(fieldName, [...formField.value, value]);
+  };
+
+  const initialFormFieldsGetter = createInitialFormFieldsGetter(
     fieldsConfig,
     defaults,
-    setFieldValue
+    setFieldValue,
+    addFieldValue
   );
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
@@ -225,7 +232,7 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
           nextFormFields[fieldName] = {
             ...nextFormFields[fieldName],
             value: formattedValue,
-            cleanValue: sanitizeHoneyFormFieldValue(fieldConfig.type, filteredValue),
+            cleanValue: sanitizeFieldValue(fieldConfig.type, filteredValue),
             errors: [],
             props: {
               ...nextFormFields[fieldName].props,
@@ -240,38 +247,6 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
     []
   );
 
-  useEffect(() => {
-    if (parentField) {
-      if (formIndex === undefined) {
-        throw new Error(
-          '[use-honey-form]: When using `parentField`, the `formIndex` option must be provided.'
-        );
-      }
-
-      parentField.__meta__.childrenForms = parentField.__meta__.childrenForms || [];
-      parentField.__meta__.childrenForms.splice(formIndex, 0, formFieldsRef);
-    }
-
-    if (typeof defaults === 'function') {
-      setAreFetchingDefaults(true);
-
-      defaults()
-        .then(setFormValues)
-        .catch(() => {
-          setAreFetchingDefaultsErred(true);
-        })
-        .finally(() => {
-          setAreFetchingDefaults(false);
-        });
-    }
-
-    return () => {
-      if (parentField) {
-        parentField.__meta__.childrenForms.splice(formIndex, 1);
-      }
-    };
-  }, []);
-
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
       fieldName: FieldName,
@@ -284,8 +259,9 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
 
         return {
           ...formFields,
-          [fieldName]: createHoneyFormField(fieldName, config, {
-            setValue: setFieldValue,
+          [fieldName]: createField(fieldName, config, {
+            setFieldValue,
+            addFieldValue,
           }),
         };
       });
@@ -303,7 +279,7 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
     });
   }, []);
 
-  const addError = useCallback<UseHoneyFormAddError<Form>>((fieldName, error) => {
+  const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
     setFormFields(formFields => {
       const formField = formFields[fieldName];
 
@@ -318,7 +294,7 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
     });
   }, []);
 
-  const resetErrors = useCallback<UseHoneyFormResetErrors>(() => {
+  const resetFormErrors = useCallback<UseHoneyFormResetErrors>(() => {
     setFormFields(formFields =>
       Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
         result[fieldName] = {
@@ -330,23 +306,39 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
     );
   }, []);
 
-  const validate = () => {
-    let hasError = false;
+  const validateForm: UseHoneyFormValidate = () => {
+    let hasErrors = false;
 
     const nextFormFields = Object.keys(formFieldsRef.current).reduce(
       (formFields, fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
-        const { value } = formField;
+        if (formField.__meta__.childrenForms) {
+          formField.__meta__.childrenForms.forEach(childForm => {
+            if (!childForm.validate()) {
+              hasErrors = true;
+            }
+          });
 
-        const cleanValue = sanitizeHoneyFormFieldValue(formField.config.type, value);
+          captureNestedFieldValues(formField);
 
-        const errors = validateHoneyFormField(cleanValue, formField.config, formFieldsRef.current);
-        if (errors.length) {
-          hasError = true;
+          formFields[fieldName] = {
+            ...formField,
+          };
+        } else {
+          const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
+
+          const errors = validateField(cleanValue, formField.config, formFieldsRef.current);
+          if (errors.length) {
+            hasErrors = true;
+          }
+
+          formFields[fieldName] = {
+            ...formField,
+            cleanValue,
+            errors,
+          };
         }
-
-        formFields[fieldName] = { ...formField, cleanValue, errors };
 
         return formFields;
       },
@@ -356,51 +348,88 @@ export const useHoneyForm = <Form extends UseHoneyForm, Response = void>({
     formFieldsRef.current = nextFormFields;
     setFormFields(nextFormFields);
 
-    return !hasError;
+    return !hasErrors;
   };
 
-  const submit: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
-    if (!validate()) {
+  const submitForm: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
+    if (!validateForm()) {
       // TODO: maybe reject should be provided? Left a comment after decision
       return Promise.resolve();
     }
-    const submitData = getSubmitHoneyFormData(formFieldsRef.current);
+    const submitData = getFieldsCleanValues(formFieldsRef.current);
 
-    setIsSubmitting(true);
+    setIsFormSubmitting(true);
     try {
       await (submitHandler || onSubmit)?.(submitData);
 
-      isDirtyRef.current = false;
+      isFormDirtyRef.current = false;
     } finally {
-      setIsSubmitting(false);
+      setIsFormSubmitting(false);
     }
 
     return Promise.resolve();
   }, []);
 
-  const reset = useCallback<UseHoneyFormReset>(() => {
+  const resetForm = useCallback<UseHoneyFormReset>(() => {
     setFormFields(initialFormFieldsGetter);
   }, []);
 
-  const errors = useMemo<UseHoneyFormErrors<Form>>(
-    () => getHoneyFormErrors(formFields),
+  const formErrors = useMemo<UseHoneyFormErrors<Form>>(
+    () => getFormErrors(formFields),
     [formFields]
   );
 
+  useEffect(() => {
+    if (parentField) {
+      if (formIndex === undefined) {
+        throw new Error(
+          '[use-honey-form]: When using `parentField`, the `formIndex` option must be provided.'
+        );
+      }
+
+      parentField.__meta__.childrenForms = parentField.__meta__.childrenForms || [];
+      parentField.__meta__.childrenForms.splice(formIndex, 1, {
+        formFieldsRef,
+        submit: submitForm,
+        validate: validateForm,
+      });
+    }
+
+    if (typeof defaults === 'function') {
+      setIsFormDefaultsFetching(true);
+
+      defaults()
+        .then(setFormValues)
+        .catch(() => {
+          setIsFormDefaultsFetchingErred(true);
+        })
+        .finally(() => {
+          setIsFormDefaultsFetching(false);
+        });
+    }
+
+    return () => {
+      if (parentField) {
+        parentField.__meta__.childrenForms.splice(formIndex, 1);
+      }
+    };
+  }, []);
+
   return {
     formFields,
-    areDefaultsFetching,
-    areDefaultsFetchingErred,
-    isDirty: isDirtyRef.current,
-    isSubmitting,
-    errors,
+    isFormDefaultsFetching,
+    isFormDefaultsFetchingErred,
+    isFormDirty: isFormDirtyRef.current,
+    isFormSubmitting,
+    formErrors,
     // functions
     setFormValues,
     addFormField,
     removeFormField,
-    addError,
-    resetErrors,
-    submit,
-    reset,
+    addFormFieldError,
+    resetFormErrors,
+    validateForm,
+    submitForm,
+    resetForm,
   };
 };

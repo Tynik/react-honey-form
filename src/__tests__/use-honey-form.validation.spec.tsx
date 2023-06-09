@@ -4,7 +4,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. Validation', () => {
-  test('use min value validation', () => {
+  it('use min value validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -34,7 +34,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use max value validation', () => {
+  it('use max value validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -64,7 +64,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use min and max value validation', () => {
+  it('use min and max value validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -89,7 +89,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use min and max value validation with number field type', () => {
+  it('use min and max value validation with number field type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -117,7 +117,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use min length string validation', () => {
+  it('use min length string validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -147,7 +147,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use max length string validation', () => {
+  it('use max length string validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -177,7 +177,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use min and max length for string validation', () => {
+  it('use min and max length for string validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -202,7 +202,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('use equal min and max length for string validation', () => {
+  it('use equal min and max length for string validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ code: string }>({
         fields: {
@@ -227,7 +227,7 @@ describe('Use honey form. Validation', () => {
     ]);
   });
 
-  test('multiple field validators that affects each other', async () => {
+  it('multiple field validators that affects each other', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -264,12 +264,12 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formFields.age2.value).toBe(3);
     expect(result.current.formFields.age3.value).toBe(4);
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 });
   });
 
-  test('check required field when submitting', async () => {
+  it('check required field when submitting', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -284,7 +284,7 @@ describe('Use honey form. Validation', () => {
       })
     );
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
@@ -296,7 +296,7 @@ describe('Use honey form. Validation', () => {
     expect(onSubmit).not.toBeCalled();
   });
 
-  test('customized required field value message', async () => {
+  it('customized required field value message', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -313,7 +313,7 @@ describe('Use honey form. Validation', () => {
       })
     );
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
@@ -325,7 +325,7 @@ describe('Use honey form. Validation', () => {
     expect(onSubmit).not.toBeCalled();
   });
 
-  test('check required field with empty array value', async () => {
+  it('check required field with empty array value', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -340,7 +340,7 @@ describe('Use honey form. Validation', () => {
       })
     );
 
-    await act(() => result.current.submit());
+    await act(() => result.current.submitForm());
 
     expect(result.current.formFields.names.errors).toStrictEqual([
       {
@@ -352,7 +352,7 @@ describe('Use honey form. Validation', () => {
     expect(onSubmit).not.toBeCalled();
   });
 
-  test('schedule validation for another field inside field validator', async () => {
+  it('schedule validation for another field inside field validator', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
         fields: {
@@ -387,13 +387,13 @@ describe('Use honey form. Validation', () => {
     });
 
     // errors should not be shown when only one field is filled
-    expect(result.current.errors).toStrictEqual({});
+    expect(result.current.formErrors).toStrictEqual({});
 
     act(() => {
       result.current.formFields.amountTo.setValue(3);
     });
 
-    expect(result.current.errors).toStrictEqual({
+    expect(result.current.formErrors).toStrictEqual({
       amountFrom: [
         {
           type: 'invalid',
@@ -412,6 +412,6 @@ describe('Use honey form. Validation', () => {
       result.current.formFields.amountFrom.setValue(2);
     });
 
-    expect(result.current.errors).toStrictEqual({});
+    expect(result.current.formErrors).toStrictEqual({});
   });
 });
