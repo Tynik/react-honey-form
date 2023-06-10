@@ -7,8 +7,6 @@ import type {
   UseHoneyFormChildFormApi,
 } from './use-honey-form.types';
 
-let CHILD_FORM_ID = 0;
-
 export const genericMemo: <T>(component: T) => T = React.memo;
 
 export const warningMessage = (message: string) => {
@@ -47,9 +45,12 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   }, {} as Form);
 
 export const getHoneyFormNextChildFormId = () => {
-  CHILD_FORM_ID += 1;
+  const timestamp = Date.now().toString();
+  const randomNum = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
 
-  return CHILD_FORM_ID;
+  return `${timestamp}${randomNum}`;
 };
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(

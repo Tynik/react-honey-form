@@ -69,13 +69,21 @@ describe('HoneyForm component. Basic usage', () => {
 describe('HoneyForm component. Nested forms', () => {
   it('should submit form with correct item values after dynamic addition', async () => {
     type ItemForm = {
-      id: number;
+      id: string;
       name: string;
       price: number;
     };
 
     type ItemsForm = {
       items: ItemForm[];
+    };
+
+    let CHILD_FORM_ID = 0;
+
+    const getNextChildFormId = () => {
+      CHILD_FORM_ID += 1;
+
+      return `${CHILD_FORM_ID}`;
     };
 
     const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
@@ -139,7 +147,7 @@ describe('HoneyForm component. Nested forms', () => {
               data-testid="addItem"
               onClick={() =>
                 formFields.items.pushValue({
-                  id: getHoneyFormNextChildFormId(),
+                  id: getNextChildFormId(),
                   name: '',
                   price: undefined,
                 })
@@ -183,7 +191,7 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
-            id: 1,
+            id: '1',
             name: 'Apple',
             price: 10,
           },
@@ -207,12 +215,12 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
-            id: 1,
+            id: '1',
             name: 'Apple',
             price: 10,
           },
           {
-            id: 2,
+            id: '2',
             name: 'Pear',
             price: 30,
           },
@@ -232,7 +240,7 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
-            id: 2,
+            id: '2',
             name: 'Pear',
             price: 30,
           },
@@ -243,7 +251,7 @@ describe('HoneyForm component. Nested forms', () => {
 
   it('should remove an item from the list when remove button is clicked', () => {
     type ItemForm = {
-      id: number;
+      id: string;
       name: string;
       price: number;
     };
@@ -296,12 +304,12 @@ describe('HoneyForm component. Nested forms', () => {
       items: {
         value: [
           {
-            id: 1,
+            id: '1',
             name: 'Apple',
             price: 10,
           },
           {
-            id: 2,
+            id: '2',
             name: 'Pineapple',
             price: 45,
           },
