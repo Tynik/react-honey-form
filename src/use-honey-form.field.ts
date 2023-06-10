@@ -25,7 +25,7 @@ import {
   minValueInternalFieldValidator,
   requiredInternalFieldValidator,
 } from './use-honey-form.validators';
-import { captureNestedFieldValues } from './use-honey-form.helpers';
+import { captureChildFormsFieldValues } from './use-honey-form.helpers';
 
 const DEFAULT_VALUES_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -96,7 +96,7 @@ export const createField = <
     __meta__,
   };
 
-  captureNestedFieldValues(nextFieldState);
+  captureChildFormsFieldValues(nextFieldState);
 
   return nextFieldState;
 };

@@ -139,11 +139,12 @@ export type UseHoneyFormField<
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
   // functions
   setValue: (value: FieldValue) => void;
-  pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
-  removeValue: (formIndex: number) => void;
   scheduleValidation: () => void;
   focus: () => void;
   __meta__: UseHoneyFormFieldMeta<Form>;
+} & {
+  pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+  removeValue: (formIndex: number) => void;
 };
 
 export type UseHoneyFormFields<Form extends UseHoneyFormForm> = {
@@ -232,8 +233,8 @@ export type UseHoneyFormReset = () => void;
 
 export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
   formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
-  submit: UseHoneyFormSubmit<Form, Response>;
-  validate: UseHoneyFormValidate;
+  submitForm: UseHoneyFormSubmit<Form, Response>;
+  validateForm: UseHoneyFormValidate;
 };
 
 export type UseHoneyFormFieldMeta<Form extends UseHoneyFormForm> = {

@@ -6,6 +6,7 @@ import type { UseHoneyFormFieldsConfigs } from '../../use-honey-form.types';
 import { HoneyForm } from '../honey-form';
 import { useHoneyForm } from '../../use-honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
+import { getHoneyFormNextChildFormId } from '../../use-honey-form.helpers';
 
 describe('HoneyForm component. Basic usage', () => {
   it('the form should be mounted', () => {
@@ -68,6 +69,7 @@ describe('HoneyForm component. Basic usage', () => {
 describe('HoneyForm component. Nested forms', () => {
   it('should submit form with correct item values after dynamic addition', async () => {
     type ItemForm = {
+      id: number;
       name: string;
       price: number;
     };
@@ -89,6 +91,9 @@ describe('HoneyForm component. Nested forms', () => {
         formIndex,
         parentField: itemsFormFields.items,
         fields: {
+          id: {
+            required: true,
+          },
           name: {
             required: true,
             value: '',
@@ -125,9 +130,8 @@ describe('HoneyForm component. Nested forms', () => {
       <HoneyForm fields={fields} onSubmit={onSubmit}>
         {({ formFields }) => (
           <>
-            {formFields.items.value.map((_, itemFormIndex) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <ItemLineForm key={itemFormIndex} formIndex={itemFormIndex} />
+            {formFields.items.value.map((itemForm, itemFormIndex) => (
+              <ItemLineForm key={itemForm.id} formIndex={itemFormIndex} />
             ))}
 
             <button
@@ -135,6 +139,7 @@ describe('HoneyForm component. Nested forms', () => {
               data-testid="addItem"
               onClick={() =>
                 formFields.items.pushValue({
+                  id: getHoneyFormNextChildFormId(),
                   name: '',
                   price: undefined,
                 })
@@ -178,6 +183,7 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
+            id: 1,
             name: 'Apple',
             price: 10,
           },
@@ -201,10 +207,12 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
+            id: 1,
             name: 'Apple',
             price: 10,
           },
           {
+            id: 2,
             name: 'Pear',
             price: 30,
           },
@@ -215,6 +223,7 @@ describe('HoneyForm component. Nested forms', () => {
 
     fireEvent.click(getByTestId('item[0].removeItem'));
 
+    expect(queryByTestId('item[0].price')).not.toBeNull();
     expect(queryByTestId('item[1].price')).toBeNull();
 
     fireEvent.click(getByTestId('save'));
@@ -223,11 +232,105 @@ describe('HoneyForm component. Nested forms', () => {
       expect(onSubmit).toBeCalledWith({
         items: [
           {
+            id: 2,
             name: 'Pear',
             price: 30,
           },
         ],
       })
     );
+  });
+
+  it('should remove an item from the list when remove button is clicked', () => {
+    type ItemForm = {
+      id: number;
+      name: string;
+      price: number;
+    };
+
+    type ItemsForm = {
+      items: ItemForm[];
+    };
+
+    const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
+
+    type ItemFormProps = {
+      formIndex: number;
+    };
+
+    const ItemLineForm = ({ formIndex }: ItemFormProps) => {
+      const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
+
+      const { formFields } = useHoneyForm<ItemForm>({
+        formIndex,
+        parentField: itemsFormFields.items,
+        fields: {
+          id: {
+            required: true,
+          },
+          name: {
+            required: true,
+          },
+          price: {
+            type: 'number',
+            required: true,
+          },
+        },
+      });
+
+      return (
+        <>
+          <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
+          <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+
+          <button
+            type="button"
+            data-testid={`item[${formIndex}].removeItem`}
+            onClick={() => itemsFormFields.items.removeValue(formIndex)}
+          />
+        </>
+      );
+    };
+
+    const fields: UseHoneyFormFieldsConfigs<ItemsForm> = {
+      items: {
+        value: [
+          {
+            id: 1,
+            name: 'Apple',
+            price: 10,
+          },
+          {
+            id: 2,
+            name: 'Pineapple',
+            price: 45,
+          },
+        ],
+      },
+    };
+
+    const { getByTestId, queryByTestId } = render(
+      <HoneyForm fields={fields} onSubmit={onSubmit}>
+        {({ formFields }) => (
+          <>
+            {formFields.items.value.map((itemForm, itemFormIndex) => (
+              <ItemLineForm key={itemForm.id} formIndex={itemFormIndex} />
+            ))}
+
+            <button type="submit" data-testid="save">
+              Save
+            </button>
+          </>
+        )}
+      </HoneyForm>
+    );
+
+    fireEvent.click(getByTestId('item[0].removeItem'));
+
+    expect(queryByTestId('item[0].price')).not.toBeNull();
+    expect(queryByTestId('item[1].price')).toBeNull();
+
+    expect((getByTestId('item[0].name') as HTMLInputElement).value).toEqual('Pineapple');
+    expect((getByTestId('item[0].price') as HTMLInputElement).value).toEqual('45');
   });
 });

@@ -20,6 +20,7 @@ import type {
   UseHoneyFormPushFieldValue,
   UseHoneyFormValidate,
   UseHoneyFormRemoveFieldValue,
+  UseHoneyFormParentField,
 } from './use-honey-form.types';
 
 import {
@@ -32,7 +33,7 @@ import {
 import {
   getFormErrors,
   getFieldsCleanValues,
-  captureNestedFieldValues,
+  captureChildFormsFieldValues,
   warningMessage,
   unregisterChildForm,
   registerChildForm,
@@ -40,6 +41,8 @@ import {
 
 const createInitialFormFieldsGetter =
   <Form extends UseHoneyFormForm>(
+    formIndex: number,
+    parentField: UseHoneyFormParentField<Form>,
     fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
     defaults: UseHoneyFormDefaults<Form>,
     setFieldValue: UseHoneyFormSetFieldValue<Form>,
@@ -50,13 +53,21 @@ const createInitialFormFieldsGetter =
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
+      let parentFieldValue: Form[keyof Form];
+      if (parentField) {
+        const childForm = parentField.value?.[formIndex];
+
+        parentFieldValue = childForm?.[fieldName];
+      }
+
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
 
       initialFormFields[fieldName] = createField(
         fieldName,
         {
           ...fieldConfig,
-          defaultValue: fieldConfig.defaultValue ?? defaultFieldValue,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          defaultValue: parentFieldValue ?? fieldConfig.defaultValue ?? defaultFieldValue,
         },
         {
           setFieldValue,
@@ -198,8 +209,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const removeFieldValue: UseHoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
     const formField = formFieldsRef.current[fieldName];
 
-    unregisterChildForm(formField, formIndex);
-
     setFieldValue(
       fieldName,
       // @ts-ignore
@@ -209,6 +218,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const initialFormFieldsGetter = createInitialFormFieldsGetter(
+    formIndex,
+    parentField,
     fieldsConfig,
     defaults,
     setFieldValue,
@@ -280,6 +291,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           ...formFields,
           [fieldName]: createField(fieldName, config, {
             setFieldValue,
+            // work with nested form
             pushFieldValue,
             removeFieldValue,
           }),
@@ -335,12 +347,12 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
         if (formField.__meta__.childrenForms) {
           formField.__meta__.childrenForms.forEach(childForm => {
-            if (!childForm.validate()) {
+            if (!childForm.validateForm()) {
               hasErrors = true;
             }
           });
 
-          captureNestedFieldValues(formField);
+          captureChildFormsFieldValues(formField);
 
           formFields[fieldName] = {
             ...formField,
@@ -409,8 +421,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
       registerChildForm(parentField, formIndex, {
         formFieldsRef,
-        submit: submitForm,
-        validate: validateForm,
+        submitForm,
+        validateForm,
       });
     }
 

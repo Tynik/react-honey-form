@@ -7,6 +7,8 @@ import type {
   UseHoneyFormChildFormApi,
 } from './use-honey-form.types';
 
+let CHILD_FORM_ID = 0;
+
 export const genericMemo: <T>(component: T) => T = React.memo;
 
 export const warningMessage = (message: string) => {
@@ -44,6 +46,12 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
     return formData;
   }, {} as Form);
 
+export const getHoneyFormNextChildFormId = () => {
+  CHILD_FORM_ID += 1;
+
+  return CHILD_FORM_ID;
+};
+
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
   formField: UseHoneyFormField<Form, any>,
   formIndex: number,
@@ -60,17 +68,12 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
   formField.__meta__.childrenForms.splice(formIndex, 1);
 };
 
-/**
- * Captures the nested field values of a form field, including values from child forms.
- *
- * @param formField - The form field to capture values for.
- */
-export const captureNestedFieldValues = <Form extends UseHoneyFormForm>(
+export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormField<Form, any>
 ) => {
   const { value, cleanValue } = formField;
 
-  // Override the 'value' property to capture nested field values
+  // Override the 'value' property to capture child forms field values
   Object.defineProperty(formField, 'value', {
     get() {
       if (formField.__meta__.childrenForms) {
@@ -81,9 +84,12 @@ export const captureNestedFieldValues = <Form extends UseHoneyFormForm>(
       //
       return value;
     },
+    set(v) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      formField.value = v;
+    },
   });
 
-  // Override the 'cleanValue' property to capture nested clean values
   Object.defineProperty(formField, 'cleanValue', {
     get() {
       if (formField.__meta__.childrenForms) {
@@ -93,6 +99,10 @@ export const captureNestedFieldValues = <Form extends UseHoneyFormForm>(
       }
       //
       return cleanValue;
+    },
+    set(v) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      formField.cleanValue = v;
     },
   });
 };
