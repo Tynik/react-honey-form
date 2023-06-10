@@ -249,7 +249,7 @@ describe('HoneyForm component. Nested forms', () => {
     );
   });
 
-  it('should remove an item from the list when remove button is clicked', () => {
+  it('should remove an item from the list when remove button is clicked', async () => {
     type ItemForm = {
       id: string;
       name: string;

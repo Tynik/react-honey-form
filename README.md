@@ -1,6 +1,5 @@
 # React Honey Form
 
-
 [![Latest version](https://img.shields.io/npm/v/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Publish status](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml/badge.svg)](https://github.com/Tynik/react-honey-form/actions/workflows/publish.yml)
 [![Package size](https://img.shields.io/bundlephobia/minzip/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
@@ -8,11 +7,23 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 [![Licence](https://img.shields.io/npm/l/@tynik/react-honey-form)](https://www.npmjs.com/package/@tynik/react-honey-form)
 
-*That's a React library for creating and managing forms with ease. It provides a set of customizable and extensible components that make it easy to create forms that match your application's look and feel.*
+<p align="center">
+  <img width="200" src="HoneyFormLogo.png" alt="Logo">
+</p>
 
 ## Intro
 
-The `useHoneyForm` is a custom React hook that provides a form state management functionality with a set of useful features such as field validation, error handling, form submission and resetting and default values.
+HoneyForm is a React library designed to simplify the process of creating and managing forms. It offers a collection of customizable and extensible components that enable you to effortlessly create forms that seamlessly integrate with your application's visual style.
+
+With HoneyForm, you can streamline your form development workflow and handle form state management with ease. The library provides an intuitive API and a range of features to support various form scenarios, including dynamic form fields, form validation, error handling, and form submission.
+
+## Key Features
+
+1. **Customizable and Extensible**: HoneyForm offers a set of components that can be easily customized to match your application's look and feel. You have full control over the styling and behavior of the form components.
+1. **Effortless Form Creation**: With HoneyForm, you can quickly create forms by leveraging the provided components and intuitive configuration options. Define your form structure, set validation rules, and handle form submission with simplicity.
+1. **Dynamic Form Fields**: HoneyForm supports dynamic form fields, allowing you to add or remove fields dynamically as per your application requirements. This feature is particularly useful when dealing with forms that involve variable sets of data.
+1. **Form Validation**: Ensure data integrity and user input correctness with HoneyForm's built-in form validation capabilities. Define validation rules for each form field, and easily handle validation errors.
+1. **Form Submission**: HoneyForm simplifies the process of submitting form data. Hook into the form submission event, handle the submission logic, and interact with the form data seamlessly.
 
 ## Parameters
 
