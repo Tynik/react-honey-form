@@ -31,8 +31,8 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 
 1. `fields` - An object that defines the fields of the form. Each field is an object that defines its properties such as type, required, value, min, max, etc. See more in the `UseHoneyFormFieldConfig` type.
 1. `formIndex` - An optional parameter that represents the index of the child form within an array of forms. This parameter is used when working with nested forms.
-1. `parentField` - An optional parameter that specifies the parent field for a child form. When working with nested forms, this parameter allows you to establish a parent-child relationship between forms. The parentField should be a reference to the parent form field where the child form's data will be stored. By linking a child form to a parent field, changes in the child form's fields can be synchronized with the corresponding parent field, enabling hierarchical data management.
-1. `defaults` - An optional object that defines the default values for the form fields. It allows you to pre-populate the form fields with initial values. If the `defaults` argument is a regular object, it is expected to have keys corresponding to the field names and values representing the default values for those fields. If the `defaults` argument is a function, it should return an object with the same structure, allowing for more dynamic default values based on some logic or external data.
+1. `parentField` - An optional parameter that specifies the parent field for a child form. When working with nested forms, this parameter allows you to establish a parent-child relationship between forms. The `parentField` should be a reference to the parent form field where the child form's data will be stored. By linking a child form to a parent field, changes in the child form's fields can be synchronized with the corresponding parent field, enabling hierarchical data management.
+1. `defaults` - An optional object that defines the default values for the form fields. It allows you to pre-populate the form fields with initial values. If the `defaults` argument is a regular object, it is expected to have keys corresponding to the field names and values representing the default values for those fields. If the `defaults` argument is a Promise function, it should resolve an object with the same structure, allowing for more dynamic default values based on some logic or external data.
 1. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
 1. `onChange` - An optional callback function that will be called when any field value is changed.
 1. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback.
@@ -71,6 +71,9 @@ The `useHoneyForm` hook returns an object with the following properties:
 *Simple usage*
 
 ```typescript jsx
+import React from 'react';
+import { useHoneyForm } from 'react-honey-form';
+
 type ProfileForm = {
   name: string;
   age: number;
@@ -101,6 +104,91 @@ const Form = () => {
 }
 ```
 
+*Nested forms*
+
+```typescript jsx
+import React from 'react';
+import { HoneyForm, useHoneyForm, useHoneyFormProvider, getHoneyFormUniqueId } from 'react-honey-form';
+
+type ItemFormValues = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+type ArrayFormValues = {
+  items: ItemFormValues[];
+};
+
+const NestedForm = () => {
+  const { formFields } = useHoneyForm<ArrayFormValues>({
+    fields: {
+      items: {
+        value: [],
+        validate: items => {
+          if (!items.length) {
+            return 'At least one item is required.';
+          }
+          return true;
+        },
+      },
+    },
+  });
+
+  const addItem = () => {
+    formFields.items.pushValue({
+       id: getHoneyFormUniqueId(),
+       name: '',
+       price: 0
+    });
+  };
+
+  const removeItem = (index: number) => {
+    formFields.items.removeValue(index);
+  };
+
+  return (
+    <form>
+      <h2>Items</h2>
+
+      {formFields.items.value.map((item, index) => (
+        <div key={item.id}>
+          <label>
+            Name:
+            <input {...formFields.items.value[index].name.props} />
+          </label>
+
+          <label>
+            Price:
+            <input {...formFields.items.value[index].price.props} />
+          </label>
+
+          <button type="button" onClick={() => removeItem(index)}>
+            Remove
+          </button>
+        </div>
+      ))}
+
+      <button type="button" onClick={addItem}>
+        Add Item
+      </button>
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+const App = () => {
+  return (
+    <HoneyForm onSubmit={console.log}>
+      <NestedForm />
+    </HoneyForm>
+  );
+};
+
+export default App;
+```
+
 ## Conclusion
 
-The `react-honey-form` is a powerful and customizable library for creating and managing forms in React. With its set of components and hooks, you can easily create forms that match your application's look and feel, and manage form submission and validation with ease.
+The `react-honey-form` is a powerful and customizable library for creating and managing forms in React. With its comprehensive set of components and hooks, you can effortlessly create forms that seamlessly blend with your application's design and behavior. The library provides convenient features for handling form submission and validation, simplifying the development process. Whether you're building simple or complex forms, `react-honey-form` empowers you to create delightful user experiences with ease.
