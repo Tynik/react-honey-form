@@ -21,6 +21,7 @@ import type {
   UseHoneyFormValidate,
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormParentField,
+  UseHoneyFormChildFormId,
 } from './use-honey-form.types';
 
 import {
@@ -37,6 +38,7 @@ import {
   warningMessage,
   unregisterChildForm,
   registerChildForm,
+  getHoneyFormUniqueId,
 } from './use-honey-form.helpers';
 
 const createInitialFormFieldsGetter =
@@ -135,15 +137,6 @@ const getNextHoneyFormFieldsState = <
   return nextFormFields;
 };
 
-/**
- *
- * @param defaults
- * @param fieldsConfig
- * @param onSubmit
- * @param onChange: When any field value is changed.
- *  That callback function is called on next iteration after any change
- * @param onChangeDebounce number: Debounce time for onChange() callback
- */
 export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   formIndex,
   parentField,
@@ -155,12 +148,12 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 }: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
-  const isFormDirtyRef = useRef(false);
-
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
+  const childFormIdRef = useRef<UseHoneyFormChildFormId | null>(null);
+  const isFormDirtyRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
   const setFieldValue: UseHoneyFormSetFieldValue<Form> = (fieldName, fieldValue) => {
@@ -211,7 +204,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     setFieldValue(
       fieldName,
-      // @ts-ignore
+      // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       formField.value.filter((_, index) => index !== formIndex)
     );
@@ -413,13 +406,16 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   useEffect(() => {
     if (parentField) {
-      if (formIndex === undefined) {
+      if (parentField.value?.length && formIndex === undefined) {
         throw new Error(
-          '[use-honey-form]: When using `parentField`, the `formIndex` option must be provided.'
+          '[use-honey-form]: When using `parentField` with an existing value, the `formIndex` option must be provided. Please specify the `formIndex` when rendering the form field.'
         );
       }
 
-      registerChildForm(parentField, formIndex, {
+      childFormIdRef.current = getHoneyFormUniqueId();
+
+      registerChildForm(parentField, {
+        id: childFormIdRef.current,
         formFieldsRef,
         submitForm,
         validateForm,
@@ -441,7 +437,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     return () => {
       if (parentField) {
-        unregisterChildForm(parentField, formIndex);
+        unregisterChildForm(parentField, childFormIdRef.current);
       }
     };
   }, []);

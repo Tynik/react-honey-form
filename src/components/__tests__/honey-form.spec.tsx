@@ -6,7 +6,6 @@ import type { UseHoneyFormFieldsConfigs } from '../../use-honey-form.types';
 import { HoneyForm } from '../honey-form';
 import { useHoneyForm } from '../../use-honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
-import { getHoneyFormNextChildFormId } from '../../use-honey-form.helpers';
 
 describe('HoneyForm component. Basic usage', () => {
   it('the form should be mounted', () => {
@@ -67,30 +66,34 @@ describe('HoneyForm component. Basic usage', () => {
 });
 
 describe('HoneyForm component. Nested forms', () => {
+  type ItemForm = {
+    id: string;
+    name: string;
+    price: number;
+  };
+
+  type ItemsForm = {
+    items: ItemForm[];
+  };
+
+  type ItemFormProps = {
+    formIndex: number;
+  };
+
+  let CHILD_FORM_ID = 0;
+
+  const getNextChildFormId = () => {
+    CHILD_FORM_ID += 1;
+
+    return `${CHILD_FORM_ID}`;
+  };
+
+  beforeEach(() => {
+    CHILD_FORM_ID = 0;
+  });
+
   it('should submit form with correct item values after dynamic addition', async () => {
-    type ItemForm = {
-      id: string;
-      name: string;
-      price: number;
-    };
-
-    type ItemsForm = {
-      items: ItemForm[];
-    };
-
-    let CHILD_FORM_ID = 0;
-
-    const getNextChildFormId = () => {
-      CHILD_FORM_ID += 1;
-
-      return `${CHILD_FORM_ID}`;
-    };
-
     const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
-
-    type ItemFormProps = {
-      formIndex: number;
-    };
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
@@ -249,22 +252,8 @@ describe('HoneyForm component. Nested forms', () => {
     );
   });
 
-  it('should remove an item from the list when remove button is clicked', async () => {
-    type ItemForm = {
-      id: string;
-      name: string;
-      price: number;
-    };
-
-    type ItemsForm = {
-      items: ItemForm[];
-    };
-
+  it('should remove an item from the list when remove button is clicked', () => {
     const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
-
-    type ItemFormProps = {
-      formIndex: number;
-    };
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
@@ -340,5 +329,107 @@ describe('HoneyForm component. Nested forms', () => {
 
     expect((getByTestId('item[0].name') as HTMLInputElement).value).toEqual('Pineapple');
     expect((getByTestId('item[0].price') as HTMLInputElement).value).toEqual('45');
+  });
+
+  it('should remove items from the form and exclude them in the submitted data', async () => {
+    const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
+
+    const ItemLineForm = ({ formIndex }: ItemFormProps) => {
+      const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
+
+      const { formFields } = useHoneyForm<ItemForm>({
+        formIndex,
+        parentField: itemsFormFields.items,
+        fields: {
+          id: {
+            required: true,
+          },
+          name: {
+            required: true,
+            value: '',
+          },
+          price: {
+            type: 'number',
+            required: true,
+            value: 0,
+          },
+        },
+      });
+
+      return (
+        <>
+          <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
+          <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+
+          <button
+            type="button"
+            data-testid={`item[${formIndex}].removeItem`}
+            onClick={() => itemsFormFields.items.removeValue(formIndex)}
+          />
+        </>
+      );
+    };
+
+    const fields: UseHoneyFormFieldsConfigs<ItemsForm> = {
+      items: {
+        value: [],
+      },
+    };
+
+    const { getByTestId, queryByTestId } = render(
+      <HoneyForm fields={fields} onSubmit={onSubmit}>
+        {({ formFields }) => (
+          <>
+            {formFields.items.value.map((itemForm, itemFormIndex) => (
+              <ItemLineForm key={itemForm.id} formIndex={itemFormIndex} />
+            ))}
+
+            <button
+              type="button"
+              data-testid="addItem"
+              onClick={() =>
+                formFields.items.pushValue({
+                  id: getNextChildFormId(),
+                  name: '',
+                  price: undefined,
+                })
+              }
+            >
+              Add Item
+            </button>
+
+            <button type="submit" data-testid="save">
+              Save
+            </button>
+          </>
+        )}
+      </HoneyForm>
+    );
+
+    // Add a new item to the form
+    fireEvent.click(getByTestId('addItem'));
+    fireEvent.click(getByTestId('addItem'));
+
+    fireEvent.click(getByTestId('item[0].removeItem'));
+
+    expect(queryByTestId('item[0].price')).not.toBeNull();
+    expect(queryByTestId('item[1].price')).toBeNull();
+
+    fireEvent.click(getByTestId('item[0].removeItem'));
+
+    expect(queryByTestId('item[0].price')).toBeNull();
+    expect(queryByTestId('item[1].price')).toBeNull();
+
+    // Submit the form
+    fireEvent.click(getByTestId('save'));
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        items: [],
+      })
+    );
+
+    expect(queryByTestId('item[0].price')).toBeNull();
+    expect(queryByTestId('item[1].price')).toBeNull();
   });
 });

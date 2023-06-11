@@ -4,6 +4,8 @@ import type { ChangeEvent, FocusEvent, MutableRefObject, RefObject } from 'react
 
 type UseHoneyFormFieldName = string;
 
+export type UseHoneyFormChildFormId = string;
+
 type UseHoneyFormFieldMode = 'onChange' | 'onBlur';
 
 // TODO: implement date type
@@ -232,6 +234,7 @@ type UseHoneyFormSetFormValuesOptions = {
 export type UseHoneyFormReset = () => void;
 
 export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
+  id: UseHoneyFormChildFormId;
   formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
   submitForm: UseHoneyFormSubmit<Form, Response>;
   validateForm: UseHoneyFormValidate;

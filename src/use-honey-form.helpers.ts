@@ -5,9 +5,19 @@ import type {
   UseHoneyFormField,
   UseHoneyFormErrors,
   UseHoneyFormChildFormApi,
+  UseHoneyFormChildFormId,
 } from './use-honey-form.types';
 
 export const genericMemo: <T>(component: T) => T = React.memo;
+
+export const getHoneyFormUniqueId = () => {
+  const timestamp = Date.now().toString();
+  const randomNum = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, '0');
+
+  return `${timestamp}${randomNum}`;
+};
 
 export const warningMessage = (message: string) => {
   // eslint-disable-next-line no-console
@@ -44,29 +54,21 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
     return formData;
   }, {} as Form);
 
-export const getHoneyFormNextChildFormId = () => {
-  const timestamp = Date.now().toString();
-  const randomNum = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, '0');
-
-  return `${timestamp}${randomNum}`;
-};
-
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
   formField: UseHoneyFormField<Form, any>,
-  formIndex: number,
   childFormApi: UseHoneyFormChildFormApi<Form, Response>
 ) => {
   formField.__meta__.childrenForms = formField.__meta__.childrenForms || [];
-  formField.__meta__.childrenForms.splice(formIndex, 1, childFormApi);
+  formField.__meta__.childrenForms.push(childFormApi);
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormField<Form, any>,
-  formIndex: number
+  childFormId: UseHoneyFormChildFormId
 ) => {
-  formField.__meta__.childrenForms.splice(formIndex, 1);
+  formField.__meta__.childrenForms = formField.__meta__.childrenForms.filter(
+    childForm => childForm.id !== childFormId
+  );
 };
 
 export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
