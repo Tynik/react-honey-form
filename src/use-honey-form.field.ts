@@ -227,6 +227,29 @@ export const triggerScheduledFieldsValidations = <
   });
 };
 
+export const clearField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
+  formField: UseHoneyFormField<Form, FieldName, Form[FieldName]>
+) => {
+  return {
+    ...formField,
+    value: undefined,
+    cleanValue: undefined,
+    errors: [],
+    props: {
+      ...formField.props,
+      value: undefined,
+    },
+  };
+};
+
+export const clearAllFields = <Form extends UseHoneyFormForm>(
+  formFields: UseHoneyFormFields<Form>
+) => {
+  Object.keys(formFields).forEach((fieldName: keyof Form) => {
+    formFields[fieldName] = clearField(formFields[fieldName]);
+  });
+};
+
 export const clearDependentFields = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   formFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
@@ -248,16 +271,7 @@ export const clearDependentFields = <Form extends UseHoneyFormForm, FieldName ex
     if (isDependent) {
       const otherField = formFields[otherFieldName];
 
-      formFields[otherFieldName] = {
-        ...otherField,
-        value: otherField.defaultValue,
-        cleanValue: otherField.defaultValue,
-        errors: [],
-        props: {
-          ...otherField.props,
-          value: otherField.defaultValue,
-        },
-      };
+      formFields[otherFieldName] = clearField(otherField);
 
       if (otherFieldName !== initiatorFieldName) {
         clearDependentFields(formFields, otherFieldName, fieldName);

@@ -131,7 +131,7 @@ export type UseHoneyFormField<
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = {
   defaultValue: FieldValue;
-  // a value should be undefined when error for a field is present
+  // a value is `undefined` when any error for the field is present
   cleanValue: FieldValue;
   // the value after formatting when specific format function was executed
   value: FieldValue;

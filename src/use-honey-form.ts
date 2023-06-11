@@ -30,6 +30,7 @@ import {
   createField,
   validateField,
   triggerScheduledFieldsValidations,
+  clearAllFields,
 } from './use-honey-form.field';
 import {
   getFormErrors,
@@ -55,11 +56,11 @@ const createInitialFormFieldsGetter =
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
-      let parentFieldValue: Form[keyof Form];
+      let childFormFieldValue: Form[keyof Form];
       if (parentField) {
         const childForm = parentField.value?.[formIndex];
 
-        parentFieldValue = childForm?.[fieldName];
+        childFormFieldValue = childForm?.[fieldName];
       }
 
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
@@ -68,8 +69,7 @@ const createInitialFormFieldsGetter =
         fieldName,
         {
           ...fieldConfig,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          defaultValue: parentFieldValue ?? fieldConfig.defaultValue ?? defaultFieldValue,
+          defaultValue: childFormFieldValue ?? fieldConfig.defaultValue ?? defaultFieldValue,
         },
         {
           setFieldValue,
@@ -229,18 +229,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         const nextFormFields = { ...formFields };
 
         if (clearAll) {
-          Object.keys(nextFormFields).forEach((fieldName: keyof Form) => {
-            nextFormFields[fieldName] = {
-              ...nextFormFields[fieldName],
-              value: undefined,
-              cleanValue: undefined,
-              errors: [],
-              props: {
-                ...nextFormFields[fieldName].props,
-                value: undefined,
-              },
-            };
-          });
+          clearAllFields(nextFormFields);
         }
 
         Object.keys(values).forEach((fieldName: keyof Form) => {
