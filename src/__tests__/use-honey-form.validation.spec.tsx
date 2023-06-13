@@ -3,7 +3,10 @@ import { act, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 import type { CustomDateRangeForm } from '../use-honey-form.forms-types';
-import { createDateFromValidator, createDateToValidator } from '../use-honey-form.fields-configs';
+import {
+  createHoneyFormDateFromValidator,
+  createHoneyFormDateToValidator,
+} from '../use-honey-form.validators';
 
 describe('Use honey form. Validation', () => {
   it('use min value validation', () => {
@@ -417,15 +420,15 @@ describe('Use honey form. Validation', () => {
     expect(result.current.formErrors).toStrictEqual({});
   });
 
-  it('should validate date range correctly using built-in validators', () => {
+  it('should validate date range correctly using predefined validators', () => {
     const { result } = renderHook(() =>
       useHoneyForm<CustomDateRangeForm>({
         fields: {
           dateFrom: {
-            validator: createDateFromValidator(),
+            validator: createHoneyFormDateFromValidator(),
           },
           dateTo: {
-            validator: createDateToValidator(),
+            validator: createHoneyFormDateToValidator(),
           },
         },
       })
