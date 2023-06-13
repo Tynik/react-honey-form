@@ -91,14 +91,22 @@ export type UseHoneyFormFieldConfig<
   onChange?: UseHoneyFormFieldOnChange<Form, FieldName, FieldValue>;
 };
 
+export type UseHoneyFormFieldValidatorApi<
+  Form extends UseHoneyFormForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName] = Form[FieldName]
+> = {
+  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
+  formFields: UseHoneyFormFields<Form>;
+};
+
 export type UseHoneyFormFieldValidator<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = (
   value: FieldValue,
-  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
-  formFields: UseHoneyFormFields<Form>
+  api: UseHoneyFormFieldValidatorApi<Form, FieldName, FieldValue>
 ) => UseHoneyFormFieldValidationResult;
 
 export type UseHoneyFormFieldInternalValidator = <

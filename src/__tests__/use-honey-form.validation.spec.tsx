@@ -2,6 +2,8 @@ import type { ChangeEvent } from 'react';
 import { act, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
+import type { CustomDateRangeForm } from '../use-honey-form.forms-types';
+import { createDateFromValidator, createDateToValidator } from '../use-honey-form.fields-configs';
 
 describe('Use honey form. Validation', () => {
   it('use min value validation', () => {
@@ -236,18 +238,18 @@ describe('Use honey form. Validation', () => {
           age1: {
             type: 'number',
             value: 1,
-            validator: (value, _, formFields) => value < formFields.age2.value,
+            validator: (value, { formFields }) => value < formFields.age2.value,
           },
           age2: {
             type: 'number',
             value: 2,
-            validator: (value, _, formFields) =>
+            validator: (value, { formFields }) =>
               value > formFields.age1.value && value < formFields.age3.value,
           },
           age3: {
             type: 'number',
             value: 3,
-            validator: (value, _, formFields) => value > formFields.age2.value,
+            validator: (value, { formFields }) => value > formFields.age2.value,
           },
         },
         onSubmit,
@@ -357,7 +359,7 @@ describe('Use honey form. Validation', () => {
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
         fields: {
           amountFrom: {
-            validator: (value, fieldConfig, formFields) => {
+            validator: (value, { formFields }) => {
               formFields.amountTo.scheduleValidation();
 
               if (value > formFields.amountTo.value) {
@@ -368,7 +370,7 @@ describe('Use honey form. Validation', () => {
             },
           },
           amountTo: {
-            validator: (value, fieldConfig, formFields) => {
+            validator: (value, { formFields }) => {
               formFields.amountFrom.scheduleValidation();
 
               if (value < formFields.amountFrom.value) {
@@ -410,6 +412,53 @@ describe('Use honey form. Validation', () => {
 
     act(() => {
       result.current.formFields.amountFrom.setValue(2);
+    });
+
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+
+  it('should validate date range correctly using built-in validators', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<CustomDateRangeForm>({
+        fields: {
+          dateFrom: {
+            validator: createDateFromValidator(),
+          },
+          dateTo: {
+            validator: createDateToValidator(),
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.dateFrom.setValue(new Date('04/05/2031'));
+    });
+
+    // errors should not be shown when only one field is filled
+    expect(result.current.formErrors).toStrictEqual({});
+
+    act(() => {
+      result.current.formFields.dateTo.setValue(new Date('03/04/2030'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      dateFrom: [
+        {
+          type: 'invalid',
+          message: '"Date From" should be equal or less than "Date To"',
+        },
+      ],
+      dateTo: [
+        {
+          type: 'invalid',
+          message: '"Date To" should be equal or greater than "Date From"',
+        },
+      ],
+    });
+
+    act(() => {
+      result.current.formFields.dateTo.setValue(new Date('04/05/2031'));
     });
 
     expect(result.current.formErrors).toStrictEqual({});

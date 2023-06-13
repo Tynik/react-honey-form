@@ -115,11 +115,10 @@ export const validateField = <
   const fieldErrors: UseHoneyFormFieldError[] = [];
 
   if (fieldConfig.type) {
-    validationResult = DEFAULT_VALIDATORS_MAP[fieldConfig.type](
-      fieldValue,
+    validationResult = DEFAULT_VALIDATORS_MAP[fieldConfig.type](fieldValue, {
       fieldConfig,
-      formFields
-    );
+      formFields,
+    });
   }
 
   // do not run additional validators if default field type validator is failed
@@ -139,7 +138,7 @@ export const validateField = <
 
     // execute custom validator. Can be run only when default validator return true or not run at all
     if (fieldConfig.validator) {
-      validationResult = fieldConfig.validator(fieldValue, fieldConfig, formFields);
+      validationResult = fieldConfig.validator(fieldValue, { fieldConfig, formFields });
     }
   }
 

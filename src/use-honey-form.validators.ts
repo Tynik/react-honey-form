@@ -8,7 +8,7 @@ export const DEFAULT_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any, any>
 > = {
-  number: (value, { decimal = false, negative = true, maxFraction = 2 }) => {
+  number: (value, { fieldConfig: { decimal = false, negative = true, maxFraction = 2 } }) => {
     if (value === '' || value === undefined) {
       return true;
     }
