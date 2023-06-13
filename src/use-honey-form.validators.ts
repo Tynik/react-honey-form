@@ -4,7 +4,7 @@ import type {
   UseHoneyFormFieldValidator,
 } from './use-honey-form.types';
 
-import type { CustomDateRangeForm } from './use-honey-form.forms-types';
+import type { CustomDateRangeForm } from './use-honey-form.form-types';
 
 export const DEFAULT_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
@@ -179,20 +179,40 @@ export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValida
   }
 };
 
-type CreateDateRangeValidatorOptions = {
+//
+// Data Range Validators
+//
+
+type DatePropertyKey<Form> = string & keyof Form;
+
+type CreateHoneyFormDateFromValidatorOptions<
+  Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+  DateFromKey extends DatePropertyKey<Form>,
+  DateToKey extends DatePropertyKey<Form>
+> = {
+  dateToKey: DateToKey;
   errorMsg?: string;
   ignoreTime?: boolean;
 };
 
 export const createHoneyFormDateFromValidator =
-  <Form extends CustomDateRangeForm>({
+  <
+    Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+    DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
+    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>
+  >({
+    dateToKey,
     errorMsg = '"Date From" should be equal or less than "Date To"',
     ignoreTime = true,
-  }: CreateDateRangeValidatorOptions = {}): UseHoneyFormFieldValidator<Form, 'dateFrom'> =>
+  }: CreateHoneyFormDateFromValidatorOptions<
+    Form,
+    DateFromKey,
+    DateToKey
+  >): UseHoneyFormFieldValidator<Form, DateFromKey> =>
   (dateFrom, { formFields }) => {
-    formFields.dateTo.scheduleValidation();
+    formFields[dateToKey].scheduleValidation();
 
-    const dateTo = formFields.dateTo.value;
+    const dateTo = formFields[dateToKey].value;
 
     if (!dateFrom || !dateTo) {
       return true;
@@ -210,15 +230,34 @@ export const createHoneyFormDateFromValidator =
     return true;
   };
 
+type CreateHoneyFormDateToValidatorOptions<
+  Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+  DateFromKey extends DatePropertyKey<Form>,
+  DateToKey extends DatePropertyKey<Form>
+> = {
+  dateFromKey: DateFromKey;
+  errorMsg?: string;
+  ignoreTime?: boolean;
+};
+
 export const createHoneyFormDateToValidator =
-  <Form extends CustomDateRangeForm>({
+  <
+    Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+    DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
+    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>
+  >({
+    dateFromKey,
     errorMsg = '"Date To" should be equal or greater than "Date From"',
     ignoreTime = true,
-  }: CreateDateRangeValidatorOptions = {}): UseHoneyFormFieldValidator<Form, 'dateTo'> =>
+  }: CreateHoneyFormDateToValidatorOptions<
+    Form,
+    DateFromKey,
+    DateToKey
+  >): UseHoneyFormFieldValidator<Form, DateToKey> =>
   (dateTo, { formFields }) => {
-    formFields.dateFrom.scheduleValidation();
+    formFields[dateFromKey].scheduleValidation();
 
-    const dateFrom = formFields.dateFrom.value;
+    const dateFrom = formFields[dateFromKey].value;
 
     if (!dateTo || !dateFrom) {
       return true;

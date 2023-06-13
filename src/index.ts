@@ -1,6 +1,6 @@
 export * from './use-honey-form';
 export * from './use-honey-form.types';
-export * from './use-honey-form.forms-types';
+export * from './use-honey-form.form-types';
 
 export { getHoneyFormUniqueId } from './use-honey-form.helpers';
 export {
