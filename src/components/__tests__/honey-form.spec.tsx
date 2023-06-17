@@ -13,7 +13,7 @@ describe('HoneyForm component. Basic usage', () => {
 
     const { getByTestId } = render(<HoneyForm fields={fields} />);
 
-    expect(getByTestId('form')).toBeDefined();
+    expect(getByTestId('honey-form')).toBeDefined();
   });
 
   it('the form should accept the function as content', () => {
@@ -62,6 +62,58 @@ describe('HoneyForm component. Basic usage', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() => expect(onSubmit).toBeCalled());
+  });
+});
+
+describe('HoneyForm component. Field mode usage', () => {
+  it('should validate field when onBlur event is triggered', async () => {
+    type Form = {
+      name: string;
+    };
+
+    const onSubmit = jest.fn<Promise<void>, Form[]>();
+
+    const fields: UseHoneyFormFieldsConfigs<Form> = {
+      name: {
+        mode: 'blur',
+        value: '',
+        validator: value => value.length > 3,
+      },
+    };
+
+    const { getByTestId } = render(
+      <HoneyForm fields={fields} onSubmit={onSubmit}>
+        {({ formFields }) => (
+          <>
+            <input
+              data-testid="name"
+              aria-errormessage={formFields.name.errors[0]?.message}
+              {...formFields.name.props}
+            />
+
+            <button type="submit" data-testid="save">
+              Save
+            </button>
+          </>
+        )}
+      </HoneyForm>
+    );
+
+    fireEvent.change(getByTestId('name'), { target: { value: 'App' } });
+    expect(getByTestId('name').getAttribute('aria-errormessage')).toBeNull();
+
+    fireEvent.blur(getByTestId('name'));
+    expect(getByTestId('name').getAttribute('aria-errormessage')).toBe('Invalid value');
+
+    fireEvent.change(getByTestId('name'), { target: { value: 'Apple' } });
+    // Submit the form
+    fireEvent.click(getByTestId('save'));
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        name: 'Apple',
+      })
+    );
   });
 });
 

@@ -39,7 +39,7 @@ export const createField = <
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
-  { mode = 'onChange', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
+  { mode = 'change', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   {
     setFieldValue,
     pushFieldValue,
@@ -58,14 +58,17 @@ export const createField = <
     ref: fieldRef,
     value: fieldValue,
     //
-    ...(mode === 'onChange' && {
-      onChange: e => {
-        setFieldValue(fieldName, e.target.value as never);
-      },
-    }),
-    ...(mode === 'onBlur' && {
+    onFocus: e => {
+      //
+    },
+    onChange: e => {
+      // @ts-expect-error
+      setFieldValue(fieldName, e.target.value, mode === 'change');
+    },
+    ...(mode === 'blur' && {
       onBlur: e => {
-        setFieldValue(fieldName, e.target.value as never);
+        // @ts-expect-error
+        setFieldValue(fieldName, e.target.value);
       },
     }),
   };

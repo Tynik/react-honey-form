@@ -22,6 +22,7 @@ import type {
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormParentField,
   UseHoneyFormChildFormId,
+  UseHoneyFormFieldError,
 } from './use-honey-form.types';
 
 import {
@@ -93,8 +94,10 @@ const getNextHoneyFormFieldsState = <
   fieldValue: FieldValue,
   {
     formFields,
+    validate,
   }: {
     formFields: UseHoneyFormFields<Form>;
+    validate: boolean;
   }
 ): UseHoneyFormFields<Form> => {
   const nextFormFields = { ...formFields };
@@ -114,11 +117,15 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  clearDependentFields(nextFormFields, fieldName);
+  let cleanValue: FieldValue;
+  let errors: UseHoneyFormFieldError[] = [];
 
-  const cleanValue = sanitizeFieldValue(fieldConfig.type, filteredValue);
+  if (validate) {
+    clearDependentFields(nextFormFields, fieldName);
 
-  const errors = validateField(cleanValue, fieldConfig, formFields);
+    cleanValue = sanitizeFieldValue(fieldConfig.type, filteredValue);
+    errors = validateField(cleanValue, fieldConfig, formFields);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
@@ -159,7 +166,11 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const isFormDirtyRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const setFieldValue: UseHoneyFormSetFieldValue<Form> = (fieldName, fieldValue) => {
+  const setFieldValue: UseHoneyFormSetFieldValue<Form> = (
+    fieldName,
+    fieldValue,
+    validate = true
+  ) => {
     isFormDirtyRef.current = true;
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -170,6 +181,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
       const nextFormFields = getNextHoneyFormFieldsState(fieldName, fieldValue, {
         formFields,
+        validate,
       });
 
       const fieldConfig = nextFormFields[fieldName].config;

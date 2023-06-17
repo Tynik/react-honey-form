@@ -6,8 +6,6 @@ type UseHoneyFormFieldName = string;
 
 export type UseHoneyFormChildFormId = string;
 
-type UseHoneyFormFieldMode = 'onChange' | 'onBlur';
-
 // TODO: implement date type
 export type UseHoneyFormFieldType = 'number';
 
@@ -16,6 +14,8 @@ type UseHoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'm
 type UseHoneyFormFieldErrorMessage = string;
 
 export type UseHoneyFormForm = Record<UseHoneyFormFieldName, unknown>;
+
+type UseHoneyFormFieldMode = 'change' | 'blur';
 
 type UseHoneyFormFieldErrorMessages = Partial<
   Record<UseHoneyFormFieldErrorType, UseHoneyFormFieldErrorMessage>
@@ -37,7 +37,8 @@ export type UseHoneyFormSetFieldValue<Form extends UseHoneyFormForm> = <
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
-  value: FieldValue
+  value: FieldValue,
+  validate?: boolean
 ) => void;
 
 export type UseHoneyFormPushFieldValue<Form extends UseHoneyFormForm> = <

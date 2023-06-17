@@ -29,8 +29,9 @@ const HoneyFormFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   };
 
   return (
-    <form ref={ref} onSubmit={onSubmit} data-testid="form" noValidate {...props}>
-      {typeof children === 'function' ? children(honeyFormApi as never) : children}
+    <form ref={ref} onSubmit={onSubmit} data-testid="honey-form" noValidate {...props}>
+      {/* @ts-expect-error */}
+      {typeof children === 'function' ? children(honeyFormApi) : children}
     </form>
   );
 };
