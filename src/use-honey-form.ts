@@ -139,6 +139,7 @@ const getNextHoneyFormFieldsState = <
     props: {
       ...formField.props,
       value: formattedValue as never,
+      'aria-invalid': Boolean(errors.length),
     },
   };
 
@@ -248,22 +249,24 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         }
 
         Object.keys(values).forEach((fieldName: keyof Form) => {
-          const fieldConfig = nextFormFields[fieldName].config;
+          const formField = nextFormFields[fieldName];
+          const value = values[fieldName];
 
-          const filteredValue = fieldConfig.filter
-            ? fieldConfig.filter(values[fieldName])
-            : values[fieldName];
+          const filteredValue = formField.config.filter ? formField.config.filter(value) : value;
+          const formattedValue = formField.config.format?.(filteredValue) ?? filteredValue;
 
-          const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
+          const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
+          const errors = validateField(cleanValue, formField.config, nextFormFields);
 
           nextFormFields[fieldName] = {
-            ...nextFormFields[fieldName],
+            ...formField,
+            errors,
             value: formattedValue,
-            cleanValue: sanitizeFieldValue(fieldConfig.type, filteredValue),
-            errors: [],
+            cleanValue: errors.length ? undefined : cleanValue,
             props: {
-              ...nextFormFields[fieldName].props,
+              ...formField.props,
               value: formattedValue,
+              'aria-invalid': Boolean(errors.length),
             },
           };
         });

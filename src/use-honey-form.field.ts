@@ -71,6 +71,7 @@ export const createField = <
         setFieldValue(fieldName, e.target.value);
       },
     }),
+    'aria-invalid': false,
   };
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -223,6 +224,10 @@ export const triggerScheduledFieldsValidations = <
           errors: otherFieldErrors,
           // set clean value as undefined if any error is present
           cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
+          props: {
+            ...otherFormField.props,
+            'aria-invalid': Boolean(otherFieldErrors.length),
+          },
         };
       }
 
@@ -242,6 +247,7 @@ export const clearField = <Form extends UseHoneyFormForm, FieldName extends keyo
     props: {
       ...formField.props,
       value: undefined,
+      'aria-invalid': false,
     },
   };
 };
