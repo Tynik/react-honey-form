@@ -421,6 +421,7 @@ describe('Use honey form. Validation', () => {
 
   it('should validate date range correctly using predefined validators', () => {
     type DateRangeForm = {
+      name: string;
       fromDate: Date | null;
       toDate: Date | null;
     };
@@ -428,8 +429,10 @@ describe('Use honey form. Validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<DateRangeForm>({
         fields: {
+          name: {},
           fromDate: {
-            validator: createHoneyFormDateFromValidator<DateRangeForm>({
+            // <DateRangeForm, 'fromDate', 'toDate'> as an example how it can be used with any additional properties like `name: string`
+            validator: createHoneyFormDateFromValidator<DateRangeForm, 'fromDate', 'toDate'>({
               dateToKey: 'toDate',
             }),
           },

@@ -58,7 +58,9 @@ const createInitialFormFieldsGetter =
 
       let childFormFieldValue: Form[keyof Form];
       if (parentField) {
-        const childForm = parentField.value?.[formIndex];
+        const childForm = Array.isArray(parentField.value)
+          ? parentField.value[formIndex]
+          : parentField.value;
 
         childFormFieldValue = childForm?.[fieldName];
       }
@@ -395,9 +397,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   useEffect(() => {
     if (parentField) {
-      if (parentField.value?.length && formIndex === undefined) {
+      if (Array.isArray(parentField.value) && parentField.value.length && formIndex === undefined) {
         throw new Error(
-          '[use-honey-form]: When using `parentField` with an existing value, the `formIndex` option must be provided. Please specify the `formIndex` when rendering the form field.'
+          '[use-honey-form]: When using `parentField` with an existing value, the `formIndex` option must be provided. Please specify the `formIndex` when rendering the child form.'
         );
       }
 
