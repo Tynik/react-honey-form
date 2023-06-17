@@ -25,7 +25,7 @@ import {
   minValueInternalFieldValidator,
   requiredInternalFieldValidator,
 } from './use-honey-form.validators';
-import { captureChildFormsFieldValues } from './use-honey-form.helpers';
+import { captureChildFormsFieldValues, isSkipField } from './use-honey-form.helpers';
 
 const DEFAULT_VALUES_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -201,25 +201,27 @@ export const triggerScheduledFieldsValidations = <
     }
 
     if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
-      const otherFormField = nextFormFields[otherFieldName];
+      if (!isSkipField(otherFieldName, nextFormFields)) {
+        const otherFormField = nextFormFields[otherFieldName];
 
-      const otherFieldCleanValue = sanitizeFieldValue(
-        otherFormField.config.type,
-        otherFormField.value
-      );
+        const otherFieldCleanValue = sanitizeFieldValue(
+          otherFormField.config.type,
+          otherFormField.value
+        );
 
-      const otherFieldErrors = validateField(
-        otherFieldCleanValue,
-        otherFormField.config,
-        nextFormFields
-      );
+        const otherFieldErrors = validateField(
+          otherFieldCleanValue,
+          otherFormField.config,
+          nextFormFields
+        );
 
-      nextFormFields[otherFieldName] = {
-        ...otherFormField,
-        errors: otherFieldErrors,
-        // set clean value as undefined if any error is present
-        cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
-      };
+        nextFormFields[otherFieldName] = {
+          ...otherFormField,
+          errors: otherFieldErrors,
+          // set clean value as undefined if any error is present
+          cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
+        };
+      }
 
       nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;
     }

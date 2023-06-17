@@ -36,6 +36,11 @@ export const getFormErrors = <Form extends UseHoneyFormForm>(
     return result;
   }, {} as UseHoneyFormErrors<Form>);
 
+export const isSkipField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
+  fieldName: FieldName,
+  formFields: UseHoneyFormFields<Form>
+) => formFields[fieldName].config.skip?.(formFields) === true;
+
 export const getFieldsValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) =>
@@ -49,7 +54,11 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
-    formData[fieldName] = formFields[fieldName].cleanValue;
+    const formField = formFields[fieldName];
+
+    if (!isSkipField(fieldName, formFields)) {
+      formData[fieldName] = formField.cleanValue;
+    }
 
     return formData;
   }, {} as Form);

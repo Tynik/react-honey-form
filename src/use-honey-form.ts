@@ -40,6 +40,7 @@ import {
   unregisterChildForm,
   registerChildForm,
   getHoneyFormUniqueId,
+  isSkipField,
 } from './use-honey-form.helpers';
 
 const createInitialFormFieldsGetter =
@@ -327,6 +328,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     const nextFormFields = Object.keys(formFieldsRef.current).reduce(
       (formFields, fieldName: keyof Form) => {
+        if (isSkipField(fieldName, formFieldsRef.current)) {
+          return formFields;
+        }
+
         const formField = formFieldsRef.current[fieldName];
 
         if (formField.__meta__.childrenForms) {

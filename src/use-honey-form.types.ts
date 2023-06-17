@@ -74,6 +74,7 @@ export type UseHoneyFormFieldConfig<
   defaultValue?: FieldValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
+  skip?: (formFields: UseHoneyFormFields<Form>) => boolean;
   min?: number;
   max?: number;
   decimal?: boolean;

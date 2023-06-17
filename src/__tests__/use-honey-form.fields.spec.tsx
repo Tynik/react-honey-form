@@ -606,3 +606,90 @@ describe('Use honey form. Work with dynamic fields', () => {
     expect(result.current.formFields.age?.value).toBeUndefined();
   });
 });
+
+describe('Use honey form. Skipping fields', () => {
+  it('should skip field permanently', async () => {
+    type Form = {
+      name: string;
+      price: number;
+    };
+
+    const onSubmit = jest.fn<Promise<void>, Form[]>();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<Form>({
+        fields: {
+          name: {},
+          price: {
+            skip: () => true,
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+      result.current.formFields.price.setValue(10);
+    });
+
+    expect(result.current.formFields.name.value).toBe('Apple');
+    expect(result.current.formFields.price.value).toBe(10);
+
+    await act(() => result.current.submitForm());
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        name: 'Apple',
+      })
+    );
+  });
+
+  it('should skip field by condition', async () => {
+    type Form = {
+      name: string;
+      price: number;
+    };
+
+    const onSubmit = jest.fn<Promise<void>, Form[]>();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<Form>({
+        fields: {
+          name: {},
+          price: {
+            type: 'number',
+            skip: formFields => formFields.name.value === 'Pear',
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Orange');
+      result.current.formFields.price.setValue(15);
+    });
+
+    await act(() => result.current.submitForm());
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        name: 'Orange',
+        price: 15,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Pear');
+    });
+
+    await act(() => result.current.submitForm());
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        name: 'Pear',
+      })
+    );
+  });
+});
