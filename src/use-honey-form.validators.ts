@@ -10,22 +10,43 @@ export const DEFAULT_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any, any>
 > = {
-  number: (value, { fieldConfig: { decimal = false, negative = true, maxFraction = 2 } }) => {
+  number: (
+    value,
+    { fieldConfig: { errorMessages = {}, decimal = false, negative = true, maxFraction = 2 } }
+  ) => {
     if (value === '' || value === undefined) {
       return true;
     }
 
-    const regValidationResult = new RegExp(
+    const isValidNumber = new RegExp(
       `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
     ).test((value as string).toString());
 
     return (
-      regValidationResult || [
+      isValidNumber || [
         {
           type: 'invalid',
-          message: `Only ${negative ? '' : 'positive '}${
-            decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
-          } are allowed`,
+          message:
+            errorMessages.invalid ??
+            `Only ${negative ? '' : 'positive '}${
+              decimal ? `decimals with max fraction ${maxFraction}` : 'numerics'
+            } are allowed`,
+        },
+      ]
+    );
+  },
+  email: (value, { fieldConfig: { errorMessages = {} } }) => {
+    if (value === '' || value === undefined) {
+      return true;
+    }
+
+    const isValidEmail = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value as string);
+
+    return (
+      isValidEmail || [
+        {
+          type: 'invalid',
+          message: errorMessages.invalid ?? 'Invalid email format',
         },
       ]
     );

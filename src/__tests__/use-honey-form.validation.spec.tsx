@@ -355,7 +355,9 @@ describe('Use honey form. Validation', () => {
 
     expect(onSubmit).not.toBeCalled();
   });
+});
 
+describe('Use honey form. Scheduled validation', () => {
   it('schedule validation for another field inside field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
@@ -418,8 +420,108 @@ describe('Use honey form. Validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
   });
+});
 
-  it('should validate date range correctly using predefined validators', () => {
+describe('Use honey form. Email field type validation', () => {
+  it('should not raise an error when email is empty', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ email: string }>({
+        fields: {
+          email: {
+            type: 'email',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+  });
+
+  it('should raise an error when email is not valid', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ email: string }>({
+        fields: {
+          email: {
+            type: 'email',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('abc');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid email format',
+      },
+    ]);
+
+    act(() => {
+      result.current.formFields.email.setValue('');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a@');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid email format',
+      },
+    ]);
+
+    act(() => {
+      result.current.formFields.email.setValue('');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a@gmail.');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid email format',
+      },
+    ]);
+  });
+
+  it('should pass email validation when email is correct', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ email: string }>({
+        fields: {
+          email: {
+            type: 'email',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a@gmail.com');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+  });
+});
+
+describe('Use honey form. Predefined validators', () => {
+  it('should validate date range correctly', () => {
     type DateRangeForm = {
       name: string;
       fromDate: Date | null;
