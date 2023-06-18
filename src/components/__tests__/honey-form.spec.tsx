@@ -85,11 +85,7 @@ describe('HoneyForm component. Field mode usage', () => {
       <HoneyForm fields={fields} onSubmit={onSubmit}>
         {({ formFields }) => (
           <>
-            <input
-              data-testid="name"
-              aria-errormessage={formFields.name.errors[0]?.message}
-              {...formFields.name.props}
-            />
+            <input data-testid="name" {...formFields.name.props} />
 
             <button type="submit" data-testid="save">
               Save
@@ -100,10 +96,10 @@ describe('HoneyForm component. Field mode usage', () => {
     );
 
     fireEvent.change(getByTestId('name'), { target: { value: 'App' } });
-    expect(getByTestId('name').getAttribute('aria-errormessage')).toBeNull();
+    expect(getByTestId('name').getAttribute('aria-invalid')).toBe('false');
 
     fireEvent.blur(getByTestId('name'));
-    expect(getByTestId('name').getAttribute('aria-errormessage')).toBe('Invalid value');
+    expect(getByTestId('name').getAttribute('aria-invalid')).toBe('true');
 
     fireEvent.change(getByTestId('name'), { target: { value: 'Apple' } });
     // Submit the form

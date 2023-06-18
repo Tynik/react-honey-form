@@ -70,7 +70,7 @@ export type UseHoneyFormFieldConfig<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = {
+> = Readonly<{
   value?: FieldValue;
   defaultValue?: FieldValue;
   type?: UseHoneyFormFieldType;
@@ -91,7 +91,7 @@ export type UseHoneyFormFieldConfig<
   // Modify a value
   format?: (value: FieldValue) => unknown;
   onChange?: UseHoneyFormFieldOnChange<Form, FieldName, FieldValue>;
-};
+}>;
 
 export type UseHoneyFormFieldValidatorApi<
   Form extends UseHoneyFormForm,
@@ -127,37 +127,41 @@ export type UseHoneyFormFieldProps<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = Pick<AriaAttributes, 'aria-invalid'> & {
-  ref: RefObject<any>;
-  value: FieldValue;
-  onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
-};
+> = Readonly<
+  Pick<AriaAttributes, 'aria-invalid'> & {
+    ref: RefObject<any>;
+    value: FieldValue;
+    onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
+  }
+>;
 
 export type UseHoneyFormField<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = {
-  defaultValue: FieldValue;
-  // a value is `undefined` when any error for the field is present
-  cleanValue: FieldValue;
-  // the value after formatting when specific format function was executed
-  value: FieldValue;
-  errors: UseHoneyFormFieldError[];
-  // to destruct these props directly to a component
-  props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
-  config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
-  // functions
-  setValue: (value: FieldValue) => void;
-  scheduleValidation: () => void;
-  focus: () => void;
-  __meta__: UseHoneyFormFieldMeta<Form>;
-} & {
-  pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
-  removeValue: (formIndex: number) => void;
-};
+> = Readonly<
+  {
+    defaultValue: FieldValue;
+    // a value is `undefined` when any error for the field is present
+    cleanValue: FieldValue;
+    // the value after formatting when specific format function was executed
+    value: FieldValue;
+    errors: UseHoneyFormFieldError[];
+    // to destruct these props directly to a component
+    props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
+    config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
+    // functions
+    setValue: (value: FieldValue) => void;
+    scheduleValidation: () => void;
+    focus: () => void;
+    __meta__: UseHoneyFormFieldMeta<Form>;
+  } & {
+    pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+    removeValue: (formIndex: number) => void;
+  }
+>;
 
 export type UseHoneyFormFields<Form extends UseHoneyFormForm> = {
   [FieldName in keyof Form]: UseHoneyFormField<Form, FieldName, Form[FieldName]>;

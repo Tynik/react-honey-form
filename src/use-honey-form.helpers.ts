@@ -97,6 +97,7 @@ export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
       return value;
     },
     set(v) {
+      // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       formField.value = v;
     },
@@ -113,6 +114,7 @@ export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
       return cleanValue;
     },
     set(v) {
+      // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       formField.cleanValue = v;
     },
