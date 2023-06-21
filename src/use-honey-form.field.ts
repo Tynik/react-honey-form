@@ -63,7 +63,9 @@ export const createField = <
     },
     onChange: e => {
       // @ts-expect-error
-      setFieldValue(fieldName, e.target.value, mode === 'change');
+      setFieldValue(fieldName, e.target.value, {
+        validate: mode === 'change',
+      });
     },
     ...(mode === 'blur' && {
       onBlur: e => {

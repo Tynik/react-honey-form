@@ -32,13 +32,18 @@ export type UseHoneyFormFieldError = {
  */
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
 
+type UseHoneyFormSetFieldValueOptions = {
+  validate?: boolean;
+  pushValue?: boolean;
+};
+
 export type UseHoneyFormSetFieldValue<Form extends UseHoneyFormForm> = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
   value: FieldValue,
-  validate?: boolean
+  options?: UseHoneyFormSetFieldValueOptions
 ) => void;
 
 export type UseHoneyFormPushFieldValue<Form extends UseHoneyFormForm> = <

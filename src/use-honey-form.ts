@@ -170,7 +170,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const setFieldValue: UseHoneyFormSetFieldValue<Form> = (
     fieldName,
     fieldValue,
-    validate = true
+    { validate = true, pushValue = false } = {}
   ) => {
     isFormDirtyRef.current = true;
 
@@ -180,10 +180,17 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         clearTimeout(onChangeTimeoutRef.current);
       }
 
-      const nextFormFields = getNextHoneyFormFieldsState(fieldName, fieldValue, {
-        formFields,
-        validate,
-      });
+      const formField = formFields[fieldName];
+
+      const nextFormFields = getNextHoneyFormFieldsState(
+        fieldName,
+        // @ts-expect-error
+        pushValue ? [...formField.value, fieldValue] : fieldValue,
+        {
+          formFields,
+          validate,
+        }
+      );
 
       const fieldConfig = nextFormFields[fieldName].config;
 
@@ -209,10 +216,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const pushFieldValue: UseHoneyFormPushFieldValue<Form> = (fieldName, value) => {
-    const formField = formFieldsRef.current[fieldName];
-
     // @ts-expect-error
-    setFieldValue(fieldName, [...formField.value, value]);
+    setFieldValue(fieldName, value, { pushValue: true });
   };
 
   const removeFieldValue: UseHoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
