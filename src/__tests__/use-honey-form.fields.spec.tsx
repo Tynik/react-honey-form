@@ -686,6 +686,8 @@ describe('Use honey form. Skipping fields', () => {
 
     await act(() => result.current.submitForm());
 
+    expect(result.current.formFields.price.value).toBe(15);
+
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         name: 'Pear',

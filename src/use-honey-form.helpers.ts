@@ -53,14 +53,14 @@ export const getFieldsValues = <Form extends UseHoneyFormForm>(
 export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) =>
-  Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
+  Object.keys(formFields).reduce((submitFormData, fieldName: keyof Form) => {
     const formField = formFields[fieldName];
 
     if (!isSkipField(fieldName, formFields)) {
-      formData[fieldName] = formField.cleanValue;
+      submitFormData[fieldName] = formField.cleanValue;
     }
 
-    return formData;
+    return submitFormData;
   }, {} as Form);
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(

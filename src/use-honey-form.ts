@@ -343,11 +343,14 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     const nextFormFields = Object.keys(formFieldsRef.current).reduce(
       (formFields, fieldName: keyof Form) => {
+        const formField = formFieldsRef.current[fieldName];
+
         if (isSkipField(fieldName, formFieldsRef.current)) {
+          formFields[fieldName] = {
+            ...formField,
+          };
           return formFields;
         }
-
-        const formField = formFieldsRef.current[fieldName];
 
         if (formField.__meta__.childrenForms) {
           formField.__meta__.childrenForms.forEach(childForm => {
