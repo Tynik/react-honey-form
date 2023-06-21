@@ -357,32 +357,30 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           return formFields;
         }
 
+        // Perform validation on child field forms (when the field is an array that includes child forms)
         if (formField.__meta__.childrenForms) {
           formField.__meta__.childrenForms.forEach(childForm => {
             if (!childForm.validateForm()) {
               hasErrors = true;
             }
           });
-
-          captureChildFormsFieldValues(formField);
-
-          formFields[fieldName] = {
-            ...formField,
-          };
-        } else {
-          const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
-
-          const errors = validateField(cleanValue, formField.config, formFieldsRef.current);
-          if (errors.length) {
-            hasErrors = true;
-          }
-
-          formFields[fieldName] = {
-            ...formField,
-            cleanValue,
-            errors,
-          };
         }
+
+        // Validate current field
+        const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
+
+        const errors = validateField(cleanValue, formField.config, formFieldsRef.current);
+        if (errors.length) {
+          hasErrors = true;
+        }
+
+        formFields[fieldName] = {
+          ...formField,
+          cleanValue,
+          errors,
+        };
+
+        captureChildFormsFieldValues(formFields[fieldName]);
 
         return formFields;
       },
