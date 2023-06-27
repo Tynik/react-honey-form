@@ -5,7 +5,7 @@ import type { UseHoneyFormForm, UseHoneyFormApi } from '../use-honey-form.types'
 
 import { useHoneyFormProvider } from './honey-form.provider';
 
-export type FormContent<Form extends UseHoneyFormForm, Response> =
+export type UseHoneyFormFormContent<Form extends UseHoneyFormForm, Response> =
   | ReactNode
   | ((honeyFormApi: UseHoneyFormApi<Form, Response>) => ReactNode);
 
@@ -13,10 +13,10 @@ export type HoneyFormFormProps<Form extends UseHoneyFormForm, Response> = Omit<
   FormHTMLAttributes<unknown>,
   'onSubmit' | 'children'
 > & {
-  children?: FormContent<Form, Response>;
+  children?: UseHoneyFormFormContent<Form, Response>;
 };
 
-const HoneyFormFormComponent = <Form extends UseHoneyFormForm, Response = void>(
+const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   { children, ...props }: HoneyFormFormProps<Form, Response>,
   ref: Ref<HTMLFormElement>
 ) => {
@@ -36,7 +36,7 @@ const HoneyFormFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   );
 };
 
-export const HoneyFormForm = forwardRef(HoneyFormFormComponent) as <
+export const HoneyFormForm = forwardRef(HoneyFormComponent) as <
   Form extends UseHoneyFormForm,
   Response = void
 >(

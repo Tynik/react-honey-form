@@ -23,6 +23,7 @@ import type {
   UseHoneyFormParentField,
   UseHoneyFormChildFormId,
   UseHoneyFormFieldError,
+  UseHoneyFormClearFieldErrors,
 } from './use-honey-form.types';
 
 import {
@@ -44,16 +45,28 @@ import {
   isSkipField,
 } from './use-honey-form.helpers';
 
+type CreateInitialFormFieldsGetterOptions<Form extends UseHoneyFormForm> = {
+  formIndex: number;
+  parentField: UseHoneyFormParentField<Form>;
+  fieldsConfigs: UseHoneyFormFieldsConfigs<Form>;
+  defaults: UseHoneyFormDefaults<Form>;
+  setFieldValue: UseHoneyFormSetFieldValue<Form>;
+  clearFieldErrors: UseHoneyFormClearFieldErrors<Form>;
+  pushFieldValue: UseHoneyFormPushFieldValue<Form>;
+  removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
+};
+
 const createInitialFormFieldsGetter =
-  <Form extends UseHoneyFormForm>(
-    formIndex: number,
-    parentField: UseHoneyFormParentField<Form>,
-    fieldsConfigs: UseHoneyFormFieldsConfigs<Form>,
-    defaults: UseHoneyFormDefaults<Form>,
-    setFieldValue: UseHoneyFormSetFieldValue<Form>,
-    pushFieldValue: UseHoneyFormPushFieldValue<Form>,
-    removeFieldValue: UseHoneyFormRemoveFieldValue<Form>
-  ) =>
+  <Form extends UseHoneyFormForm>({
+    formIndex,
+    parentField,
+    fieldsConfigs,
+    defaults,
+    setFieldValue,
+    clearFieldErrors,
+    pushFieldValue,
+    removeFieldValue,
+  }: CreateInitialFormFieldsGetterOptions<Form>) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
@@ -77,6 +90,7 @@ const createInitialFormFieldsGetter =
         },
         {
           setFieldValue,
+          clearFieldErrors,
           pushFieldValue,
           removeFieldValue,
         }
@@ -133,12 +147,12 @@ const getNextHoneyFormFieldsState = <
   nextFormFields[fieldName] = {
     ...formField,
     errors,
-    value: formattedValue as never,
+    value: formattedValue,
     // set clean value as undefined if any error is present
     cleanValue: errors.length ? undefined : cleanValue,
     props: {
       ...formField.props,
-      value: formattedValue as never,
+      value: formattedValue,
       'aria-invalid': Boolean(errors.length),
     },
   };
@@ -151,7 +165,7 @@ const getNextHoneyFormFieldsState = <
 export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   formIndex,
   parentField,
-  fields: fieldsConfig = {} as never,
+  fields: fieldsConfigs = {} as never,
   defaults = {},
   onSubmit,
   onChange,
@@ -215,6 +229,21 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     });
   };
 
+  const clearFieldErrors: UseHoneyFormClearFieldErrors<Form> = fieldName => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setFormFields(formFields => {
+      const formField = formFields[fieldName];
+
+      return {
+        ...formFields,
+        [fieldName]: {
+          ...formField,
+          errors: [],
+        },
+      };
+    });
+  };
+
   const pushFieldValue: UseHoneyFormPushFieldValue<Form> = (fieldName, value) => {
     // @ts-expect-error
     setFieldValue(fieldName, value, { pushValue: true });
@@ -231,15 +260,16 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   };
 
-  const initialFormFieldsGetter = createInitialFormFieldsGetter(
+  const initialFormFieldsGetter = createInitialFormFieldsGetter({
     formIndex,
     parentField,
-    fieldsConfig,
+    fieldsConfigs,
     defaults,
     setFieldValue,
+    clearFieldErrors,
     pushFieldValue,
-    removeFieldValue
-  );
+    removeFieldValue,
+  });
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
@@ -296,6 +326,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           ...formFields,
           [fieldName]: createField(fieldName, config, {
             setFieldValue,
+            clearFieldErrors,
             // work with nested form
             pushFieldValue,
             removeFieldValue,

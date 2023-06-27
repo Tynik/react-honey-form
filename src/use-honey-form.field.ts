@@ -14,6 +14,7 @@ import type {
   UseHoneyFormSetFieldValue,
   UseHoneyFormPushFieldValue,
   UseHoneyFormRemoveFieldValue,
+  UseHoneyFormClearFieldErrors,
 } from './use-honey-form.types';
 import {
   DEFAULT_VALIDATORS_MAP,
@@ -42,10 +43,12 @@ export const createField = <
   { mode = 'change', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   {
     setFieldValue,
+    clearFieldErrors,
     pushFieldValue,
     removeFieldValue,
   }: {
     setFieldValue: UseHoneyFormSetFieldValue<Form>;
+    clearFieldErrors: UseHoneyFormClearFieldErrors<Form>;
     pushFieldValue: UseHoneyFormPushFieldValue<Form>;
     removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
   }
@@ -73,6 +76,7 @@ export const createField = <
         setFieldValue(fieldName, e.target.value);
       },
     }),
+    // aria attributes
     'aria-invalid': false,
   };
 
@@ -96,6 +100,7 @@ export const createField = <
     scheduleValidation: () => {
       __meta__.isValidationScheduled = true;
     },
+    clearErrors: () => clearFieldErrors(fieldName),
     focus: () => {
       fieldRef.current.focus();
     },

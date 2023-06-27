@@ -121,7 +121,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  it('add new server error to existed field', () => {
+  it('add and clear the server error added to existed field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -144,6 +144,12 @@ describe('Use honey form. Work with errors', () => {
         type: 'server',
       },
     ]);
+
+    act(() => {
+      result.current.formFields.age.clearErrors();
+    });
+
+    expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
   it('add server error to non existed field', () => {

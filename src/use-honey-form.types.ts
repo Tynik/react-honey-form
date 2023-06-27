@@ -1,6 +1,6 @@
 // https://dev.to/pffigueiredo/typescript-utility-keyof-nested-object-2pa3
 
-import type { AriaAttributes, ChangeEvent, FocusEvent, MutableRefObject, RefObject } from 'react';
+import type { HTMLAttributes, MutableRefObject, RefObject } from 'react';
 
 type UseHoneyFormFieldName = string;
 
@@ -44,6 +44,12 @@ export type UseHoneyFormSetFieldValue<Form extends UseHoneyFormForm> = <
   fieldName: FieldName,
   value: FieldValue,
   options?: UseHoneyFormSetFieldValueOptions
+) => void;
+
+export type UseHoneyFormClearFieldErrors<Form extends UseHoneyFormForm> = <
+  FieldName extends keyof Form
+>(
+  fieldName: FieldName
 ) => void;
 
 export type UseHoneyFormPushFieldValue<Form extends UseHoneyFormForm> = <
@@ -133,12 +139,9 @@ export type UseHoneyFormFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = Readonly<
-  Pick<AriaAttributes, 'aria-invalid'> & {
+  Pick<HTMLAttributes<HTMLInputElement>, 'aria-invalid' | 'onFocus' | 'onChange' | 'onBlur'> & {
     ref: RefObject<any>;
     value: FieldValue;
-    onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
-    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
   }
 >;
 
@@ -160,6 +163,7 @@ export type UseHoneyFormField<
     // functions
     setValue: (value: FieldValue) => void;
     scheduleValidation: () => void;
+    clearErrors: () => void;
     focus: () => void;
     __meta__: UseHoneyFormFieldMeta<Form>;
   } & {
