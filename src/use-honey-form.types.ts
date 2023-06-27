@@ -1,6 +1,6 @@
 // https://dev.to/pffigueiredo/typescript-utility-keyof-nested-object-2pa3
 
-import type { HTMLAttributes, MutableRefObject, RefObject } from 'react';
+import type { ChangeEvent, FocusEvent, HTMLAttributes, MutableRefObject, RefObject } from 'react';
 
 type UseHoneyFormFieldName = string;
 
@@ -139,9 +139,12 @@ export type UseHoneyFormFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = Readonly<
-  Pick<HTMLAttributes<HTMLInputElement>, 'aria-invalid' | 'onFocus' | 'onChange' | 'onBlur'> & {
+  Pick<HTMLAttributes<any>, 'aria-invalid'> & {
     ref: RefObject<any>;
     value: FieldValue;
+    onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
   }
 >;
 
