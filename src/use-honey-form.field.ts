@@ -10,12 +10,14 @@ import type {
   UseHoneyFormFieldValueConvertor,
   UseHoneyFormFieldProps,
   UseHoneyFormFlatField,
-  UseHoneyFormFieldMeta,
   UseHoneyFormSetFieldValueInternal,
   UseHoneyFormPushFieldValue,
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormClearFieldErrors,
   UseHoneyFormArrayField,
+  UseHoneyFormArrayFieldMeta,
+  UseHoneyFormField,
+  UseHoneyFormFlatFieldMeta,
 } from './use-honey-form.types';
 import {
   DEFAULT_VALIDATORS_MAP,
@@ -41,7 +43,7 @@ export const createField = <
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
-  { mode = 'change', ...config }: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
+  config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   {
     setFieldValue,
     clearFieldErrors,
@@ -56,11 +58,17 @@ export const createField = <
 ):
   | UseHoneyFormFlatField<Form, FieldName, FieldValue>
   | UseHoneyFormArrayField<Form, FieldName, FieldValue> => {
+  const fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue> = {
+    type: 'string',
+    mode: 'change',
+    ...config,
+  };
+
   const fieldRef = createRef<HTMLElement>();
 
-  const fieldValue = config.value === undefined ? config.defaultValue : config.value;
+  const fieldValue = fieldConfig.value === undefined ? fieldConfig.defaultValue : fieldConfig.value;
 
-  const props: UseHoneyFormFieldProps<Form, FieldName, FieldValue> = {
+  const fieldProps: UseHoneyFormFieldProps<Form, FieldName, FieldValue> = {
     ref: fieldRef,
     value: fieldValue,
     //
@@ -70,10 +78,10 @@ export const createField = <
     onChange: e => {
       // @ts-expect-error
       setFieldValue(fieldName, e.target.value, {
-        isValidate: mode === 'change',
+        isValidate: fieldConfig.mode === 'change',
       });
     },
-    ...(mode === 'blur' && {
+    ...(fieldConfig.mode === 'blur' && {
       onBlur: e => {
         // @ts-expect-error
         setFieldValue(fieldName, e.target.value);
@@ -83,56 +91,59 @@ export const createField = <
     'aria-invalid': false,
   };
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  const __meta__: UseHoneyFormFieldMeta<Form> = {
-    isValidationScheduled: false,
-    childrenForms: undefined,
-  };
-
   let nextFieldState:
     | UseHoneyFormFlatField<Form, FieldName, FieldValue>
     | UseHoneyFormArrayField<Form, FieldName, FieldValue>;
 
   if (Array.isArray(fieldValue)) {
+    const arrayFieldMeta: UseHoneyFormArrayFieldMeta<Form> = {
+      isValidationScheduled: false,
+      childForms: [],
+    };
+
     nextFieldState = {
-      config,
-      props,
       value: fieldValue,
+      nestedValues: fieldValue,
       cleanValue: fieldValue,
-      defaultValue: config.defaultValue,
+      defaultValue: fieldConfig.defaultValue,
+      config: fieldConfig,
       errors: [],
       // functions
       setValue: (value, options) => setFieldValue(fieldName, value, options),
       pushValue: value => pushFieldValue(fieldName, value),
       removeValue: formIndex => removeFieldValue(fieldName, formIndex),
       scheduleValidation: () => {
-        __meta__.isValidationScheduled = true;
+        arrayFieldMeta.isValidationScheduled = true;
       },
       clearErrors: () => clearFieldErrors(fieldName),
       //
-      __meta__,
+      __meta__: arrayFieldMeta,
     };
 
     captureChildFormsFieldValues(nextFieldState);
   } else {
+    const flatFieldMeta: UseHoneyFormFlatFieldMeta = {
+      isValidationScheduled: false,
+    };
+
     nextFieldState = {
-      config,
-      props,
       value: fieldValue,
       cleanValue: fieldValue,
-      defaultValue: config.defaultValue,
+      defaultValue: fieldConfig.defaultValue,
+      props: fieldProps,
+      config: fieldConfig,
       errors: [],
       // functions
       setValue: (value, options) => setFieldValue(fieldName, value, options),
       scheduleValidation: () => {
-        __meta__.isValidationScheduled = true;
+        flatFieldMeta.isValidationScheduled = true;
       },
       clearErrors: () => clearFieldErrors(fieldName),
       focus: () => {
         fieldRef.current.focus();
       },
       //
-      __meta__,
+      __meta__: flatFieldMeta,
     };
   }
 
@@ -276,10 +287,12 @@ export const triggerScheduledFieldsValidations = <
           errors: otherFieldErrors,
           // set clean value as undefined if any error is present
           cleanValue: otherFieldErrors.length ? undefined : otherFieldCleanValue,
-          props: {
-            ...otherFormField.props,
-            'aria-invalid': Boolean(otherFieldErrors.length),
-          },
+          ...('props' in otherFormField && {
+            props: {
+              ...otherFormField.props,
+              'aria-invalid': Boolean(otherFieldErrors.length),
+            },
+          }),
         };
       }
 
@@ -289,20 +302,20 @@ export const triggerScheduledFieldsValidations = <
 };
 
 export const clearField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
-  formField:
-    | UseHoneyFormFlatField<Form, FieldName, Form[FieldName]>
-    | UseHoneyFormArrayField<Form, FieldName, Form[FieldName]>
+  formField: UseHoneyFormField<Form, FieldName>
 ) => {
   return {
     ...formField,
-    value: undefined,
+    value: Array.isArray(formField.value) ? [] : undefined,
     cleanValue: undefined,
     errors: [],
-    props: {
-      ...formField.props,
-      value: undefined,
-      'aria-invalid': false,
-    },
+    ...('props' in formField && {
+      props: {
+        ...formField.props,
+        value: undefined,
+        'aria-invalid': false,
+      },
+    }),
   };
 };
 
@@ -310,7 +323,6 @@ export const clearAllFields = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) => {
   Object.keys(formFields).forEach((fieldName: keyof Form) => {
-    // @ts-expect-error
     formFields[fieldName] = clearField(formFields[fieldName]);
   });
 };
@@ -336,7 +348,6 @@ export const clearDependentFields = <Form extends UseHoneyFormForm, FieldName ex
     if (isDependent) {
       const otherField = formFields[otherFieldName];
 
-      // @ts-expect-error
       formFields[otherFieldName] = clearField(otherField);
 
       if (otherFieldName !== initiatorFieldName) {

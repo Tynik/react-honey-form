@@ -7,7 +7,7 @@ type UseHoneyFormFieldName = string;
 export type UseHoneyFormChildFormId = string;
 
 // TODO: implement date type
-export type UseHoneyFormFieldType = 'number' | 'email';
+export type UseHoneyFormFieldType = 'string' | 'number' | 'email';
 
 type UseHoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max' | 'minMax';
 
@@ -152,6 +152,17 @@ export type UseHoneyFormFieldProps<
   }
 >;
 
+export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
+  id: UseHoneyFormChildFormId;
+  formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
+  submitForm: UseHoneyFormSubmit<Form, Response>;
+  validateForm: UseHoneyFormValidate;
+};
+
+export type UseHoneyFormFlatFieldMeta = {
+  isValidationScheduled: boolean;
+};
+
 export type UseHoneyFormFlatField<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
@@ -171,8 +182,17 @@ export type UseHoneyFormFlatField<
   scheduleValidation: () => void;
   clearErrors: () => void;
   focus: () => void;
-  __meta__: UseHoneyFormFieldMeta<Form>;
+  __meta__: UseHoneyFormFlatFieldMeta;
 }>;
+
+export type UseHoneyFormArrayFieldMeta<Form extends UseHoneyFormForm> =
+  UseHoneyFormFlatFieldMeta & {
+    /**
+     * undefined: as initial state when child forms are not mounted yet.
+     * When child forms are mounted/unmounted the array or empty array is present
+     */
+    childForms: UseHoneyFormChildFormApi<Form, unknown>[];
+  };
 
 export type UseHoneyFormArrayField<
   Form extends UseHoneyFormForm,
@@ -184,9 +204,8 @@ export type UseHoneyFormArrayField<
   cleanValue: FieldValue;
   // the value after formatting when specific format function was executed
   value: FieldValue;
+  nestedValues: FieldValue;
   errors: UseHoneyFormFieldError[];
-  // to destruct these props directly to a component
-  props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
   // functions
   setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
@@ -194,7 +213,7 @@ export type UseHoneyFormArrayField<
   removeValue: (formIndex: number) => void;
   scheduleValidation: () => void;
   clearErrors: () => void;
-  __meta__: UseHoneyFormFieldMeta<Form>;
+  __meta__: UseHoneyFormArrayFieldMeta<Form>;
 }>;
 
 export type UseHoneyFormField<
@@ -287,22 +306,6 @@ type UseHoneyFormSetFormValuesOptions = {
 };
 
 export type UseHoneyFormReset = () => void;
-
-export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
-  id: UseHoneyFormChildFormId;
-  formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
-  submitForm: UseHoneyFormSubmit<Form, Response>;
-  validateForm: UseHoneyFormValidate;
-};
-
-export type UseHoneyFormFieldMeta<Form extends UseHoneyFormForm> = {
-  isValidationScheduled: boolean;
-  /**
-   * undefined: as initial state when child forms are not mounted yet.
-   * When child forms are mounted/unmounted the array or empty array is present
-   */
-  childrenForms: UseHoneyFormChildFormApi<Form, any>[] | undefined;
-};
 
 export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   formFields: UseHoneyFormFields<Form>;

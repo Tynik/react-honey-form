@@ -10,6 +10,7 @@ export const DEFAULT_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any, any>
 > = {
+  string: () => true,
   number: (
     value,
     { fieldConfig: { errorMessages = {}, decimal = false, negative = true, maxFraction = 2 } }

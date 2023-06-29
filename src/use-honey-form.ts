@@ -37,7 +37,6 @@ import {
 import {
   getFormErrors,
   getFieldsCleanValues,
-  captureChildFormsFieldValues,
   warningMessage,
   unregisterChildForm,
   registerChildForm,
@@ -127,7 +126,7 @@ const getNextHoneyFormFieldsState = <
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(fieldValue);
 
-    if (filteredValue === formField.props.value) {
+    if ('props' in formField && filteredValue === formField.props.value) {
       // Do not re-render, nothing changed. Return previous state
       return formFields;
     }
@@ -152,11 +151,13 @@ const getNextHoneyFormFieldsState = <
     value: formattedValue,
     // set clean value as undefined if any error is present
     cleanValue: errors.length ? undefined : cleanValue,
-    props: {
-      ...formField.props,
-      value: formattedValue,
-      'aria-invalid': Boolean(errors.length),
-    },
+    ...('props' in formField && {
+      props: {
+        ...formField.props,
+        value: formattedValue,
+        'aria-invalid': Boolean(errors.length),
+      },
+    }),
   };
 
   triggerScheduledFieldsValidations(fieldName, nextFormFields);
@@ -302,11 +303,13 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
             errors,
             value: formattedValue,
             cleanValue: errors.length ? undefined : cleanValue,
-            props: {
-              ...formField.props,
-              value: formattedValue,
-              'aria-invalid': Boolean(errors.length),
-            },
+            ...('props' in formField && {
+              props: {
+                ...formField.props,
+                value: formattedValue,
+                'aria-invalid': Boolean(errors.length),
+              },
+            }),
           };
         });
 
@@ -392,9 +395,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           return formFields;
         }
 
-        // Perform validation on child field forms (when the field is an array that includes child forms)
-        if (formField.__meta__.childrenForms) {
-          formField.__meta__.childrenForms.forEach(childForm => {
+        // Perform validation on child forms (when the field is an array that includes child forms)
+        if ('childForms' in formField.__meta__) {
+          formField.__meta__.childForms.forEach(childForm => {
             if (!childForm.validateForm()) {
               hasErrors = true;
             }
@@ -413,11 +416,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           cleanValue,
           errors,
         };
-
-        if (Array.isArray(formFields[fieldName].value)) {
-          // @ts-expect-error
-          captureChildFormsFieldValues(formFields[fieldName]);
-        }
 
         return formFields;
       },

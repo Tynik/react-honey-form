@@ -57,7 +57,17 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
     const formField = formFields[fieldName];
 
     if (!isSkipField(fieldName, formFields)) {
-      submitFormData[fieldName] = formField.cleanValue;
+      if ('childForms' in formField.__meta__) {
+        const childrenFormCleanValues: Form[] = [];
+
+        formField.__meta__.childForms.forEach(childForm => {
+          childrenFormCleanValues.push(getFieldsCleanValues(childForm.formFieldsRef.current));
+        });
+
+        submitFormData[fieldName] = childrenFormCleanValues as Form[keyof Form];
+      } else {
+        submitFormData[fieldName] = formField.cleanValue;
+      }
     }
 
     return submitFormData;
@@ -67,15 +77,14 @@ export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
   formField: UseHoneyFormArrayField<Form, any>,
   childFormApi: UseHoneyFormChildFormApi<Form, Response>
 ) => {
-  formField.__meta__.childrenForms = formField.__meta__.childrenForms || [];
-  formField.__meta__.childrenForms.push(childFormApi);
+  formField.__meta__.childForms.push(childFormApi);
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormArrayField<Form, any>,
   childFormId: UseHoneyFormChildFormId
 ) => {
-  formField.__meta__.childrenForms = formField.__meta__.childrenForms.filter(
+  formField.__meta__.childForms = formField.__meta__.childForms.filter(
     childForm => childForm.id !== childFormId
   );
 };
@@ -83,40 +92,12 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
 export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormArrayField<Form, any>
 ) => {
-  const { value, cleanValue } = formField;
-
   // Override the 'value' property to capture child forms field values
-  Object.defineProperty(formField, 'value', {
+  Object.defineProperty(formField, 'nestedValues', {
     get() {
-      if (formField.__meta__.childrenForms) {
-        return formField.__meta__.childrenForms.map(childForm =>
-          getFieldsValues(childForm.formFieldsRef.current)
-        );
-      }
-      //
-      return value;
-    },
-    set(v) {
-      // @ts-expect-error
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      formField.value = v;
-    },
-  });
-
-  Object.defineProperty(formField, 'cleanValue', {
-    get() {
-      if (formField.__meta__.childrenForms) {
-        return formField.__meta__.childrenForms.map(childForm =>
-          getFieldsCleanValues(childForm.formFieldsRef.current)
-        );
-      }
-      //
-      return cleanValue;
-    },
-    set(v) {
-      // @ts-expect-error
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      formField.cleanValue = v;
+      return formField.__meta__.childForms.map(childForm =>
+        getFieldsValues(childForm.formFieldsRef.current)
+      );
     },
   });
 };
