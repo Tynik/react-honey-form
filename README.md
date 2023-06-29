@@ -71,6 +71,7 @@ The `useHoneyForm` hook returns an object with the following properties:
    - `pushValue`: A function to add a new value to an array field.
    - `removeValue`: A function to remove a value from an array field by its index.
    - `scheduleValidation`: A function that can be used to schedule the validation of another field inside the `validator` function of a field. It allows triggering the validation of a dependent field based on the current field's value.
+   - `clearErrors`: Clear all field errors.
    - `focus`: A function to focus the field.
 2. `setFormValues` - A function that allows setting form values. It supports partial field value setting. The `clearAll` option can be used to clear other fields that were not mentioned.
 3. `isFormDefaultsFetching` - A boolean value that indicates whether form default values are being retrieved from a Promise function. It is `false` by default and becomes `true` during the retrieval process. It returns to `false` when default values are successfully retrieved or an error occurs.
@@ -81,7 +82,7 @@ The `useHoneyForm` hook returns an object with the following properties:
 8. `addFormField` - A function that dynamically allows adding a new form field.
 9. `removeFormField` - A function to remove a form field. You can only remove optional form fields.
 10. `addFormFieldError` - A function to add a new error related to a specific field. All previous field errors remain present.
-11. `resetFormErrors` - A function to reset all form field errors. It can be used to remove all custom-added errors.
+11. `clearFormErrors` - A function to clear all form field errors.
 12. `validateForm` - A function to validate the form.
 13. `submitForm` - A function to submit the form. It can accept an async function that will be called with the clean form data.
 14. `resetForm` - A function to reset all form field values to their initial state.
@@ -122,91 +123,6 @@ const Form = () => {
     <button type="submit" onClick={submit}>Save</button>
   </form>;
 }
-```
-
-*Nested forms*
-
-```typescript jsx
-import React from 'react';
-import { HoneyForm, useHoneyForm, useHoneyFormProvider, getHoneyFormUniqueId } from 'react-honey-form';
-
-type ItemFormValues = {
-  id: string;
-  name: string;
-  price: number;
-};
-
-type ArrayFormValues = {
-  items: ItemFormValues[];
-};
-
-const NestedForm = () => {
-  const { formFields } = useHoneyForm<ArrayFormValues>({
-    fields: {
-      items: {
-        value: [],
-        validate: items => {
-          if (!items.length) {
-            return 'At least one item is required.';
-          }
-          return true;
-        },
-      },
-    },
-  });
-
-  const addItem = () => {
-    formFields.items.pushValue({
-       id: getHoneyFormUniqueId(),
-       name: '',
-       price: 0
-    });
-  };
-
-  const removeItem = (index: number) => {
-    formFields.items.removeValue(index);
-  };
-
-  return (
-    <form>
-      <h2>Items</h2>
-
-      {formFields.items.value.map((item, index) => (
-        <div key={item.id}>
-          <label>
-            Name:
-            <input {...formFields.items.value[index].name.props} />
-          </label>
-
-          <label>
-            Price:
-            <input {...formFields.items.value[index].price.props} />
-          </label>
-
-          <button type="button" onClick={() => removeItem(index)}>
-            Remove
-          </button>
-        </div>
-      ))}
-
-      <button type="button" onClick={addItem}>
-        Add Item
-      </button>
-
-      <button type="submit">Submit</button>
-    </form>
-  );
-};
-
-const App = () => {
-  return (
-    <HoneyForm onSubmit={console.log}>
-      <NestedForm />
-    </HoneyForm>
-  );
-};
-
-export default App;
 ```
 
 ## Conclusion
