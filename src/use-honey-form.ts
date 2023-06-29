@@ -44,6 +44,7 @@ import {
   getHoneyFormUniqueId,
   isSkipField,
 } from './use-honey-form.helpers';
+import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
 
 type CreateInitialFormFieldsGetterOptions<Form extends UseHoneyFormForm> = {
   formIndex: number;
@@ -82,6 +83,7 @@ const createInitialFormFieldsGetter =
 
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
 
+      // @ts-expect-error
       initialFormFields[fieldName] = createField(
         fieldName,
         {
@@ -399,7 +401,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           });
         }
 
-        // Validate current field
         const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
 
         const errors = validateField(cleanValue, formField.config, formFieldsRef.current);
@@ -413,7 +414,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           errors,
         };
 
-        captureChildFormsFieldValues(formFields[fieldName]);
+        if (Array.isArray(formFields[fieldName].value)) {
+          // @ts-expect-error
+          captureChildFormsFieldValues(formFields[fieldName]);
+        }
 
         return formFields;
       },
@@ -456,10 +460,12 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   useEffect(() => {
     if (parentField) {
-      if (Array.isArray(parentField.value) && parentField.value.length && formIndex === undefined) {
-        throw new Error(
-          '[use-honey-form]: When using `parentField` with an existing value, the `formIndex` option must be provided. Please specify the `formIndex` when rendering the child form.'
-        );
+      if (!Array.isArray(parentField.value)) {
+        throw new Error(USE_HONEY_FORM_ERRORS.parentFieldValue);
+      }
+
+      if (parentField.value.length && formIndex === undefined) {
+        throw new Error(USE_HONEY_FORM_ERRORS.parentFieldFormIndex);
       }
 
       childFormIdRef.current = getHoneyFormUniqueId();

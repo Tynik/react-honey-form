@@ -272,7 +272,9 @@ describe('Use honey form. Array fields', () => {
     const { result: itemsResult } = renderHook(() =>
       useHoneyForm<{ items: Item[] }>({
         fields: {
-          items: {},
+          items: {
+            value: [],
+          },
         },
       })
     );
@@ -315,7 +317,9 @@ describe('Use honey form. Array fields', () => {
     const { result: itemsResult } = renderHook(() =>
       useHoneyForm<{ items: Item[] }>({
         fields: {
-          items: {},
+          items: {
+            value: [],
+          },
         },
       })
     );

@@ -2,7 +2,7 @@ import React from 'react';
 import type {
   UseHoneyFormForm,
   UseHoneyFormFields,
-  UseHoneyFormField,
+  UseHoneyFormArrayField,
   UseHoneyFormErrors,
   UseHoneyFormChildFormApi,
   UseHoneyFormChildFormId,
@@ -64,7 +64,7 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   }, {} as Form);
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
-  formField: UseHoneyFormField<Form, any>,
+  formField: UseHoneyFormArrayField<Form, any>,
   childFormApi: UseHoneyFormChildFormApi<Form, Response>
 ) => {
   formField.__meta__.childrenForms = formField.__meta__.childrenForms || [];
@@ -72,7 +72,7 @@ export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormField<Form, any>,
+  formField: UseHoneyFormArrayField<Form, any>,
   childFormId: UseHoneyFormChildFormId
 ) => {
   formField.__meta__.childrenForms = formField.__meta__.childrenForms.filter(
@@ -81,7 +81,7 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
 };
 
 export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormField<Form, any>
+  formField: UseHoneyFormArrayField<Form, any>
 ) => {
   const { value, cleanValue } = formField;
 

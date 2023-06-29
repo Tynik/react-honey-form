@@ -9,12 +9,13 @@ import type {
   UseHoneyFormFieldType,
   UseHoneyFormFieldValueConvertor,
   UseHoneyFormFieldProps,
-  UseHoneyFormField,
+  UseHoneyFormFlatField,
   UseHoneyFormFieldMeta,
   UseHoneyFormSetFieldValueInternal,
   UseHoneyFormPushFieldValue,
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormClearFieldErrors,
+  UseHoneyFormArrayField,
 } from './use-honey-form.types';
 import {
   DEFAULT_VALIDATORS_MAP,
@@ -52,7 +53,9 @@ export const createField = <
     pushFieldValue: UseHoneyFormPushFieldValue<Form>;
     removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
   }
-): UseHoneyFormField<Form, FieldName, FieldValue> => {
+):
+  | UseHoneyFormFlatField<Form, FieldName, FieldValue>
+  | UseHoneyFormArrayField<Form, FieldName, FieldValue> => {
   const fieldRef = createRef<HTMLElement>();
 
   const fieldValue = config.value === undefined ? config.defaultValue : config.value;
@@ -86,28 +89,52 @@ export const createField = <
     childrenForms: undefined,
   };
 
-  const nextFieldState: UseHoneyFormField<Form, FieldName, FieldValue> = {
-    config,
-    props,
-    value: fieldValue,
-    cleanValue: fieldValue,
-    defaultValue: config.defaultValue,
-    errors: [],
-    // functions
-    setValue: (value, options) => setFieldValue(fieldName, value, options),
-    pushValue: value => pushFieldValue(fieldName, value),
-    removeValue: formIndex => removeFieldValue(fieldName, formIndex),
-    scheduleValidation: () => {
-      __meta__.isValidationScheduled = true;
-    },
-    clearErrors: () => clearFieldErrors(fieldName),
-    focus: () => {
-      fieldRef.current.focus();
-    },
-    __meta__,
-  };
+  let nextFieldState:
+    | UseHoneyFormFlatField<Form, FieldName, FieldValue>
+    | UseHoneyFormArrayField<Form, FieldName, FieldValue>;
 
-  captureChildFormsFieldValues(nextFieldState);
+  if (Array.isArray(fieldValue)) {
+    nextFieldState = {
+      config,
+      props,
+      value: fieldValue,
+      cleanValue: fieldValue,
+      defaultValue: config.defaultValue,
+      errors: [],
+      // functions
+      setValue: (value, options) => setFieldValue(fieldName, value, options),
+      pushValue: value => pushFieldValue(fieldName, value),
+      removeValue: formIndex => removeFieldValue(fieldName, formIndex),
+      scheduleValidation: () => {
+        __meta__.isValidationScheduled = true;
+      },
+      clearErrors: () => clearFieldErrors(fieldName),
+      //
+      __meta__,
+    };
+
+    captureChildFormsFieldValues(nextFieldState);
+  } else {
+    nextFieldState = {
+      config,
+      props,
+      value: fieldValue,
+      cleanValue: fieldValue,
+      defaultValue: config.defaultValue,
+      errors: [],
+      // functions
+      setValue: (value, options) => setFieldValue(fieldName, value, options),
+      scheduleValidation: () => {
+        __meta__.isValidationScheduled = true;
+      },
+      clearErrors: () => clearFieldErrors(fieldName),
+      focus: () => {
+        fieldRef.current.focus();
+      },
+      //
+      __meta__,
+    };
+  }
 
   return nextFieldState;
 };
@@ -262,7 +289,9 @@ export const triggerScheduledFieldsValidations = <
 };
 
 export const clearField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
-  formField: UseHoneyFormField<Form, FieldName, Form[FieldName]>
+  formField:
+    | UseHoneyFormFlatField<Form, FieldName, Form[FieldName]>
+    | UseHoneyFormArrayField<Form, FieldName, Form[FieldName]>
 ) => {
   return {
     ...formField,
@@ -281,6 +310,7 @@ export const clearAllFields = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) => {
   Object.keys(formFields).forEach((fieldName: keyof Form) => {
+    // @ts-expect-error
     formFields[fieldName] = clearField(formFields[fieldName]);
   });
 };
@@ -306,6 +336,7 @@ export const clearDependentFields = <Form extends UseHoneyFormForm, FieldName ex
     if (isDependent) {
       const otherField = formFields[otherFieldName];
 
+      // @ts-expect-error
       formFields[otherFieldName] = clearField(otherField);
 
       if (otherFieldName !== initiatorFieldName) {
