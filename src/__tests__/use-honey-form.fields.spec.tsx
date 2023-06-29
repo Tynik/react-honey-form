@@ -237,12 +237,7 @@ describe('Use honey form. Fields', () => {
       result.current.formFields.name.setValue('Dan');
     });
 
-    await waitFor(() =>
-      expect(onNameChange).toBeCalledWith('Dan', {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        setFieldValue: expect.any(Function),
-      })
-    );
+    await waitFor(() => expect(onNameChange).toBeCalledWith('Dan', expect.any(Object)));
   });
 });
 

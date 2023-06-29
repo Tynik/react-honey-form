@@ -11,7 +11,7 @@ import type {
   UseHoneyFormFieldProps,
   UseHoneyFormField,
   UseHoneyFormFieldMeta,
-  UseHoneyFormSetFieldValue,
+  UseHoneyFormSetFieldValueInternal,
   UseHoneyFormPushFieldValue,
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormClearFieldErrors,
@@ -47,7 +47,7 @@ export const createField = <
     pushFieldValue,
     removeFieldValue,
   }: {
-    setFieldValue: UseHoneyFormSetFieldValue<Form>;
+    setFieldValue: UseHoneyFormSetFieldValueInternal<Form>;
     clearFieldErrors: UseHoneyFormClearFieldErrors<Form>;
     pushFieldValue: UseHoneyFormPushFieldValue<Form>;
     removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
@@ -67,7 +67,7 @@ export const createField = <
     onChange: e => {
       // @ts-expect-error
       setFieldValue(fieldName, e.target.value, {
-        validate: mode === 'change',
+        isValidate: mode === 'change',
       });
     },
     ...(mode === 'blur' && {
@@ -94,7 +94,7 @@ export const createField = <
     defaultValue: config.defaultValue,
     errors: [],
     // functions
-    setValue: value => setFieldValue(fieldName, value),
+    setValue: (value, options) => setFieldValue(fieldName, value, options),
     pushValue: value => pushFieldValue(fieldName, value),
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
     scheduleValidation: () => {
@@ -126,10 +126,16 @@ export const validateField = <
   const fieldErrors: UseHoneyFormFieldError[] = [];
 
   if (fieldConfig.type) {
-    validationResult = DEFAULT_VALIDATORS_MAP[fieldConfig.type](fieldValue, {
+    const validator = DEFAULT_VALIDATORS_MAP[fieldConfig.type];
+
+    const validationResponse = validator(fieldValue, {
       fieldConfig,
       formFields,
     });
+
+    if (!(validationResponse instanceof Promise)) {
+      validationResult = validationResponse;
+    }
   }
 
   // do not run additional validators if default field type validator is failed
@@ -149,7 +155,19 @@ export const validateField = <
 
     // execute custom validator. Can be run only when default validator return true or not run at all
     if (fieldConfig.validator) {
-      validationResult = fieldConfig.validator(fieldValue, { fieldConfig, formFields });
+      const validationResponse = fieldConfig.validator(fieldValue, { fieldConfig, formFields });
+
+      if (validationResponse instanceof Promise) {
+        validationResponse
+          .then(() => {
+            // cancel previous validation?
+          })
+          .catch(() => {
+            //
+          });
+      } else {
+        validationResult = validationResponse;
+      }
     }
   }
 

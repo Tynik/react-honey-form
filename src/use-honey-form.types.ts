@@ -32,18 +32,22 @@ export type UseHoneyFormFieldError = {
  */
 export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
 
-type UseHoneyFormSetFieldValueOptions = {
-  validate?: boolean;
-  pushValue?: boolean;
+type UseHoneyFormFieldSetValueOptions = {
+  isDirty?: boolean;
+  isValidate?: boolean;
 };
 
-export type UseHoneyFormSetFieldValue<Form extends UseHoneyFormForm> = <
+type UseHoneyFormSetFieldValueOptionsInternal = UseHoneyFormFieldSetValueOptions & {
+  isPushValue?: boolean;
+};
+
+export type UseHoneyFormSetFieldValueInternal<Form extends UseHoneyFormForm> = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
   fieldName: FieldName,
   value: FieldValue,
-  options?: UseHoneyFormSetFieldValueOptions
+  options?: UseHoneyFormSetFieldValueOptionsInternal
 ) => void;
 
 export type UseHoneyFormClearFieldErrors<Form extends UseHoneyFormForm> = <
@@ -67,15 +71,15 @@ export type UseHoneyFormRemoveFieldValue<Form extends UseHoneyFormForm> = <
   formIndex: number
 ) => void;
 
-type UseHoneyFormFieldOnChangeFormApi<Form extends UseHoneyFormForm> = {
-  setFieldValue: UseHoneyFormSetFieldValue<Form>;
+type UseHoneyFormFieldOnChangeApi<Form extends UseHoneyFormForm> = {
+  formFields: UseHoneyFormFields<Form>;
 };
 
 export type UseHoneyFormFieldOnChange<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = (value: FieldValue, formApi: UseHoneyFormFieldOnChangeFormApi<Form>) => void;
+> = (value: FieldValue, api: UseHoneyFormFieldOnChangeApi<Form>) => void;
 
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyFormForm,
@@ -120,7 +124,7 @@ export type UseHoneyFormFieldValidator<
 > = (
   value: FieldValue,
   api: UseHoneyFormFieldValidatorApi<Form, FieldName, FieldValue>
-) => UseHoneyFormFieldValidationResult;
+) => UseHoneyFormFieldValidationResult | Promise<UseHoneyFormFieldValidationResult>;
 
 export type UseHoneyFormFieldInternalValidator = <
   Form extends UseHoneyFormForm,
@@ -164,7 +168,7 @@ export type UseHoneyFormField<
     props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
     config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
     // functions
-    setValue: (value: FieldValue) => void;
+    setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
     scheduleValidation: () => void;
     clearErrors: () => void;
     focus: () => void;
@@ -191,7 +195,7 @@ export type UseHoneyFormOnSubmit<Form extends UseHoneyFormForm, Response> = (
   data: Form
 ) => Promise<Response>;
 
-export type UseHoneyFormOnChange<Form extends UseHoneyFormForm, Response> = (
+export type UseHoneyFormOnChange<Form extends UseHoneyFormForm> = (
   data: Form,
   errors: UseHoneyFormErrors<Form>
 ) => void;
@@ -210,7 +214,7 @@ export type UseHoneyFormOptions<Form extends UseHoneyFormForm, Response> = {
   defaults?: UseHoneyFormDefaults<Form>;
   //
   onSubmit?: UseHoneyFormOnSubmit<Form, Response>;
-  onChange?: UseHoneyFormOnChange<Form, Response>;
+  onChange?: UseHoneyFormOnChange<Form>;
   onChangeDebounce?: number;
 };
 
@@ -245,7 +249,7 @@ export type UseHoneyFormAddFieldError<Form extends UseHoneyFormForm> = <
   error: UseHoneyFormFieldError
 ) => void;
 
-export type UseHoneyFormResetErrors = () => void;
+export type UseHoneyFormClearErrors = () => void;
 
 export type UseHoneyFormValidate = () => boolean;
 
@@ -287,7 +291,7 @@ export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   addFormField: UseHoneyFormAddFormField<Form>;
   removeFormField: UseHoneyFormRemoveFormField<Form>;
   addFormFieldError: UseHoneyFormAddFieldError<Form>;
-  resetFormErrors: UseHoneyFormResetErrors;
+  clearFormErrors: UseHoneyFormClearErrors;
   validateForm: UseHoneyFormValidate;
   submitForm: UseHoneyFormSubmit<Form, Response>;
   resetForm: UseHoneyFormReset;

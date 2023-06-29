@@ -458,6 +458,9 @@ describe('HoneyForm component. Nested forms', () => {
     fireEvent.click(getByTestId('addItem'));
     fireEvent.click(getByTestId('addItem'));
 
+    expect(queryByTestId('item[0].price')).not.toBeNull();
+    expect(queryByTestId('item[1].price')).not.toBeNull();
+
     fireEvent.click(getByTestId('item[0].removeItem'));
 
     expect(queryByTestId('item[0].price')).not.toBeNull();

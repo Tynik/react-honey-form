@@ -95,7 +95,7 @@ describe('Use honey form. General', () => {
     expect(result.current.isFormDirty).toBeFalsy();
   });
 
-  it('reset manually added errors', () => {
+  it('clear manually added form fields errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
         fields: {
@@ -120,7 +120,7 @@ describe('Use honey form. General', () => {
     expect(Object.keys(result.current.formErrors).length).toBe(2);
 
     act(() => {
-      result.current.resetFormErrors();
+      result.current.clearFormErrors();
     });
 
     expect(Object.keys(result.current.formErrors).length).toBe(0);
