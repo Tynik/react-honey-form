@@ -8,6 +8,10 @@ import type {
   UseHoneyFormChildFormId,
 } from './use-honey-form.types';
 
+export const noop = () => {
+  //
+};
+
 export const genericMemo: <T>(component: T) => T = React.memo;
 
 export const warningMessage = (message: string) => {

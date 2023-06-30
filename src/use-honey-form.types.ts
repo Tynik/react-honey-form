@@ -136,6 +136,12 @@ export type UseHoneyFormFieldInternalValidator = <
   errors: UseHoneyFormFieldError[]
 ) => void;
 
+export type UseHoneyFormValidateField<Form extends UseHoneyFormForm> = <
+  FieldName extends keyof Form
+>(
+  fieldName: FieldName
+) => void;
+
 export type UseHoneyFormFieldValueConvertor<Value = unknown> = (value: any) => Value;
 
 export type UseHoneyFormFieldProps<
@@ -180,8 +186,10 @@ export type UseHoneyFormFlatField<
   // functions
   setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
   scheduleValidation: () => void;
+  addError: (error: UseHoneyFormFieldError) => void;
   clearErrors: () => void;
   focus: () => void;
+  //
   __meta__: UseHoneyFormFlatFieldMeta;
 }>;
 
@@ -212,7 +220,9 @@ export type UseHoneyFormArrayField<
   pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
   removeValue: (formIndex: number) => void;
   scheduleValidation: () => void;
+  addError: (error: UseHoneyFormFieldError) => void;
   clearErrors: () => void;
+  //
   __meta__: UseHoneyFormArrayFieldMeta<Form>;
 }>;
 

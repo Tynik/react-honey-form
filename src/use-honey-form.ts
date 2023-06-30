@@ -24,15 +24,17 @@ import type {
   UseHoneyFormChildFormId,
   UseHoneyFormFieldError,
   UseHoneyFormClearFieldErrors,
+  UseHoneyFormValidateField,
 } from './use-honey-form.types';
 
 import {
   sanitizeFieldValue,
   clearDependentFields,
   createField,
-  validateField,
+  executeFieldValidator,
   triggerScheduledFieldsValidations,
   clearAllFields,
+  runFieldValidation,
 } from './use-honey-form.field';
 import {
   getFormErrors,
@@ -54,6 +56,7 @@ type CreateInitialFormFieldsGetterOptions<Form extends UseHoneyFormForm> = {
   clearFieldErrors: UseHoneyFormClearFieldErrors<Form>;
   pushFieldValue: UseHoneyFormPushFieldValue<Form>;
   removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
+  addFormFieldError: UseHoneyFormAddFieldError<Form>;
 };
 
 const createInitialFormFieldsGetter =
@@ -66,6 +69,7 @@ const createInitialFormFieldsGetter =
     clearFieldErrors,
     pushFieldValue,
     removeFieldValue,
+    addFormFieldError,
   }: CreateInitialFormFieldsGetterOptions<Form>) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
@@ -94,6 +98,7 @@ const createInitialFormFieldsGetter =
           clearFieldErrors,
           pushFieldValue,
           removeFieldValue,
+          addFormFieldError,
         }
       );
 
@@ -139,7 +144,7 @@ const getNextHoneyFormFieldsState = <
     clearDependentFields(nextFormFields, fieldName);
 
     cleanValue = sanitizeFieldValue(fieldConfig.type, filteredValue);
-    errors = validateField(cleanValue, fieldConfig, formFields);
+    errors = executeFieldValidator(nextFormFields, fieldName, cleanValue);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -160,7 +165,7 @@ const getNextHoneyFormFieldsState = <
     }),
   };
 
-  triggerScheduledFieldsValidations(fieldName, nextFormFields);
+  triggerScheduledFieldsValidations(nextFormFields, fieldName);
 
   return nextFormFields;
 };
@@ -265,6 +270,27 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   };
 
+  const validateField: UseHoneyFormValidateField<Form> = fieldName => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setFormFields(formFields => runFieldValidation(formFields, fieldName));
+  };
+
+  const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setFormFields(formFields => {
+      const formField = formFields[fieldName];
+
+      return {
+        ...formFields,
+        [fieldName]: {
+          ...formField,
+          // there are some cases when the form can have alien field errors when the server can return non existed form fields
+          errors: [...(formField?.errors ?? []), error],
+        },
+      };
+    });
+  }, []);
+
   const initialFormFieldsGetter = createInitialFormFieldsGetter({
     formIndex,
     parentField,
@@ -274,6 +300,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     clearFieldErrors,
     pushFieldValue,
     removeFieldValue,
+    addFormFieldError,
   });
 
   const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
@@ -290,13 +317,15 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
         Object.keys(values).forEach((fieldName: keyof Form) => {
           const formField = nextFormFields[fieldName];
-          const value = values[fieldName];
 
-          const filteredValue = formField.config.filter ? formField.config.filter(value) : value;
-          const formattedValue = formField.config.format?.(filteredValue) ?? filteredValue;
+          const filteredValue = formField.config.filter
+            ? formField.config.filter(values[fieldName])
+            : values[fieldName];
 
           const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
-          const errors = validateField(cleanValue, formField.config, nextFormFields);
+          const errors = executeFieldValidator(nextFormFields, fieldName, cleanValue);
+
+          const formattedValue = formField.config.format?.(filteredValue) ?? filteredValue;
 
           nextFormFields[fieldName] = {
             ...formField,
@@ -334,9 +363,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           [fieldName]: createField(fieldName, config, {
             setFieldValue,
             clearFieldErrors,
-            // work with nested form
             pushFieldValue,
             removeFieldValue,
+            addFormFieldError,
           }),
         };
       });
@@ -351,21 +380,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       delete newFormFields[fieldName];
       //
       return newFormFields;
-    });
-  }, []);
-
-  const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
-    setFormFields(formFields => {
-      const formField = formFields[fieldName];
-
-      return {
-        ...formFields,
-        [fieldName]: {
-          ...formField,
-          // there are some cases when the form can have alien field errors when the server can return non existed form fields
-          errors: [...(formField?.errors ?? []), error],
-        },
-      };
     });
   }, []);
 
@@ -391,7 +405,16 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         if (isSkipField(fieldName, formFieldsRef.current)) {
           formFields[fieldName] = {
             ...formField,
+            cleanValue: undefined,
+            errors: [],
+            ...('props' in formField && {
+              props: {
+                ...formField.props,
+                'aria-invalid': false,
+              },
+            }),
           };
+
           return formFields;
         }
 
@@ -405,16 +428,22 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         }
 
         const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
+        const errors = executeFieldValidator(formFieldsRef.current, fieldName, cleanValue);
 
-        const errors = validateField(cleanValue, formField.config, formFieldsRef.current);
         if (errors.length) {
           hasErrors = true;
         }
 
         formFields[fieldName] = {
           ...formField,
-          cleanValue,
           errors,
+          cleanValue: errors.length ? undefined : cleanValue,
+          ...('props' in formField && {
+            props: {
+              ...formField.props,
+              'aria-invalid': Boolean(errors.length),
+            },
+          }),
         };
 
         return formFields;

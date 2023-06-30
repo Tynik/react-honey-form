@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 import {
@@ -354,6 +354,43 @@ describe('Use honey form. Validation', () => {
     ]);
 
     expect(onSubmit).not.toBeCalled();
+  });
+});
+
+describe('Use honey form. Validator as the promise function', () => {
+  it('should handle promise-based validator function', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            validator: value => {
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  resolve(value === 'Apple' ? 'Apples are not accepted!' : true);
+                }, 0);
+              });
+            },
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
+
+    act(() => result.current.formFields.name.setValue('Apple'));
+
+    await waitFor(() =>
+      expect(result.current.formFields.name.errors).toStrictEqual([
+        {
+          type: 'invalid',
+          message: 'Apples are not accepted!',
+        },
+      ])
+    );
+
+    act(() => result.current.formFields.name.setValue('Pear'));
+
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
   });
 });
 
