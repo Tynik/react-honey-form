@@ -217,11 +217,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         }
       );
 
-      const nextFormField = nextFormFields[fieldName];
-      if ('nestedValues' in nextFormField) {
-        captureChildFormsFieldValues(nextFormField);
-      }
-
       const fieldConfig = nextFormFields[fieldName].config;
 
       if (fieldConfig.onChange) {
@@ -509,6 +504,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         submitForm,
         validateForm,
       });
+
+      captureChildFormsFieldValues(parentField);
     }
 
     if (typeof defaults === 'function') {
@@ -527,6 +524,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     return () => {
       if (parentField) {
         unregisterChildForm(parentField, childFormIdRef.current);
+
+        captureChildFormsFieldValues(parentField);
       }
     };
   }, []);
