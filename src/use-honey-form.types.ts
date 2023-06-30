@@ -228,14 +228,13 @@ export type UseHoneyFormArrayField<
 
 export type UseHoneyFormField<
   Form extends UseHoneyFormForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
-> = Form[FieldName] extends any[]
-  ? UseHoneyFormArrayField<Form, FieldName, FieldValue>
-  : UseHoneyFormFlatField<Form, FieldName, FieldValue>;
+  FieldName extends keyof Form
+> = Form[FieldName] extends unknown[]
+  ? UseHoneyFormArrayField<Form, FieldName, Form[FieldName]>
+  : UseHoneyFormFlatField<Form, FieldName, Form[FieldName]>;
 
 export type UseHoneyFormFields<Form extends UseHoneyFormForm> = {
-  [FieldName in keyof Form]: UseHoneyFormField<Form, FieldName, Form[FieldName]>;
+  [FieldName in keyof Form]: UseHoneyFormField<Form, FieldName>;
 };
 
 export type UseHoneyFormFieldsConfigs<Form extends UseHoneyFormForm> = {

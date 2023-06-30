@@ -355,13 +355,9 @@ export const triggerScheduledFieldsValidations = <
   });
 };
 
-export const clearField = <
-  Form extends UseHoneyFormForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
->(
-  formField: UseHoneyFormField<Form, FieldName, FieldValue>
-): UseHoneyFormField<Form, FieldName, FieldValue> => {
+export const clearField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
+  formField: UseHoneyFormField<Form, FieldName>
+): UseHoneyFormField<Form, FieldName> => {
   return {
     ...formField,
     value: Array.isArray(formField.value) ? [] : undefined,

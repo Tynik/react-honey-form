@@ -96,7 +96,6 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
 export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormArrayField<Form, any>
 ) => {
-  // Override the 'value' property to capture child forms field values
   Object.defineProperty(formField, 'nestedValues', {
     get() {
       return formField.__meta__.childForms.map(childForm =>

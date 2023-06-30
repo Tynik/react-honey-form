@@ -44,6 +44,7 @@ import {
   registerChildForm,
   getHoneyFormUniqueId,
   isSkipField,
+  captureChildFormsFieldValues,
 } from './use-honey-form.helpers';
 import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
 
@@ -215,6 +216,11 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           isValidate,
         }
       );
+
+      const nextFormField = nextFormFields[fieldName];
+      if ('nestedValues' in nextFormField) {
+        captureChildFormsFieldValues(nextFormField);
+      }
 
       const fieldConfig = nextFormFields[fieldName].config;
 
