@@ -6,7 +6,7 @@ import type {
 
 import type { CustomDateRangeForm } from './use-honey-form.form-types';
 
-export const DEFAULT_VALIDATORS_MAP: Record<
+export const FIELD_TYPE_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator<any, any, any>
 > = {
@@ -296,3 +296,16 @@ export const createHoneyFormDateToValidator =
 
     return true;
   };
+
+export const INTERNAL_FIELD_VALIDATORS = [
+  // all
+  requiredInternalFieldValidator,
+  // number
+  minValueInternalFieldValidator,
+  maxValueInternalFieldValidator,
+  minMaxValueInternalFieldValidator,
+  // string
+  minLengthInternalFieldValidator,
+  maxLengthInternalFieldValidator,
+  minMaxLengthInternalFieldValidator,
+];

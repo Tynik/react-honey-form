@@ -6,6 +6,7 @@ import type {
   UseHoneyFormErrors,
   UseHoneyFormChildFormApi,
   UseHoneyFormChildFormId,
+  UseHoneyFormField,
 } from './use-honey-form.types';
 
 export const noop = () => {
@@ -58,20 +59,22 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>
 ) =>
   Object.keys(formFields).reduce((submitFormData, fieldName: keyof Form) => {
+    if (isSkipField(fieldName, formFields)) {
+      return submitFormData;
+    }
+
     const formField = formFields[fieldName];
 
-    if (!isSkipField(fieldName, formFields)) {
-      if ('childForms' in formField.__meta__) {
-        const childrenFormCleanValues: Form[] = [];
+    if ('childForms' in formField.__meta__) {
+      const childrenFormCleanValues: Form[] = [];
 
-        formField.__meta__.childForms.forEach(childForm => {
-          childrenFormCleanValues.push(getFieldsCleanValues(childForm.formFieldsRef.current));
-        });
+      formField.__meta__.childForms.forEach(childForm => {
+        childrenFormCleanValues.push(getFieldsCleanValues(childForm.formFieldsRef.current));
+      });
 
-        submitFormData[fieldName] = childrenFormCleanValues as Form[keyof Form];
-      } else {
-        submitFormData[fieldName] = formField.cleanValue;
-      }
+      submitFormData[fieldName] = childrenFormCleanValues as Form[keyof Form];
+    } else {
+      submitFormData[fieldName] = formField.cleanValue;
     }
 
     return submitFormData;
@@ -103,4 +106,26 @@ export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
       );
     },
   });
+};
+
+export const runChildFormsValidation = async <
+  Form extends UseHoneyFormForm,
+  FieldName extends keyof Form
+>(
+  formField: UseHoneyFormField<Form, FieldName>
+) => {
+  let hasErrors = false;
+
+  // Perform validation on child forms (when the field is an array that includes child forms)
+  if ('childForms' in formField.__meta__) {
+    await Promise.all(
+      formField.__meta__.childForms.map(async childForm => {
+        if (!(await childForm.validateForm())) {
+          hasErrors = true;
+        }
+      })
+    );
+  }
+
+  return hasErrors;
 };

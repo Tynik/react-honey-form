@@ -22,19 +22,18 @@ import type {
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormParentField,
   UseHoneyFormChildFormId,
-  UseHoneyFormFieldError,
   UseHoneyFormClearFieldErrors,
   UseHoneyFormValidateField,
 } from './use-honey-form.types';
 
 import {
-  sanitizeFieldValue,
   clearDependentFields,
   createField,
   executeFieldValidator,
   triggerScheduledFieldsValidations,
   clearAllFields,
   runFieldValidation,
+  getNextSkippedField,
 } from './use-honey-form.field';
 import {
   getFormErrors,
@@ -44,7 +43,7 @@ import {
   registerChildForm,
   getHoneyFormUniqueId,
   isSkipField,
-  captureChildFormsFieldValues,
+  runChildFormsValidation,
 } from './use-honey-form.helpers';
 import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
 
@@ -138,30 +137,24 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  let cleanValue: FieldValue;
-  let errors: UseHoneyFormFieldError[] = [];
+  let nextFormField = formField;
 
   if (isValidate) {
     clearDependentFields(nextFormFields, fieldName);
 
-    cleanValue = sanitizeFieldValue(fieldConfig.type, filteredValue);
-    errors = executeFieldValidator(nextFormFields, fieldName, cleanValue);
+    nextFormField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
 
   nextFormFields[fieldName] = {
-    ...formField,
-    errors,
+    ...nextFormField,
     value: formattedValue,
-    // set clean value as undefined if any error is present
-    cleanValue: errors.length ? undefined : cleanValue,
-    ...('props' in formField && {
+    ...('props' in nextFormField && {
       props: {
-        ...formField.props,
+        ...nextFormField.props,
         value: formattedValue,
-        'aria-invalid': Boolean(errors.length),
       },
     }),
   };
@@ -273,7 +266,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const validateField: UseHoneyFormValidateField<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(formFields => runFieldValidation(formFields, fieldName));
+    setFormFields(formFields => ({
+      ...formFields,
+      [fieldName]: runFieldValidation(formFields, fieldName),
+    }));
   };
 
   const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
@@ -323,21 +319,17 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
             ? formField.config.filter(values[fieldName])
             : values[fieldName];
 
-          const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
-          const errors = executeFieldValidator(nextFormFields, fieldName, cleanValue);
+          const nextField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
 
-          const formattedValue = formField.config.format?.(filteredValue) ?? filteredValue;
+          const formattedValue = nextField.config.format?.(filteredValue) ?? filteredValue;
 
           nextFormFields[fieldName] = {
-            ...formField,
-            errors,
+            ...nextField,
             value: formattedValue,
-            cleanValue: errors.length ? undefined : cleanValue,
-            ...('props' in formField && {
+            ...('props' in nextField && {
               props: {
-                ...formField.props,
+                ...nextField.props,
                 value: formattedValue,
-                'aria-invalid': Boolean(errors.length),
               },
             }),
           };
@@ -396,60 +388,32 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   }, []);
 
-  const validateForm: UseHoneyFormValidate = () => {
+  const validateForm: UseHoneyFormValidate = async () => {
     let hasErrors = false;
 
-    const nextFormFields = Object.keys(formFieldsRef.current).reduce(
-      (formFields, fieldName: keyof Form) => {
+    const nextFormFields = {} as UseHoneyFormFields<Form>;
+
+    await Promise.all(
+      Object.keys(formFieldsRef.current).map(async (fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
         if (isSkipField(fieldName, formFieldsRef.current)) {
-          formFields[fieldName] = {
-            ...formField,
-            cleanValue: undefined,
-            errors: [],
-            ...('props' in formField && {
-              props: {
-                ...formField.props,
-                'aria-invalid': false,
-              },
-            }),
-          };
-
-          return formFields;
+          nextFormFields[fieldName] = getNextSkippedField(formField);
+          return;
         }
 
-        // Perform validation on child forms (when the field is an array that includes child forms)
-        if ('childForms' in formField.__meta__) {
-          formField.__meta__.childForms.forEach(childForm => {
-            if (!childForm.validateForm()) {
-              hasErrors = true;
-            }
-          });
-        }
+        const hasChildFormsErrors = await runChildFormsValidation(formField);
+        hasErrors ||= hasChildFormsErrors;
 
-        const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
-        const errors = executeFieldValidator(formFieldsRef.current, fieldName, cleanValue);
-
-        if (errors.length) {
+        const nextField = runFieldValidation(formFieldsRef.current, fieldName);
+        if (nextField.errors.length) {
           hasErrors = true;
         }
 
-        formFields[fieldName] = {
-          ...formField,
-          errors,
-          cleanValue: errors.length ? undefined : cleanValue,
-          ...('props' in formField && {
-            props: {
-              ...formField.props,
-              'aria-invalid': Boolean(errors.length),
-            },
-          }),
+        nextFormFields[fieldName] = {
+          ...nextField,
         };
-
-        return formFields;
-      },
-      {} as UseHoneyFormFields<Form>
+      })
     );
 
     formFieldsRef.current = nextFormFields;
@@ -459,7 +423,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const submitForm: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
-    if (!validateForm()) {
+    if (!(await validateForm())) {
       // TODO: maybe reject should be provided? Left a comment after decision
       return Promise.resolve();
     }
@@ -504,8 +468,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         submitForm,
         validateForm,
       });
-
-      captureChildFormsFieldValues(parentField);
     }
 
     if (typeof defaults === 'function') {
@@ -524,8 +486,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     return () => {
       if (parentField) {
         unregisterChildForm(parentField, childFormIdRef.current);
-
-        captureChildFormsFieldValues(parentField);
       }
     };
   }, []);

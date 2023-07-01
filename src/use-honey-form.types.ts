@@ -305,7 +305,7 @@ export type UseHoneyFormAddFieldError<Form extends UseHoneyFormForm> = <
 
 export type UseHoneyFormClearErrors = () => void;
 
-export type UseHoneyFormValidate = () => boolean;
+export type UseHoneyFormValidate = () => Promise<boolean>;
 
 export type UseHoneyFormSubmit<Form extends UseHoneyFormForm, Response> = (
   submitHandler?: (data: Form) => Promise<Response>
