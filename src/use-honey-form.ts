@@ -32,8 +32,8 @@ import {
   executeFieldValidator,
   triggerScheduledFieldsValidations,
   clearAllFields,
-  runFieldValidation,
   getNextSkippedField,
+  executeFieldValidatorAsync,
 } from './use-honey-form.field';
 import {
   getFormErrors,
@@ -268,7 +268,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => ({
       ...formFields,
-      [fieldName]: runFieldValidation(formFields, fieldName),
+      [fieldName]: executeFieldValidator(formFields, fieldName),
     }));
   };
 
@@ -313,15 +313,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         }
 
         Object.keys(values).forEach((fieldName: keyof Form) => {
-          const formField = nextFormFields[fieldName];
+          const nextField = executeFieldValidator(nextFormFields, fieldName, values[fieldName]);
 
-          const filteredValue = formField.config.filter
-            ? formField.config.filter(values[fieldName])
-            : values[fieldName];
-
-          const nextField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
-
-          const formattedValue = nextField.config.format?.(filteredValue) ?? filteredValue;
+          const formattedValue = nextField.config.format?.(values[fieldName]) ?? values[fieldName];
 
           nextFormFields[fieldName] = {
             ...nextField,
@@ -405,7 +399,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         const hasChildFormsErrors = await runChildFormsValidation(formField);
         hasErrors ||= hasChildFormsErrors;
 
-        const nextField = runFieldValidation(formFieldsRef.current, fieldName);
+        const nextField = await executeFieldValidatorAsync(formFieldsRef.current, fieldName);
         if (nextField.errors.length) {
           hasErrors = true;
         }

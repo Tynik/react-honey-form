@@ -180,11 +180,38 @@ export const getNextSkippedField = <Form extends UseHoneyFormForm, FieldName ext
   };
 };
 
-const getNextValidatedField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
-  formField: UseHoneyFormField<Form, FieldName>,
+const handleFieldValidationResult = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   fieldErrors: UseHoneyFormFieldError[],
+  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName>,
+  validationResult: UseHoneyFormFieldValidationResult
+) => {
+  if (validationResult) {
+    if (typeof validationResult === 'string') {
+      fieldErrors.push({
+        type: 'invalid',
+        message: validationResult,
+      });
+      //
+    } else if (typeof validationResult === 'object') {
+      fieldErrors.push(...validationResult);
+    }
+    //
+  } else if (validationResult === false) {
+    fieldErrors.push({
+      type: 'invalid',
+      message: fieldConfig.errorMessages?.invalid ?? 'Invalid value',
+    });
+  }
+};
+
+const getNextValidatedField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
+  fieldErrors: UseHoneyFormFieldError[],
+  validationResult: UseHoneyFormFieldValidationResult,
+  formField: UseHoneyFormField<Form, FieldName>,
   cleanValue: Form[FieldName]
 ): UseHoneyFormField<Form, FieldName> => {
+  handleFieldValidationResult(fieldErrors, formField.config, validationResult);
+
   return {
     ...formField,
     errors: fieldErrors,
@@ -234,30 +261,6 @@ const executeInternalFieldValidators = <
   INTERNAL_FIELD_VALIDATORS.forEach(validator => validator(fieldValue, fieldConfig, fieldErrors));
 };
 
-const handleFieldValidationResult = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
-  fieldErrors: UseHoneyFormFieldError[],
-  fieldConfig: UseHoneyFormFieldConfig<Form, FieldName>,
-  validationResult: UseHoneyFormFieldValidationResult
-) => {
-  if (validationResult) {
-    if (typeof validationResult === 'string') {
-      fieldErrors.push({
-        type: 'invalid',
-        message: validationResult,
-      });
-      //
-    } else if (typeof validationResult === 'object') {
-      fieldErrors.push(...validationResult);
-    }
-    //
-  } else if (validationResult === false) {
-    fieldErrors.push({
-      type: 'invalid',
-      message: fieldConfig.errorMessages?.invalid ?? 'Invalid value',
-    });
-  }
-};
-
 const handleFieldPromiseValidationResult = <
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form
@@ -266,18 +269,18 @@ const handleFieldPromiseValidationResult = <
   validationResponse: Promise<UseHoneyFormFieldValidationResult>
 ) => {
   validationResponse
-    .then(result => {
-      if (result) {
-        if (typeof result === 'string') {
+    .then(validationResult => {
+      if (validationResult) {
+        if (typeof validationResult === 'string') {
           formField.addError({
             type: 'invalid',
-            message: result,
+            message: validationResult,
           });
-        } else if (typeof result === 'object') {
+        } else if (typeof validationResult === 'object') {
           // TODO: each error triggers one re-render
-          result.forEach(formField.addError);
+          validationResult.forEach(formField.addError);
         }
-      } else if (result === false) {
+      } else if (validationResult === false) {
         formField.addError({
           type: 'invalid',
           message: formField.config.errorMessages?.invalid ?? 'Invalid value',
@@ -318,62 +321,75 @@ export const executeFieldValidator = <
 >(
   formFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
-  rawFieldValue: FieldValue
+  rawFieldValue?: FieldValue
 ) => {
   const fieldErrors: UseHoneyFormFieldError[] = [];
-  const fieldConfig = formFields[fieldName].config;
+  const formField = formFields[fieldName];
 
-  const cleanValue = sanitizeFieldValue(fieldConfig.type, rawFieldValue);
+  const cleanValue = sanitizeFieldValue(formField.config.type, rawFieldValue ?? formField.value);
 
-  let validationResult = executeFieldTypeValidators(formFields, formFields[fieldName], cleanValue);
+  let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
-    executeInternalFieldValidators(cleanValue, fieldConfig, fieldErrors);
+    executeInternalFieldValidators(cleanValue, formField.config, fieldErrors);
 
     // execute custom validator. Can be run only when default validator return true
-    if (fieldConfig.validator) {
-      const validationResponse = fieldConfig.validator(cleanValue, {
-        fieldConfig,
+    if (formField.config.validator) {
+      const validationResponse = formField.config.validator(cleanValue, {
+        fieldConfig: formField.config,
         formFields,
       });
 
       if (validationResponse instanceof Promise) {
-        handleFieldPromiseValidationResult(formFields[fieldName], validationResponse);
+        handleFieldPromiseValidationResult(formField, validationResponse);
       } else {
         validationResult = validationResponse;
       }
     }
   }
 
-  handleFieldValidationResult(fieldErrors, fieldConfig, validationResult);
-
-  return getNextValidatedField(formFields[fieldName], fieldErrors, cleanValue);
+  return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
 };
 
 export const executeFieldValidatorAsync = async <
   Form extends UseHoneyFormForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldName extends keyof Form
 >(
-  formFields: UseHoneyFormFields<Form>,
-  fieldName: FieldName,
-  fieldValue: FieldValue
-) => {
-  const fieldConfig = formFields[fieldName].config;
-};
-
-export const runFieldValidation = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   formFields: UseHoneyFormFields<Form>,
   fieldName: FieldName
 ) => {
+  const fieldErrors: UseHoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
 
-  const fieldValue = formField.config.filter
-    ? formField.config.filter(formField.value)
-    : formField.value;
+  const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
 
-  return executeFieldValidator(formFields, fieldName, fieldValue);
+  let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
+
+  // do not run additional validators if default field type validator is failed
+  if (validationResult === null || validationResult === true) {
+    executeInternalFieldValidators(cleanValue, formField.config, fieldErrors);
+
+    // execute custom validator. Can be run only when default validator return true
+    if (formField.config.validator) {
+      const validationResponse = formField.config.validator(cleanValue, {
+        fieldConfig: formField.config,
+        formFields,
+      });
+
+      if (validationResponse instanceof Promise) {
+        try {
+          validationResult = await validationResponse;
+        } catch (e) {
+          //
+        }
+      } else {
+        validationResult = validationResponse;
+      }
+    }
+  }
+
+  return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
 };
 
 export const triggerScheduledFieldsValidations = <
@@ -390,11 +406,7 @@ export const triggerScheduledFieldsValidations = <
 
     if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
       if (!isSkipField(otherFieldName, nextFormFields)) {
-        nextFormFields[otherFieldName] = executeFieldValidator(
-          nextFormFields,
-          otherFieldName,
-          nextFormFields[otherFieldName].value
-        );
+        nextFormFields[otherFieldName] = executeFieldValidator(nextFormFields, otherFieldName);
       }
 
       nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;

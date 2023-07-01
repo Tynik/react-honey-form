@@ -392,6 +392,42 @@ describe('Use honey form. Validator as the promise function', () => {
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
   });
+
+  it('should execute promise-based validator functions when submitting', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            validator: value => {
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  resolve(value === 'Apple' ? 'Apples are not accepted!' : true);
+                }, 0);
+              });
+            },
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
+
+    act(() => result.current.formFields.name.setValue('Apple'));
+
+    await act(() => result.current.submitForm());
+
+    expect(result.current.formFields.name.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Apples are not accepted!',
+      },
+    ]);
+
+    expect(onSubmit).not.toBeCalled();
+  });
 });
 
 describe('Use honey form. Scheduled validation', () => {
