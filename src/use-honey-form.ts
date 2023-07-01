@@ -417,17 +417,16 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const submitForm: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
-    if (!(await validateForm())) {
-      // TODO: maybe reject should be provided? Left a comment after decision
-      return Promise.resolve();
-    }
-    const submitData = getFieldsCleanValues(formFieldsRef.current);
-
     setIsFormSubmitting(true);
-    try {
-      await (submitHandler || onSubmit)?.(submitData);
 
-      isFormDirtyRef.current = false;
+    try {
+      if (await validateForm()) {
+        const submitData = getFieldsCleanValues(formFieldsRef.current);
+
+        await (submitHandler || onSubmit)?.(submitData);
+
+        isFormDirtyRef.current = false;
+      }
     } finally {
       setIsFormSubmitting(false);
     }
