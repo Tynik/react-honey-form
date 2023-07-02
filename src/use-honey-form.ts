@@ -430,8 +430,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     } finally {
       setIsFormSubmitting(false);
     }
-
-    return Promise.resolve();
   }, []);
 
   const resetForm = useCallback<UseHoneyFormReset>(() => {

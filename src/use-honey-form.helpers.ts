@@ -4,7 +4,7 @@ import type {
   UseHoneyFormFields,
   UseHoneyFormArrayField,
   UseHoneyFormErrors,
-  UseHoneyFormChildFormApi,
+  UseHoneyFormChildFormContext,
   UseHoneyFormChildFormId,
   UseHoneyFormField,
 } from './use-honey-form.types';
@@ -82,9 +82,9 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
   formField: UseHoneyFormArrayField<Form, any>,
-  childFormApi: UseHoneyFormChildFormApi<Form, Response>
+  childFormContext: UseHoneyFormChildFormContext<Form, Response>
 ) => {
-  formField.__meta__.childForms.push(childFormApi);
+  formField.__meta__.childForms.push(childFormContext);
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(

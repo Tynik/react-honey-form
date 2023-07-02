@@ -71,7 +71,7 @@ export type UseHoneyFormRemoveFieldValue<Form extends UseHoneyFormForm> = <
   formIndex: number
 ) => void;
 
-type UseHoneyFormFieldOnChangeApi<Form extends UseHoneyFormForm> = {
+type UseHoneyFormFieldOnChangeContext<Form extends UseHoneyFormForm> = {
   formFields: UseHoneyFormFields<Form>;
 };
 
@@ -79,7 +79,7 @@ export type UseHoneyFormFieldOnChange<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = (value: FieldValue, api: UseHoneyFormFieldOnChangeApi<Form>) => void;
+> = (fieldValue: FieldValue, onChangeContext: UseHoneyFormFieldOnChangeContext<Form>) => void;
 
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyFormForm,
@@ -108,7 +108,7 @@ export type UseHoneyFormFieldConfig<
   onChange?: UseHoneyFormFieldOnChange<Form, FieldName, FieldValue>;
 }>;
 
-export type UseHoneyFormFieldValidatorApi<
+export type UseHoneyFormFieldValidatorContext<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
@@ -117,13 +117,20 @@ export type UseHoneyFormFieldValidatorApi<
   formFields: UseHoneyFormFields<Form>;
 };
 
+/**
+ * A custom validation function for the field. Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid), or an array of `UseHoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
+ *
+ * @param fieldValue - The current value of the field.
+ * @param validatorContext - The validation context, containing the field configuration and other form fields.
+ * @returns `true` if the value is valid, an error message if the value is invalid, an array of `UseHoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ */
 export type UseHoneyFormFieldValidator<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = (
-  value: FieldValue,
-  api: UseHoneyFormFieldValidatorApi<Form, FieldName, FieldValue>
+  fieldValue: FieldValue,
+  validatorContext: UseHoneyFormFieldValidatorContext<Form, FieldName, FieldValue>
 ) => UseHoneyFormFieldValidationResult | Promise<UseHoneyFormFieldValidationResult>;
 
 export type UseHoneyFormFieldInternalValidator = <
@@ -131,9 +138,9 @@ export type UseHoneyFormFieldInternalValidator = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
 >(
-  value: FieldValue,
+  fieldValue: FieldValue,
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
-  errors: UseHoneyFormFieldError[]
+  fieldErrors: UseHoneyFormFieldError[]
 ) => void;
 
 export type UseHoneyFormValidateField<Form extends UseHoneyFormForm> = <
@@ -158,7 +165,7 @@ export type UseHoneyFormFieldProps<
   }
 >;
 
-export type UseHoneyFormChildFormApi<Form extends UseHoneyFormForm, Response> = {
+export type UseHoneyFormChildFormContext<Form extends UseHoneyFormForm, Response> = {
   id: UseHoneyFormChildFormId;
   formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
   submitForm: UseHoneyFormSubmit<Form, Response>;
@@ -199,7 +206,7 @@ export type UseHoneyFormArrayFieldMeta<Form extends UseHoneyFormForm> =
      * undefined: as initial state when child forms are not mounted yet.
      * When child forms are mounted/unmounted the array or empty array is present
      */
-    childForms: UseHoneyFormChildFormApi<Form, unknown>[];
+    childForms: UseHoneyFormChildFormContext<Form, unknown>[];
   };
 
 export type UseHoneyFormArrayField<

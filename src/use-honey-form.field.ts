@@ -287,7 +287,12 @@ const handleFieldPromiseValidationResult = <
         });
       }
     })
-    .catch(noop);
+    .catch((validationResult: Error) => {
+      formField.addError({
+        type: 'invalid',
+        message: formField.config.errorMessages?.invalid ?? validationResult.message,
+      });
+    });
 };
 
 /**
@@ -381,7 +386,9 @@ export const executeFieldValidatorAsync = async <
         try {
           validationResult = await validationResponse;
         } catch (e) {
-          //
+          const error = e as Error;
+
+          validationResult = error.message;
         }
       } else {
         validationResult = validationResponse;

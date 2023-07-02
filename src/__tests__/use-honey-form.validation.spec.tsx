@@ -358,7 +358,7 @@ describe('Use honey form. Validation', () => {
 });
 
 describe('Use honey form. Validator as the promise function', () => {
-  it('should handle promise-based validator function', async () => {
+  it('should handle promise-based validator function (resolve)', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -391,6 +391,37 @@ describe('Use honey form. Validator as the promise function', () => {
     act(() => result.current.formFields.name.setValue('Pear'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
+  });
+
+  it('should handle promise-based validator function (reject)', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            validator: () => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  reject(new Error('Something went wrong!'));
+                }, 0);
+              });
+            },
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
+
+    act(() => result.current.formFields.name.setValue('Beans'));
+
+    await waitFor(() =>
+      expect(result.current.formFields.name.errors).toStrictEqual([
+        {
+          type: 'invalid',
+          message: 'Something went wrong!',
+        },
+      ])
+    );
   });
 
   it('should execute promise-based validator functions when submitting', async () => {
