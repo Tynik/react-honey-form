@@ -8,11 +8,27 @@ import type { CustomDateRangeForm } from './use-honey-form.form-types';
 
 export const FIELD_TYPE_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator<any, any, any>
+  UseHoneyFormFieldValidator<any, any>
 > = {
   string: () => true,
+  numeric: (value: string | undefined, { fieldConfig: { errorMessages = {} } }) => {
+    if (value === '' || value === undefined) {
+      return true;
+    }
+
+    const isValidNumber = /^\d+$/.test(value);
+
+    return (
+      isValidNumber || [
+        {
+          type: 'invalid',
+          message: errorMessages.invalid ?? 'Invalid format',
+        },
+      ]
+    );
+  },
   number: (
-    value,
+    value: string | undefined,
     { fieldConfig: { errorMessages = {}, decimal = false, negative = true, maxFraction = 2 } }
   ) => {
     if (value === '' || value === undefined) {
@@ -21,7 +37,7 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
 
     const isValidNumber = new RegExp(
       `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
-    ).test((value as string).toString());
+    ).test(value.toString());
 
     return (
       isValidNumber || [
@@ -36,12 +52,12 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
       ]
     );
   },
-  email: (value, { fieldConfig: { errorMessages = {} } }) => {
+  email: (value: string | undefined, { fieldConfig: { errorMessages = {} } }) => {
     if (value === '' || value === undefined) {
       return true;
     }
 
-    const isValidEmail = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value as string);
+    const isValidEmail = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value);
 
     return (
       isValidEmail || [

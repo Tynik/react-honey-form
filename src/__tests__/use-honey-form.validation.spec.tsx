@@ -526,6 +526,70 @@ describe('Use honey form. Scheduled validation', () => {
   });
 });
 
+describe('Use honey form. Numeric field type validation', () => {
+  it('should not raise an error when numeric value is empty', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ phone: string }>({
+        fields: {
+          phone: {
+            type: 'numeric',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.phone.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.phone.setValue('');
+    });
+
+    expect(result.current.formFields.phone.errors).toStrictEqual([]);
+  });
+
+  it('should not raise an error when numeric value is correct', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ phone: string }>({
+        fields: {
+          phone: {
+            type: 'numeric',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.phone.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.phone.setValue('12345678901234567890');
+    });
+
+    expect(result.current.formFields.phone.errors).toStrictEqual([]);
+  });
+
+  it('should raise an error when numeric value contains non-numeric characters', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ phone: string }>({
+        fields: {
+          phone: {
+            type: 'numeric',
+          },
+        },
+      })
+    );
+    expect(result.current.formFields.phone.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.phone.setValue('1a2');
+    });
+
+    expect(result.current.formFields.phone.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid format',
+      },
+    ]);
+  });
+});
+
 describe('Use honey form. Email field type validation', () => {
   it('should not raise an error when email is empty', () => {
     const { result } = renderHook(() =>

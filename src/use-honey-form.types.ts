@@ -7,7 +7,7 @@ type UseHoneyFormFieldName = string;
 export type UseHoneyFormChildFormId = string;
 
 // TODO: implement date type
-export type UseHoneyFormFieldType = 'string' | 'number' | 'email';
+export type UseHoneyFormFieldType = 'string' | 'numeric' | 'number' | 'email';
 
 type UseHoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max' | 'minMax';
 
