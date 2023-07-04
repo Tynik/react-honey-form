@@ -44,6 +44,7 @@ import {
   getHoneyFormUniqueId,
   isSkipField,
   runChildFormsValidation,
+  captureChildFormsFieldValues,
 } from './use-honey-form.helpers';
 import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
 
@@ -86,7 +87,6 @@ const createInitialFormFieldsGetter =
 
       const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
 
-      // @ts-expect-error
       initialFormFields[fieldName] = createField(
         fieldName,
         {
@@ -145,7 +145,6 @@ const getNextHoneyFormFieldsState = <
     nextFormField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
 
   nextFormFields[fieldName] = {
@@ -319,11 +318,11 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
           nextFormFields[fieldName] = {
             ...nextField,
-            value: formattedValue,
+            value: formattedValue as never,
             ...('props' in nextField && {
               props: {
                 ...nextField.props,
-                value: formattedValue,
+                value: formattedValue as never,
               },
             }),
           };
@@ -459,6 +458,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         submitForm,
         validateForm,
       });
+
+      captureChildFormsFieldValues(parentField);
     }
 
     if (typeof defaults === 'function') {

@@ -71,18 +71,18 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
 };
 
 export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (
     fieldConfig.required &&
-    (value === undefined ||
-      value === null ||
-      value === '' ||
-      (Array.isArray(value) && !value.length))
+    (fieldValue === undefined ||
+      fieldValue === null ||
+      fieldValue === '' ||
+      (Array.isArray(fieldValue) && !fieldValue.length))
   ) {
-    errors.push({
+    fieldErrors.push({
       type: 'required',
       message: fieldConfig.errorMessages?.required ?? 'The value is required',
     });
@@ -90,17 +90,17 @@ export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 };
 
 export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (
-      value === undefined ||
-      Number.isNaN(value) ||
-      (typeof value === 'number' && value < fieldConfig.min)
+      fieldValue === undefined ||
+      Number.isNaN(fieldValue) ||
+      (typeof fieldValue === 'number' && fieldValue < fieldConfig.min)
     ) {
-      errors.push({
+      fieldErrors.push({
         type: 'min',
         message:
           fieldConfig.errorMessages?.min ??
@@ -111,17 +111,17 @@ export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 };
 
 export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (
-      value === undefined ||
-      Number.isNaN(value) ||
-      (typeof value === 'number' && value > fieldConfig.max)
+      fieldValue === undefined ||
+      Number.isNaN(fieldValue) ||
+      (typeof fieldValue === 'number' && fieldValue > fieldConfig.max)
     ) {
-      errors.push({
+      fieldErrors.push({
         type: 'max',
         message:
           fieldConfig.errorMessages?.max ??
@@ -132,17 +132,18 @@ export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 };
 
 export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.min !== undefined && fieldConfig.max !== undefined) {
     if (
-      value === undefined ||
-      Number.isNaN(value) ||
-      (typeof value === 'number' && (value < fieldConfig.min || value > fieldConfig.max))
+      fieldValue === undefined ||
+      Number.isNaN(fieldValue) ||
+      (typeof fieldValue === 'number' &&
+        (fieldValue < fieldConfig.min || fieldValue > fieldConfig.max))
     ) {
-      errors.push({
+      fieldErrors.push({
         type: 'minMax',
         message:
           fieldConfig.errorMessages?.minMax ??
@@ -153,13 +154,16 @@ export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidat
 };
 
 export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
-    if (value === undefined || (typeof value === 'string' && value.length < fieldConfig.min)) {
-      errors.push({
+    if (
+      fieldValue === undefined ||
+      (typeof fieldValue === 'string' && fieldValue.length < fieldConfig.min)
+    ) {
+      fieldErrors.push({
         type: 'min',
         message:
           fieldConfig.errorMessages?.min ??
@@ -170,13 +174,16 @@ export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
 };
 
 export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
-    if (value === undefined || (typeof value === 'string' && value.length > fieldConfig.max)) {
-      errors.push({
+    if (
+      fieldValue === undefined ||
+      (typeof fieldValue === 'string' && fieldValue.length > fieldConfig.max)
+    ) {
+      fieldErrors.push({
         type: 'max',
         message:
           fieldConfig.errorMessages?.max ??
@@ -187,18 +194,18 @@ export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
 };
 
 export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
-  value,
+  fieldValue,
   fieldConfig,
-  errors
+  fieldErrors
 ) => {
   if (fieldConfig.min !== undefined && fieldConfig.max !== undefined) {
     if (
-      value === undefined ||
-      (typeof value === 'string' &&
-        (value.length < fieldConfig.min || value.length > fieldConfig.max))
+      fieldValue === undefined ||
+      (typeof fieldValue === 'string' &&
+        (fieldValue.length < fieldConfig.min || fieldValue.length > fieldConfig.max))
     ) {
       if (fieldConfig.min === fieldConfig.max) {
-        errors.push({
+        fieldErrors.push({
           type: 'minMax',
           message:
             fieldConfig.errorMessages?.minMax ??
@@ -207,7 +214,7 @@ export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValida
         return;
       }
 
-      errors.push({
+      fieldErrors.push({
         type: 'minMax',
         message:
           fieldConfig.errorMessages?.minMax ??

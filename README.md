@@ -41,7 +41,13 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 
 1. `value` - The initial value of the form field.
 2. `defaultValue` - The default value of the form field.
-3. `type` - The type of the form field. Can be as `string`, `number` and `email`. Default is `string`.
+3. `type` - The type of the form field. It can be one of the following values:
+   - `string`: Represents a general string input field.
+   - `numeric`: Represents a field that accepts only numeric values without decimal places.
+   - `number`: Represents a field that accepts numeric values, including decimals and optional negative numbers.
+   - `email`: Represents an email input field. 
+   
+   The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
 4. `required` - A boolean value indicating whether the form field is required or not. If set to true, the field must have a non-empty value for the form to be considered valid. Default is `false`.
 5. `min` - The minimum value allowed for numeric fields or minimum length of a string. Only applicable for fields of type `number` or `string`.
 6. `max` - The maximum value allowed for numeric fields or maximum length of a string. Only applicable for fields of type `number` or `string`.

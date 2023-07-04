@@ -9,19 +9,16 @@ import type {
   UseHoneyFormFieldType,
   UseHoneyFormFieldValueConvertor,
   UseHoneyFormFieldProps,
-  UseHoneyFormFlatField,
   UseHoneyFormSetFieldValueInternal,
   UseHoneyFormPushFieldValue,
   UseHoneyFormRemoveFieldValue,
   UseHoneyFormClearFieldErrors,
-  UseHoneyFormArrayField,
-  UseHoneyFormArrayFieldMeta,
   UseHoneyFormField,
   UseHoneyFormFlatFieldMeta,
   UseHoneyFormAddFieldError,
 } from './use-honey-form.types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './use-honey-form.validators';
-import { captureChildFormsFieldValues, isSkipField, noop } from './use-honey-form.helpers';
+import { isSkipField } from './use-honey-form.helpers';
 
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -49,9 +46,7 @@ export const createField = <
     removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
     addFormFieldError: UseHoneyFormAddFieldError<Form>;
   }
-):
-  | UseHoneyFormFlatField<Form, FieldName, FieldValue>
-  | UseHoneyFormArrayField<Form, FieldName, FieldValue> => {
+): UseHoneyFormField<Form, FieldName, FieldValue> => {
   const config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue> = {
     type: 'string',
     mode: 'change',
@@ -85,63 +80,34 @@ export const createField = <
     'aria-invalid': false,
   };
 
-  let newFormField:
-    | UseHoneyFormFlatField<Form, FieldName, FieldValue>
-    | UseHoneyFormArrayField<Form, FieldName, FieldValue>;
+  const fieldMeta: UseHoneyFormFlatFieldMeta<Form> = {
+    isValidationScheduled: false,
+    childForms: undefined,
+  };
 
-  if (Array.isArray(fieldValue)) {
-    const arrayFieldMeta: UseHoneyFormArrayFieldMeta<Form> = {
-      isValidationScheduled: false,
-      childForms: [],
-    };
-
-    newFormField = {
-      value: fieldValue,
-      nestedValues: fieldValue,
-      cleanValue: fieldValue,
-      defaultValue: config.defaultValue,
-      config,
-      errors: [],
-      // functions
-      setValue: (value, options) => setFieldValue(fieldName, value, options),
-      pushValue: value => pushFieldValue(fieldName, value),
-      removeValue: formIndex => removeFieldValue(fieldName, formIndex),
-      scheduleValidation: () => {
-        arrayFieldMeta.isValidationScheduled = true;
-      },
-      addError: error => addFormFieldError(fieldName, error),
-      clearErrors: () => clearFieldErrors(fieldName),
-      //
-      __meta__: arrayFieldMeta,
-    };
-
-    captureChildFormsFieldValues(newFormField);
-  } else {
-    const flatFieldMeta: UseHoneyFormFlatFieldMeta = {
-      isValidationScheduled: false,
-    };
-
-    newFormField = {
-      value: fieldValue,
-      cleanValue: fieldValue,
-      defaultValue: config.defaultValue,
-      props: fieldProps,
-      config,
-      errors: [],
-      // functions
-      setValue: (value, options) => setFieldValue(fieldName, value, options),
-      scheduleValidation: () => {
-        flatFieldMeta.isValidationScheduled = true;
-      },
-      addError: error => addFormFieldError(fieldName, error),
-      clearErrors: () => clearFieldErrors(fieldName),
-      focus: () => {
-        formFieldRef.current.focus();
-      },
-      //
-      __meta__: flatFieldMeta,
-    };
-  }
+  const newFormField: UseHoneyFormField<Form, FieldName, FieldValue> = {
+    value: fieldValue,
+    nestedValues: fieldValue,
+    cleanValue: fieldValue,
+    defaultValue: config.defaultValue,
+    props: fieldProps,
+    config,
+    errors: [],
+    // functions
+    setValue: (value, options) => setFieldValue(fieldName, value, options),
+    pushValue: value => pushFieldValue(fieldName, value),
+    removeValue: formIndex => removeFieldValue(fieldName, formIndex),
+    scheduleValidation: () => {
+      fieldMeta.isValidationScheduled = true;
+    },
+    addError: error => addFormFieldError(fieldName, error),
+    clearErrors: () => clearFieldErrors(fieldName),
+    focus: () => {
+      formFieldRef.current.focus();
+    },
+    //
+    __meta__: fieldMeta,
+  };
 
   return newFormField;
 };
@@ -151,7 +117,7 @@ export const getNextClearedField = <Form extends UseHoneyFormForm, FieldName ext
 ): UseHoneyFormField<Form, FieldName> => {
   return {
     ...formField,
-    value: Array.isArray(formField.value) ? [] : undefined,
+    value: undefined,
     cleanValue: undefined,
     errors: [],
     ...('props' in formField && {

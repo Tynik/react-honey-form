@@ -79,7 +79,7 @@ export type UseHoneyFormFieldOnChange<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
-> = (fieldValue: FieldValue, onChangeContext: UseHoneyFormFieldOnChangeContext<Form>) => void;
+> = (fieldValue: FieldValue, context: UseHoneyFormFieldOnChangeContext<Form>) => void;
 
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyFormForm,
@@ -130,7 +130,7 @@ export type UseHoneyFormFieldValidator<
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = (
   fieldValue: FieldValue,
-  validatorContext: UseHoneyFormFieldValidatorContext<Form, FieldName, FieldValue>
+  context: UseHoneyFormFieldValidatorContext<Form, FieldName, FieldValue>
 ) => UseHoneyFormFieldValidationResult | Promise<UseHoneyFormFieldValidationResult>;
 
 export type UseHoneyFormFieldInternalValidator = <
@@ -172,44 +172,16 @@ export type UseHoneyFormChildFormContext<Form extends UseHoneyFormForm, Response
   validateForm: UseHoneyFormValidate;
 };
 
-export type UseHoneyFormFlatFieldMeta = {
+export type UseHoneyFormFlatFieldMeta<Form extends UseHoneyFormForm> = {
   isValidationScheduled: boolean;
+  /**
+   * undefined: as initial state when child forms are not mounted yet.
+   * When child forms are mounted/unmounted the array or empty array is present
+   */
+  childForms: UseHoneyFormChildFormContext<Form, unknown>[] | undefined;
 };
 
-export type UseHoneyFormFlatField<
-  Form extends UseHoneyFormForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName] = Form[FieldName]
-> = Readonly<{
-  defaultValue: FieldValue;
-  // a value is `undefined` when any error for the field is present
-  cleanValue: FieldValue;
-  // the value after formatting when specific format function was executed
-  value: FieldValue;
-  errors: UseHoneyFormFieldError[];
-  // to destruct these props directly to a component
-  props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
-  config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
-  // functions
-  setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
-  scheduleValidation: () => void;
-  addError: (error: UseHoneyFormFieldError) => void;
-  clearErrors: () => void;
-  focus: () => void;
-  //
-  __meta__: UseHoneyFormFlatFieldMeta;
-}>;
-
-export type UseHoneyFormArrayFieldMeta<Form extends UseHoneyFormForm> =
-  UseHoneyFormFlatFieldMeta & {
-    /**
-     * undefined: as initial state when child forms are not mounted yet.
-     * When child forms are mounted/unmounted the array or empty array is present
-     */
-    childForms: UseHoneyFormChildFormContext<Form, unknown>[];
-  };
-
-export type UseHoneyFormArrayField<
+export type UseHoneyFormField<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName]
@@ -221,6 +193,8 @@ export type UseHoneyFormArrayField<
   value: FieldValue;
   nestedValues: FieldValue;
   errors: UseHoneyFormFieldError[];
+  // to destruct these props directly to a component
+  props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
   // functions
   setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
@@ -229,16 +203,10 @@ export type UseHoneyFormArrayField<
   scheduleValidation: () => void;
   addError: (error: UseHoneyFormFieldError) => void;
   clearErrors: () => void;
+  focus: () => void;
   //
-  __meta__: UseHoneyFormArrayFieldMeta<Form>;
+  __meta__: UseHoneyFormFlatFieldMeta<Form>;
 }>;
-
-export type UseHoneyFormField<
-  Form extends UseHoneyFormForm,
-  FieldName extends keyof Form
-> = Form[FieldName] extends unknown[]
-  ? UseHoneyFormArrayField<Form, FieldName, Form[FieldName]>
-  : UseHoneyFormFlatField<Form, FieldName, Form[FieldName]>;
 
 export type UseHoneyFormFields<Form extends UseHoneyFormForm> = {
   [FieldName in keyof Form]: UseHoneyFormField<Form, FieldName>;
@@ -261,7 +229,7 @@ export type UseHoneyFormOnChange<Form extends UseHoneyFormForm> = (
   errors: UseHoneyFormErrors<Form>
 ) => void;
 
-export type UseHoneyFormParentField<Form extends UseHoneyFormForm> = UseHoneyFormArrayField<
+export type UseHoneyFormParentField<Form extends UseHoneyFormForm> = UseHoneyFormField<
   any,
   any,
   Form[]

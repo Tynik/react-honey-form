@@ -2,11 +2,10 @@ import React from 'react';
 import type {
   UseHoneyFormForm,
   UseHoneyFormFields,
-  UseHoneyFormArrayField,
+  UseHoneyFormField,
   UseHoneyFormErrors,
   UseHoneyFormChildFormContext,
   UseHoneyFormChildFormId,
-  UseHoneyFormField,
 } from './use-honey-form.types';
 
 export const noop = () => {
@@ -65,7 +64,7 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
 
     const formField = formFields[fieldName];
 
-    if ('childForms' in formField.__meta__) {
+    if (formField.__meta__.childForms) {
       const childrenFormCleanValues: Form[] = [];
 
       formField.__meta__.childForms.forEach(childForm => {
@@ -81,14 +80,15 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
   }, {} as Form);
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
-  formField: UseHoneyFormArrayField<Form, any>,
+  formField: UseHoneyFormField<Form, any>,
   childFormContext: UseHoneyFormChildFormContext<Form, Response>
 ) => {
+  formField.__meta__.childForms ||= [];
   formField.__meta__.childForms.push(childFormContext);
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormArrayField<Form, any>,
+  formField: UseHoneyFormField<Form, any>,
   childFormId: UseHoneyFormChildFormId
 ) => {
   formField.__meta__.childForms = formField.__meta__.childForms.filter(
@@ -97,7 +97,7 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
 };
 
 export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormArrayField<Form, any>
+  formField: UseHoneyFormField<Form, any>
 ) => {
   Object.defineProperty(formField, 'nestedValues', {
     get() {
@@ -114,18 +114,21 @@ export const runChildFormsValidation = async <
 >(
   formField: UseHoneyFormField<Form, FieldName>
 ) => {
+  if (!formField.__meta__.childForms?.length) {
+    // no errors
+    return false;
+  }
+
   let hasErrors = false;
 
   // Perform validation on child forms (when the field is an array that includes child forms)
-  if ('childForms' in formField.__meta__) {
-    await Promise.all(
-      formField.__meta__.childForms.map(async childForm => {
-        if (!(await childForm.validateForm())) {
-          hasErrors = true;
-        }
-      })
-    );
-  }
+  await Promise.all(
+    formField.__meta__.childForms.map(async childForm => {
+      if (!(await childForm.validateForm())) {
+        hasErrors = true;
+      }
+    })
+  );
 
   return hasErrors;
 };
