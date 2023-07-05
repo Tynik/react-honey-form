@@ -292,12 +292,12 @@ export const executeFieldValidator = <
 >(
   formFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
-  rawFieldValue?: FieldValue
+  rawFieldValue: FieldValue
 ) => {
   const fieldErrors: UseHoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
 
-  const cleanValue = sanitizeFieldValue(formField.config.type, rawFieldValue ?? formField.value);
+  const cleanValue = sanitizeFieldValue(formField.config.type, rawFieldValue);
 
   let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
 
@@ -379,7 +379,11 @@ export const triggerScheduledFieldsValidations = <
 
     if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
       if (!isSkipField(otherFieldName, nextFormFields)) {
-        nextFormFields[otherFieldName] = executeFieldValidator(nextFormFields, otherFieldName);
+        nextFormFields[otherFieldName] = executeFieldValidator(
+          nextFormFields,
+          otherFieldName,
+          nextFormFields[otherFieldName].value
+        );
       }
 
       nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;

@@ -267,7 +267,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => ({
       ...formFields,
-      [fieldName]: executeFieldValidator(formFields, fieldName),
+      [fieldName]: executeFieldValidator(formFields, fieldName, formFields[fieldName].value),
     }));
   };
 
