@@ -681,7 +681,25 @@ describe('Use honey form. Email field type validation', () => {
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
     act(() => {
-      result.current.formFields.email.setValue('a@gmail.com');
+      result.current.formFields.email.setValue('a.kr@gmail.com');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a+1@gmail.com');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a-b@gmail.com');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => {
+      result.current.formFields.email.setValue('a_b@gmail.com');
     });
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
