@@ -242,57 +242,32 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
     expect(result.current.formFields.kind.props.value).toBe(undefined);
   });
-});
 
-describe('Use honey form. Filter function', () => {
-  test.skip('should not re-render form when filter() does not change a value', () => {
-    let renderers = 0;
+  it('should send filtered value, but not formatted value when submitting', async () => {
+    const onSubmit = jest.fn();
 
-    const Comp = () => {
-      const { formFields } = useHoneyForm<{ age: string }>({
-        fields: {
-          age: {
-            value: '',
-            filter: value => value.replace(/[^0-9]/g, ''),
-          },
-        },
-      });
-      renderers += 1;
-
-      return <input {...formFields.age.props} data-testid="age" />;
-    };
-
-    const { getByTestId } = render(<Comp />);
-
-    expect(renderers).toBe(1);
-
-    fireEvent.change(getByTestId('age'), { target: { value: '10' } });
-
-    expect(renderers).toBe(2);
-
-    fireEvent.change(getByTestId('age'), { target: { value: '10a' } });
-
-    expect(renderers).toBe(2);
-  });
-});
-
-describe('Use honey form. Format function', () => {
-  it('a value should have formatted value', () => {
     const { result } = renderHook(() =>
-      useHoneyForm<{ price: number }>({
+      useHoneyForm<{ price: string }>({
         fields: {
           price: {
+            value: '',
+            filter: value => value.replace(/\$/, ''),
             format: value => `$${value}`,
           },
         },
+        onSubmit,
       })
     );
 
     act(() => {
-      result.current.formFields.price.setValue(5);
+      result.current.formFields.price.setValue('5');
     });
 
-    expect(result.current.formFields.price.cleanValue).toBe(5);
+    await act(() => result.current.submitForm(onSubmit));
+
     expect(result.current.formFields.price.value).toBe('$5');
+    expect(result.current.formFields.price.cleanValue).toBe('5');
+
+    expect(onSubmit).toBeCalledWith({ price: '5' });
   });
 });

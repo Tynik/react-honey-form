@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect } from 'react';
-import { act, render, renderHook, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -21,26 +21,6 @@ describe('Use honey form. Fields', () => {
     });
 
     expect(result.current.formFields.name.value).toBe('Peter');
-  });
-
-  it('use filter() function for a field value', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm({
-        fields: {
-          age: {
-            value: '',
-            filter: value => value.replace(/[^0-9]/g, ''),
-          },
-        },
-      })
-    );
-
-    act(() => {
-      result.current.formFields.age.setValue('a12b');
-    });
-
-    expect(result.current.formFields.age.value).toBe('12');
-    expect(result.current.formFields.age.cleanValue).toBe('12');
   });
 
   it('initially the number field type value should be undefined', () => {
@@ -692,5 +672,121 @@ describe('Use honey form. Skipping fields', () => {
         name: 'Pear',
       })
     );
+  });
+});
+
+describe('Use honey form. Filter field function', () => {
+  it('should filter the initial field value', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: string }>({
+        fields: {
+          age: {
+            value: '1abc3',
+            filter: value => value.replace(/[^0-9]/g, ''),
+          },
+        },
+      })
+    );
+
+    expect(result.current.formFields.age.value).toBe('13');
+    expect(result.current.formFields.age.cleanValue).toBe('13');
+  });
+
+  it('should filter the field value when updated', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ age: string }>({
+        fields: {
+          age: {
+            value: '',
+            filter: value => value.replace(/[^0-9]/g, ''),
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue('a12b');
+    });
+
+    expect(result.current.formFields.age.value).toBe('12');
+    expect(result.current.formFields.age.cleanValue).toBe('12');
+  });
+
+  it('should send filtered value when submitting', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            value: '',
+            filter: value => value.replace(/[0-9]/g, ''),
+          },
+        },
+        onSubmit,
+      })
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('A1pple3');
+    });
+
+    await act(() => result.current.submitForm(onSubmit));
+
+    expect(result.current.formFields.name.value).toBe('Apple');
+    expect(result.current.formFields.name.cleanValue).toBe('Apple');
+
+    expect(onSubmit).toBeCalledWith({ name: 'Apple' });
+  });
+
+  test.skip('should not re-render form when filter() does not change a value', () => {
+    let renderers = 0;
+
+    const Comp = () => {
+      const { formFields } = useHoneyForm<{ age: string }>({
+        fields: {
+          age: {
+            value: '',
+            filter: value => value.replace(/[^0-9]/g, ''),
+          },
+        },
+      });
+      renderers += 1;
+
+      return <input {...formFields.age.props} data-testid="age" />;
+    };
+
+    const { getByTestId } = render(<Comp />);
+
+    expect(renderers).toBe(1);
+
+    fireEvent.change(getByTestId('age'), { target: { value: '10' } });
+
+    expect(renderers).toBe(2);
+
+    fireEvent.change(getByTestId('age'), { target: { value: '10a' } });
+
+    expect(renderers).toBe(2);
+  });
+});
+
+describe('Use honey form. Format field function', () => {
+  it('a value should have formatted value', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ price: string }>({
+        fields: {
+          price: {
+            format: value => `$${value}`,
+          },
+        },
+      })
+    );
+
+    act(() => {
+      result.current.formFields.price.setValue('5');
+    });
+
+    expect(result.current.formFields.price.value).toBe('$5');
+    expect(result.current.formFields.price.cleanValue).toBe('5');
   });
 });

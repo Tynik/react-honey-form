@@ -26,7 +26,7 @@ describe('Use honey form. Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 });
   });
 
-  it('use submit handler function passed to submit()', async () => {
+  it('should call custom submit function passed to submitForm()', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>

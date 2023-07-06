@@ -265,10 +265,18 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const validateField: UseHoneyFormValidateField<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(formFields => ({
-      ...formFields,
-      [fieldName]: executeFieldValidator(formFields, fieldName, formFields[fieldName].value),
-    }));
+    setFormFields(formFields => {
+      const formField = formFields[fieldName];
+
+      const filteredValue = formField.config.filter
+        ? formField.config.filter(formField.value)
+        : formField.value;
+
+      return {
+        ...formFields,
+        [fieldName]: executeFieldValidator(formFields, fieldName, filteredValue),
+      };
+    });
   };
 
   const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
@@ -312,9 +320,17 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         }
 
         Object.keys(values).forEach((fieldName: keyof Form) => {
-          const nextField = executeFieldValidator(nextFormFields, fieldName, values[fieldName]);
+          const fieldConfig = nextFormFields[fieldName].config;
 
-          const formattedValue = nextField.config.format?.(values[fieldName]) ?? values[fieldName];
+          const filteredValue = fieldConfig.filter
+            ? fieldConfig.filter(values[fieldName])
+            : values[fieldName];
+
+          const nextField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
+
+          const formattedValue = nextField.config.format
+            ? nextField.config.format(filteredValue)
+            : filteredValue;
 
           nextFormFields[fieldName] = {
             ...nextField,

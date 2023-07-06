@@ -57,9 +57,13 @@ export const createField = <
 
   const fieldValue = config.value === undefined ? config.defaultValue : config.value;
 
+  const filteredValue = config.filter ? config.filter(fieldValue) : fieldValue;
+  const formattedValue = config.format ? config.format(filteredValue) : filteredValue;
+
   const fieldProps: UseHoneyFormFieldProps<Form, FieldName, FieldValue> = {
     ref: formFieldRef,
-    value: fieldValue,
+    // @ts-expect-error
+    value: formattedValue,
     //
     onFocus: e => {
       //
@@ -86,9 +90,10 @@ export const createField = <
   };
 
   const newFormField: UseHoneyFormField<Form, FieldName, FieldValue> = {
-    value: fieldValue,
+    // @ts-expect-error
+    value: formattedValue,
     nestedValues: fieldValue,
-    cleanValue: fieldValue,
+    cleanValue: filteredValue,
     defaultValue: config.defaultValue,
     props: fieldProps,
     config,
@@ -267,8 +272,8 @@ const handleFieldPromiseValidationResult = <
  * If a convertor does not exist, it returns the original value.
  *
  * @param {UseHoneyFormFieldType | undefined} fieldType The type of the form field.
- * @param {Value} value The value of the form field that needs to be cleaned.
- * @returns {Value} The cleaned or original value depending on whether a convertor was found.
+ * @param {FieldValue} rawFieldValue The value of the form field that needs to be cleaned.
+ * @returns {FieldValue} The cleaned or original value depending on whether a convertor was found.
  */
 const sanitizeFieldValue = <
   Form extends UseHoneyFormForm,
@@ -333,7 +338,11 @@ export const executeFieldValidatorAsync = async <
   const fieldErrors: UseHoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
 
-  const cleanValue = sanitizeFieldValue(formField.config.type, formField.value);
+  const filteredValue = formField.config.filter
+    ? formField.config.filter(formField.value)
+    : formField.value;
+
+  const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
 
   let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
 
@@ -377,12 +386,18 @@ export const triggerScheduledFieldsValidations = <
       return;
     }
 
-    if (nextFormFields[otherFieldName].__meta__.isValidationScheduled) {
+    const nextFormField = nextFormFields[otherFieldName];
+
+    if (nextFormField.__meta__.isValidationScheduled) {
       if (!isSkipField(otherFieldName, nextFormFields)) {
+        const filteredValue = nextFormField.config.filter
+          ? nextFormField.config.filter(nextFormField.value)
+          : nextFormField.value;
+
         nextFormFields[otherFieldName] = executeFieldValidator(
           nextFormFields,
           otherFieldName,
-          nextFormFields[otherFieldName].value
+          filteredValue
         );
       }
 
