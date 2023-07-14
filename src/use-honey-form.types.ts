@@ -169,7 +169,7 @@ export type UseHoneyFormChildFormContext<Form extends UseHoneyFormForm, Response
   id: UseHoneyFormChildFormId;
   formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
   submitForm: UseHoneyFormSubmit<Form, Response>;
-  validateForm: UseHoneyFormValidate;
+  validateForm: UseHoneyFormValidate<Form>;
 };
 
 export type UseHoneyFormFlatFieldMeta<Form extends UseHoneyFormForm> = {
@@ -280,7 +280,9 @@ export type UseHoneyFormAddFieldError<Form extends UseHoneyFormForm> = <
 
 export type UseHoneyFormClearErrors = () => void;
 
-export type UseHoneyFormValidate = () => Promise<boolean>;
+export type UseHoneyFormValidate<Form extends UseHoneyFormForm> = (
+  fieldNames?: (keyof Form)[]
+) => Promise<boolean>;
 
 export type UseHoneyFormSubmit<Form extends UseHoneyFormForm, Response> = (
   submitHandler?: (data: Form) => Promise<Response>
@@ -305,7 +307,7 @@ export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   removeFormField: UseHoneyFormRemoveFormField<Form>;
   addFormFieldError: UseHoneyFormAddFieldError<Form>;
   clearFormErrors: UseHoneyFormClearErrors;
-  validateForm: UseHoneyFormValidate;
+  validateForm: UseHoneyFormValidate<Form>;
   submitForm: UseHoneyFormSubmit<Form, Response>;
   resetForm: UseHoneyFormReset;
 };

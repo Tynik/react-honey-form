@@ -51,34 +51,6 @@ describe('Use honey form. Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined });
   });
 
-  test.skip('submit form with clean values (not formatted)', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string; price: number }>({
-        fields: {
-          name: {},
-          price: {
-            format: value => `$${value}`,
-          },
-        },
-        onSubmit,
-      })
-    );
-
-    act(() => {
-      result.current.formFields.name.setValue('apple');
-      result.current.formFields.price.setValue(15);
-    });
-
-    expect(result.current.formFields.price.cleanValue).toBe(15);
-    expect(result.current.formFields.price.value).toBe('$15');
-
-    await act(() => result.current.submitForm());
-
-    expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 });
-  });
-
   it('should show an error related to allow only numerics because its high priority error than min/max', async () => {
     const onSubmit = jest.fn();
 

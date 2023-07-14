@@ -357,6 +357,76 @@ describe('Use honey form. Validation', () => {
   });
 });
 
+describe('Use honey form. Direct form fields validation', () => {
+  it('should validate all form fields', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {
+            type: 'number',
+            required: true,
+          },
+        },
+      })
+    );
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    await act(async () => {
+      await result.current.validateForm();
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      name: [
+        {
+          type: 'required',
+          message: 'The value is required',
+        },
+      ],
+      age: [
+        {
+          type: 'required',
+          message: 'The value is required',
+        },
+      ],
+    });
+  });
+
+  it('should validate specific form fields', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {
+            type: 'number',
+            required: true,
+          },
+        },
+      })
+    );
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    await act(async () => {
+      await result.current.validateForm(['name']);
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      name: [
+        {
+          type: 'required',
+          message: 'The value is required',
+        },
+      ],
+    });
+  });
+});
+
 describe('Use honey form. Validator as the promise function', () => {
   it('should handle promise-based validator function (resolve)', async () => {
     const { result } = renderHook(() =>

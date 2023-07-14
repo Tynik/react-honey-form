@@ -397,7 +397,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   }, []);
 
-  const validateForm: UseHoneyFormValidate = async () => {
+  const validateForm: UseHoneyFormValidate<Form> = async fieldNames => {
     let hasErrors = false;
 
     const nextFormFields = {} as UseHoneyFormFields<Form>;
@@ -406,7 +406,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       Object.keys(formFieldsRef.current).map(async (fieldName: keyof Form) => {
         const formField = formFieldsRef.current[fieldName];
 
-        if (isSkipField(fieldName, formFieldsRef.current)) {
+        const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
+
+        if (isSkipFieldValidation || isSkipField(fieldName, formFieldsRef.current)) {
           nextFormFields[fieldName] = getNextSkippedField(formField);
           return;
         }
