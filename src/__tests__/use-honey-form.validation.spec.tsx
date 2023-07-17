@@ -704,12 +704,6 @@ describe('Use honey form. Email field type validation', () => {
     ]);
 
     act(() => {
-      result.current.formFields.email.setValue('');
-    });
-
-    expect(result.current.formFields.email.errors).toStrictEqual([]);
-
-    act(() => {
       result.current.formFields.email.setValue('a@');
     });
 
@@ -721,10 +715,15 @@ describe('Use honey form. Email field type validation', () => {
     ]);
 
     act(() => {
-      result.current.formFields.email.setValue('');
+      result.current.formFields.email.setValue('a@g');
     });
 
-    expect(result.current.formFields.email.errors).toStrictEqual([]);
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid email format',
+      },
+    ]);
 
     act(() => {
       result.current.formFields.email.setValue('a@gmail.');

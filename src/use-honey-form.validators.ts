@@ -57,10 +57,7 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
       return true;
     }
 
-    const isValidEmail =
-      /^[\w!#$%&'*+\-/=?^`{|}~]+(\.[\w!#$%&'*+\-/=?^`{|}~]+)*@[a-zA-Z0-9](?:[\w\-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[\w\-]*[a-zA-Z0-9])?)*$/.test(
-        value
-      );
+    const isValidEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
 
     return (
       isValidEmail || [
