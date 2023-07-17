@@ -735,6 +735,17 @@ describe('Use honey form. Email field type validation', () => {
         message: 'Invalid email format',
       },
     ]);
+
+    act(() => {
+      result.current.formFields.email.setValue('...a@gmail.com');
+    });
+
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'invalid',
+        message: 'Invalid email format',
+      },
+    ]);
   });
 
   it('should pass email validation when email is correct', () => {
