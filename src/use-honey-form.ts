@@ -24,6 +24,7 @@ import type {
   UseHoneyFormChildFormId,
   UseHoneyFormClearFieldErrors,
   UseHoneyFormValidateField,
+  UseHoneyFormField,
 } from './use-honey-form.types';
 
 import {
@@ -119,7 +120,7 @@ const getNextHoneyFormFieldsState = <
     formFields: UseHoneyFormFields<Form>;
     isValidate: boolean;
   }
-): UseHoneyFormFields<Form> => {
+) => {
   const nextFormFields = { ...formFields };
 
   let filteredValue = fieldValue;
@@ -131,13 +132,13 @@ const getNextHoneyFormFieldsState = <
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(fieldValue);
 
-    if ('props' in formField && filteredValue === formField.props.value) {
+    if (filteredValue === formField.props.value) {
       // Do not re-render, nothing changed. Return previous state
       return formFields;
     }
   }
 
-  let nextFormField = formField;
+  let nextFormField: UseHoneyFormField<Form, FieldName> = formField;
 
   if (isValidate) {
     clearDependentFields(nextFormFields, fieldName);
@@ -147,16 +148,18 @@ const getNextHoneyFormFieldsState = <
 
   const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
 
-  nextFormFields[fieldName] = {
+  nextFormField = {
     ...nextFormField,
+    rawValue: filteredValue,
     value: formattedValue,
-    ...('props' in nextFormField && {
-      props: {
-        ...nextFormField.props,
-        value: formattedValue,
-      },
-    }),
+    // @ts-expect-error
+    props: {
+      ...nextFormField.props,
+      value: formattedValue,
+    },
   };
+
+  nextFormFields[fieldName] = nextFormField;
 
   triggerScheduledFieldsValidations(nextFormFields, fieldName);
 
@@ -335,12 +338,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
           nextFormFields[fieldName] = {
             ...nextField,
             value: formattedValue as never,
-            ...('props' in nextField && {
-              props: {
-                ...nextField.props,
-                value: formattedValue as never,
-              },
-            }),
+            props: {
+              ...nextField.props,
+              value: formattedValue as never,
+            },
           };
         });
 

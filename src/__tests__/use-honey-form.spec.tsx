@@ -271,7 +271,7 @@ describe('Use honey form. General', () => {
     expect(onSubmit).toBeCalledWith({ price: '5' });
   });
 
-  test.skip('submit form with clean values (not formatted)', async () => {
+  test('submit form with clean values (not formatted)', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -291,6 +291,7 @@ describe('Use honey form. General', () => {
       result.current.formFields.price.setValue(15);
     });
 
+    expect(result.current.formFields.price.rawValue).toBe(15);
     expect(result.current.formFields.price.cleanValue).toBe(15);
     expect(result.current.formFields.price.value).toBe('$15');
 

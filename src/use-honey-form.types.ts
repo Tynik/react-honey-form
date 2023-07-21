@@ -187,9 +187,11 @@ export type UseHoneyFormField<
   FieldValue extends Form[FieldName] = Form[FieldName]
 > = Readonly<{
   defaultValue: FieldValue;
+  // filtered, but not formatted value
+  rawValue: FieldValue;
   // a value is `undefined` when any error for the field is present
   cleanValue: FieldValue;
-  // the value after formatting when specific format function was executed
+  // the value after filtering and formatting
   value: FieldValue;
   nestedValues: FieldValue;
   errors: UseHoneyFormFieldError[];

@@ -90,14 +90,16 @@ export const createField = <
   };
 
   const newFormField: UseHoneyFormField<Form, FieldName, FieldValue> = {
-    // @ts-expect-error
-    value: formattedValue,
-    nestedValues: fieldValue,
-    cleanValue: filteredValue,
-    defaultValue: config.defaultValue,
-    props: fieldProps,
     config,
     errors: [],
+    defaultValue: config.defaultValue,
+    rawValue: filteredValue,
+    cleanValue: filteredValue,
+    nestedValues: fieldValue,
+    // @ts-expect-error
+    value: formattedValue,
+    props: fieldProps,
+    __meta__: fieldMeta,
     // functions
     setValue: (value, options) => setFieldValue(fieldName, value, options),
     pushValue: value => pushFieldValue(fieldName, value),
@@ -110,8 +112,6 @@ export const createField = <
     focus: () => {
       formFieldRef.current.focus();
     },
-    //
-    __meta__: fieldMeta,
   };
 
   return newFormField;
@@ -123,15 +123,14 @@ export const getNextClearedField = <Form extends UseHoneyFormForm, FieldName ext
   return {
     ...formField,
     value: undefined,
+    rawValue: undefined,
     cleanValue: undefined,
     errors: [],
-    ...('props' in formField && {
-      props: {
-        ...formField.props,
-        value: undefined,
-        'aria-invalid': false,
-      },
-    }),
+    props: {
+      ...formField.props,
+      value: undefined,
+      'aria-invalid': false,
+    },
   };
 };
 
@@ -142,12 +141,10 @@ export const getNextSkippedField = <Form extends UseHoneyFormForm, FieldName ext
     ...formField,
     cleanValue: undefined,
     errors: [],
-    ...('props' in formField && {
-      props: {
-        ...formField.props,
-        'aria-invalid': false,
-      },
-    }),
+    props: {
+      ...formField.props,
+      'aria-invalid': false,
+    },
   };
 };
 
@@ -188,16 +185,14 @@ const getNextValidatedField = <Form extends UseHoneyFormForm, FieldName extends 
     errors: fieldErrors,
     // set clean value as `undefined` if any error is present
     cleanValue: fieldErrors.length ? undefined : cleanValue,
-    ...('props' in formField && {
-      props: {
-        ...formField.props,
-        'aria-invalid': Boolean(fieldErrors.length),
-      },
-    }),
+    props: {
+      ...formField.props,
+      'aria-invalid': Boolean(fieldErrors.length),
+    },
   };
 };
 
-const executeFieldTypeValidators = <
+const executeFieldTypeValidator = <
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName]
@@ -304,7 +299,7 @@ export const executeFieldValidator = <
 
   const cleanValue = sanitizeFieldValue(formField.config.type, rawFieldValue);
 
-  let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
+  let validationResult = executeFieldTypeValidator(formFields, formField, cleanValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
@@ -339,12 +334,12 @@ export const executeFieldValidatorAsync = async <
   const formField = formFields[fieldName];
 
   const filteredValue = formField.config.filter
-    ? formField.config.filter(formField.value)
-    : formField.value;
+    ? formField.config.filter(formField.rawValue)
+    : formField.rawValue;
 
   const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
 
-  let validationResult = executeFieldTypeValidators(formFields, formField, cleanValue);
+  let validationResult = executeFieldTypeValidator(formFields, formField, cleanValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
@@ -391,8 +386,8 @@ export const triggerScheduledFieldsValidations = <
     if (nextFormField.__meta__.isValidationScheduled) {
       if (!isSkipField(otherFieldName, nextFormFields)) {
         const filteredValue = nextFormField.config.filter
-          ? nextFormField.config.filter(nextFormField.value)
-          : nextFormField.value;
+          ? nextFormField.config.filter(nextFormField.rawValue)
+          : nextFormField.rawValue;
 
         nextFormFields[otherFieldName] = executeFieldValidator(
           nextFormFields,
