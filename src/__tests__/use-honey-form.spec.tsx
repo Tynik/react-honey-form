@@ -15,7 +15,7 @@ describe('Use honey form. General', () => {
             value: 45,
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.name.value).toBe('Alex');
@@ -33,7 +33,7 @@ describe('Use honey form. General', () => {
             value: 45,
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -60,7 +60,7 @@ describe('Use honey form. General', () => {
             value: 45,
           },
         },
-      })
+      }),
     );
     expect(result.current.isFormDirty).toBeFalsy();
 
@@ -79,7 +79,7 @@ describe('Use honey form. General', () => {
             value: 45,
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -102,7 +102,7 @@ describe('Use honey form. General', () => {
           name: {},
           age: {},
         },
-      })
+      }),
     );
 
     act(() => {
@@ -161,7 +161,7 @@ describe('Use honey form. General', () => {
           kind: {},
         },
         onChange,
-      })
+      }),
     );
 
     expect(onChange).not.toBeCalled();
@@ -172,7 +172,7 @@ describe('Use honey form. General', () => {
 
     await waitFor(() =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(onChange.mock.calls[0][0]).toStrictEqual({ name: 'a', kind: undefined })
+      expect(onChange.mock.calls[0][0]).toStrictEqual({ name: 'a', kind: undefined }),
     );
 
     act(() => {
@@ -194,7 +194,7 @@ describe('Use honey form. General', () => {
             value: 'fruit',
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.name.value).toBe('banana');
@@ -227,7 +227,7 @@ describe('Use honey form. General', () => {
             value: 'fruit',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -256,7 +256,7 @@ describe('Use honey form. General', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -283,7 +283,7 @@ describe('Use honey form. General', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {

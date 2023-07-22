@@ -29,14 +29,14 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
   },
   number: (
     value: string | undefined,
-    { fieldConfig: { errorMessages = {}, decimal = false, negative = true, maxFraction = 2 } }
+    { fieldConfig: { errorMessages = {}, decimal = false, negative = true, maxFraction = 2 } },
   ) => {
     if (value === '' || value === undefined) {
       return true;
     }
 
     const isValidNumber = new RegExp(
-      `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`
+      `^${negative ? '-?' : ''}\\d+${decimal ? `(\\.\\d{1,${maxFraction}})?` : ''}$`,
     ).test(value.toString());
 
     return (
@@ -59,7 +59,7 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
 
     const isValidEmail =
       /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-        value
+        value,
       );
 
     return (
@@ -76,7 +76,7 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
 export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (
     fieldConfig.required &&
@@ -95,7 +95,7 @@ export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (
@@ -116,7 +116,7 @@ export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (
@@ -137,7 +137,7 @@ export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
 export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.min !== undefined && fieldConfig.max !== undefined) {
     if (
@@ -159,7 +159,7 @@ export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidat
 export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.max === undefined && fieldConfig.min !== undefined) {
     if (
@@ -179,7 +179,7 @@ export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
 export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.min === undefined && fieldConfig.max !== undefined) {
     if (
@@ -199,7 +199,7 @@ export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
 export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
-  fieldErrors
+  fieldErrors,
 ) => {
   if (fieldConfig.min !== undefined && fieldConfig.max !== undefined) {
     if (
@@ -236,7 +236,7 @@ type DatePropertyKey<Form> = string & keyof Form;
 type CreateHoneyFormDateFromValidatorOptions<
   Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
   DateFromKey extends DatePropertyKey<Form>,
-  DateToKey extends DatePropertyKey<Form>
+  DateToKey extends DatePropertyKey<Form>,
 > = {
   dateToKey: DateToKey;
   errorMsg?: string;
@@ -247,7 +247,7 @@ export const createHoneyFormDateFromValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
     DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
-    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>
+    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
   >({
     dateToKey,
     errorMsg = '"Date From" should be equal or less than "Date To"',
@@ -281,7 +281,7 @@ export const createHoneyFormDateFromValidator =
 type CreateHoneyFormDateToValidatorOptions<
   Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
   DateFromKey extends DatePropertyKey<Form>,
-  DateToKey extends DatePropertyKey<Form>
+  DateToKey extends DatePropertyKey<Form>,
 > = {
   dateFromKey: DateFromKey;
   errorMsg?: string;
@@ -292,7 +292,7 @@ export const createHoneyFormDateToValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
     DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
-    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>
+    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
   >({
     dateFromKey,
     errorMsg = '"Date To" should be equal or greater than "Date From"',

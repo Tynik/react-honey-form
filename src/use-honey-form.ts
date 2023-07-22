@@ -33,7 +33,7 @@ import {
   executeFieldValidator,
   triggerScheduledFieldsValidations,
   clearAllFields,
-  getNextSkippedField,
+  getNextFreeErrorsField,
   executeFieldValidatorAsync,
 } from './use-honey-form.field';
 import {
@@ -100,7 +100,7 @@ const createInitialFormFieldsGetter =
           pushFieldValue,
           removeFieldValue,
           addFormFieldError,
-        }
+        },
       );
 
       return initialFormFields;
@@ -109,7 +109,7 @@ const createInitialFormFieldsGetter =
 const getNextHoneyFormFieldsState = <
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName],
 >(
   fieldName: FieldName,
   fieldValue: FieldValue,
@@ -119,7 +119,7 @@ const getNextHoneyFormFieldsState = <
   }: {
     formFields: UseHoneyFormFields<Form>;
     isValidate: boolean;
-  }
+  },
 ) => {
   const nextFormFields = { ...formFields };
 
@@ -188,7 +188,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const setFieldValue: UseHoneyFormSetFieldValueInternal<Form> = (
     fieldName,
     fieldValue,
-    { isValidate = true, isPushValue = false, isDirty = true } = {}
+    { isValidate = true, isPushValue = false, isDirty = true } = {},
   ) => {
     if (isDirty) {
       isFormDirtyRef.current = true;
@@ -209,7 +209,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         {
           formFields,
           isValidate,
-        }
+        },
       );
 
       const fieldConfig = nextFormFields[fieldName].config;
@@ -237,17 +237,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const clearFieldErrors: UseHoneyFormClearFieldErrors<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(formFields => {
-      const formField = formFields[fieldName];
-
-      return {
-        ...formFields,
-        [fieldName]: {
-          ...formField,
-          errors: [],
-        },
-      };
-    });
+    setFormFields(formFields => ({
+      ...formFields,
+      [fieldName]: getNextFreeErrorsField(formFields[fieldName]),
+    }));
   };
 
   const pushFieldValue: UseHoneyFormPushFieldValue<Form> = (fieldName, value) => {
@@ -262,7 +255,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       fieldName,
       // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      formField.value.filter((_, index) => index !== formIndex)
+      formField.value.filter((_, index) => index !== formIndex),
     );
   };
 
@@ -272,8 +265,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       const formField = formFields[fieldName];
 
       const filteredValue = formField.config.filter
-        ? formField.config.filter(formField.value)
-        : formField.value;
+        ? formField.config.filter(formField.rawValue)
+        : formField.rawValue;
 
       return {
         ...formFields,
@@ -329,32 +322,40 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
             ? fieldConfig.filter(values[fieldName])
             : values[fieldName];
 
-          const nextField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
+          let nextFormField: UseHoneyFormField<Form, keyof Form> = executeFieldValidator(
+            nextFormFields,
+            fieldName,
+            filteredValue,
+          );
 
-          const formattedValue = nextField.config.format
-            ? nextField.config.format(filteredValue)
+          const formattedValue = nextFormField.config.format
+            ? nextFormField.config.format(filteredValue)
             : filteredValue;
 
-          nextFormFields[fieldName] = {
-            ...nextField,
-            value: formattedValue as never,
+          nextFormField = {
+            ...nextFormField,
+            rawValue: filteredValue,
+            value: formattedValue,
+            // @ts-expect-error
             props: {
-              ...nextField.props,
-              value: formattedValue as never,
+              ...nextFormField.props,
+              value: formattedValue,
             },
           };
+
+          nextFormFields[fieldName] = nextFormField;
         });
 
         return nextFormFields;
       });
     },
-    []
+    [],
   );
 
   const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
       fieldName: FieldName,
-      config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>
+      config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
@@ -373,7 +374,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         };
       });
     },
-    []
+    [],
   );
 
   const removeFormField = useCallback<UseHoneyFormRemoveFormField<Form>>(fieldName => {
@@ -388,13 +389,11 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const clearFormErrors = useCallback<UseHoneyFormClearErrors>(() => {
     setFormFields(formFields =>
-      Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
-        result[fieldName] = {
-          ...result[fieldName],
-          errors: [],
-        };
-        return result;
-      }, {} as UseHoneyFormFields<Form>)
+      Object.keys(formFields).reduce((nextFormFields, fieldName: keyof Form) => {
+        nextFormFields[fieldName] = getNextFreeErrorsField(formFields[fieldName]);
+
+        return nextFormFields;
+      }, {} as UseHoneyFormFields<Form>),
     );
   }, []);
 
@@ -410,7 +409,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
         if (isSkipFieldValidation || isSkipField(fieldName, formFieldsRef.current)) {
-          nextFormFields[fieldName] = getNextSkippedField(formField);
+          nextFormFields[fieldName] = getNextFreeErrorsField(formField);
           return;
         }
 
@@ -425,7 +424,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         nextFormFields[fieldName] = {
           ...nextField,
         };
-      })
+      }),
     );
 
     formFieldsRef.current = nextFormFields;
@@ -435,9 +434,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const submitForm: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
-    setIsFormSubmitting(true);
-
     try {
+      setIsFormSubmitting(true);
+
       if (await validateForm()) {
         const submitData = getFieldsCleanValues(formFieldsRef.current);
 
@@ -456,7 +455,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const formErrors = useMemo<UseHoneyFormErrors<Form>>(
     () => getFormErrors(formFields),
-    [formFields]
+    [formFields],
   );
 
   useEffect(() => {

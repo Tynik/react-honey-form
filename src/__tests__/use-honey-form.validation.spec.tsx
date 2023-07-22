@@ -16,7 +16,7 @@ describe('Use honey form. Validation', () => {
             min: 5,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -46,7 +46,7 @@ describe('Use honey form. Validation', () => {
             max: 65,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -77,7 +77,7 @@ describe('Use honey form. Validation', () => {
             max: 65,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -103,7 +103,7 @@ describe('Use honey form. Validation', () => {
             max: 65,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -129,7 +129,7 @@ describe('Use honey form. Validation', () => {
             min: 1,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -159,7 +159,7 @@ describe('Use honey form. Validation', () => {
             max: 5,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -190,7 +190,7 @@ describe('Use honey form. Validation', () => {
             max: 5,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
@@ -215,7 +215,7 @@ describe('Use honey form. Validation', () => {
             max: 5,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.code.errors).toStrictEqual([]);
 
@@ -255,7 +255,7 @@ describe('Use honey form. Validation', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -285,7 +285,7 @@ describe('Use honey form. Validation', () => {
           age: {},
         },
         onSubmit,
-      })
+      }),
     );
 
     await act(() => result.current.submitForm());
@@ -314,7 +314,7 @@ describe('Use honey form. Validation', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     await act(() => result.current.submitForm());
@@ -341,7 +341,7 @@ describe('Use honey form. Validation', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     await act(() => result.current.submitForm());
@@ -370,7 +370,7 @@ describe('Use honey form. Direct form fields validation', () => {
             required: true,
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formErrors).toStrictEqual({});
@@ -407,7 +407,7 @@ describe('Use honey form. Direct form fields validation', () => {
             required: true,
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formErrors).toStrictEqual({});
@@ -442,7 +442,7 @@ describe('Use honey form. Validator as the promise function', () => {
             },
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
@@ -455,7 +455,7 @@ describe('Use honey form. Validator as the promise function', () => {
           type: 'invalid',
           message: 'Apples are not accepted!',
         },
-      ])
+      ]),
     );
 
     act(() => result.current.formFields.name.setValue('Pear'));
@@ -477,7 +477,7 @@ describe('Use honey form. Validator as the promise function', () => {
             },
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
@@ -490,7 +490,7 @@ describe('Use honey form. Validator as the promise function', () => {
           type: 'invalid',
           message: 'Something went wrong!',
         },
-      ])
+      ]),
     );
   });
 
@@ -511,7 +511,7 @@ describe('Use honey form. Validator as the promise function', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
@@ -559,7 +559,7 @@ describe('Use honey form. Scheduled validation', () => {
             },
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -605,7 +605,7 @@ describe('Use honey form. Numeric field type validation', () => {
             type: 'numeric',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.phone.errors).toStrictEqual([]);
 
@@ -624,7 +624,7 @@ describe('Use honey form. Numeric field type validation', () => {
             type: 'numeric',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.phone.errors).toStrictEqual([]);
 
@@ -643,7 +643,7 @@ describe('Use honey form. Numeric field type validation', () => {
             type: 'numeric',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.phone.errors).toStrictEqual([]);
 
@@ -669,7 +669,7 @@ describe('Use honey form. Email field type validation', () => {
             type: 'email',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
@@ -688,7 +688,7 @@ describe('Use honey form. Email field type validation', () => {
             type: 'email',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
@@ -756,7 +756,7 @@ describe('Use honey form. Email field type validation', () => {
             type: 'email',
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
@@ -810,7 +810,7 @@ describe('Use honey form. Predefined validators', () => {
             }),
           },
         },
-      })
+      }),
     );
 
     act(() => {
