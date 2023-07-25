@@ -35,7 +35,7 @@ import {
   clearAllFields,
   getNextFreeErrorsField,
   executeFieldValidatorAsync,
-  validateSkippableFields,
+  checkSkippableFields,
 } from './use-honey-form.field';
 import {
   getFormErrors,
@@ -162,7 +162,7 @@ const getNextHoneyFormFieldsState = <
 
   nextFormFields[fieldName] = nextFormField;
 
-  validateSkippableFields(nextFormFields, fieldName);
+  checkSkippableFields(nextFormFields, fieldName);
   triggerScheduledFieldsValidations(nextFormFields, fieldName);
 
   return nextFormFields;

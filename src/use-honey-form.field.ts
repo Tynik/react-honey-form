@@ -364,30 +364,18 @@ export const executeFieldValidatorAsync = async <
   return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
 };
 
-export const validateSkippableFields = <
-  Form extends UseHoneyFormForm,
-  FieldName extends keyof Form,
->(
+export const checkSkippableFields = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   nextFormFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
 ) => {
   Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
-    // Skip validation for the current field or fields that are possibly meant to be skipped
-    if (fieldName === otherFieldName || !nextFormFields[otherFieldName].config.skip) {
+    if (fieldName === otherFieldName) {
       return;
     }
 
-    const nextFormField = nextFormFields[otherFieldName];
-
-    const filteredValue = nextFormField.config.filter
-      ? nextFormField.config.filter(nextFormField.rawValue)
-      : nextFormField.rawValue;
-
-    nextFormFields[otherFieldName] = executeFieldValidator(
-      nextFormFields,
-      otherFieldName,
-      filteredValue,
-    );
+    if (isSkipField(otherFieldName, nextFormFields)) {
+      nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
+    }
   });
 };
 
