@@ -19,7 +19,7 @@ type HoneyFormProps<Form extends UseHoneyFormForm, Response = void> = HoneyFormP
 
 const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   { children, formProps, ...props }: HoneyFormProps<Form, Response>,
-  ref: Ref<HTMLFormElement>
+  ref: Ref<HTMLFormElement>,
 ) => {
   return (
     <HoneyFormProvider {...props}>
@@ -32,6 +32,6 @@ const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
 
 export const HoneyForm = genericMemo(
   forwardRef(HoneyFormComponent) as <Form extends UseHoneyFormForm, Response = void>(
-    props: HoneyFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>
-  ) => React.ReactElement
+    props: HoneyFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>,
+  ) => React.ReactElement,
 );

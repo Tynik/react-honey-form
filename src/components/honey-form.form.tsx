@@ -18,14 +18,14 @@ export type HoneyFormFormProps<Form extends UseHoneyFormForm, Response> = Omit<
 
 const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   { children, ...props }: HoneyFormFormProps<Form, Response>,
-  ref: Ref<HTMLFormElement>
+  ref: Ref<HTMLFormElement>,
 ) => {
   const honeyFormApi = useHoneyFormProvider();
 
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
 
-    honeyFormApi.submitForm().catch(() => {});
+    honeyFormApi.submitForm().catch(e => console.error(e));
   };
 
   return (
@@ -38,7 +38,7 @@ const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
 
 export const HoneyFormForm = forwardRef(HoneyFormComponent) as <
   Form extends UseHoneyFormForm,
-  Response = void
+  Response = void,
 >(
-  props: HoneyFormFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>
+  props: HoneyFormFormProps<Form, Response> & React.RefAttributes<HTMLFormElement>,
 ) => React.ReactElement;
