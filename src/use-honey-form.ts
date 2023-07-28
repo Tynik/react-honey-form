@@ -451,9 +451,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     }
   }, []);
 
-  const resetForm = useCallback<UseHoneyFormReset>(() => {
+  const resetForm: UseHoneyFormReset = () => {
     setFormFields(initialFormFieldsGetter);
-  }, []);
+  };
 
   const formErrors = useMemo<UseHoneyFormErrors<Form>>(
     () => getFormErrors(formFields),

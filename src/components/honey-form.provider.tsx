@@ -18,7 +18,7 @@ const HoneyFormContext = createContext<HoneyFormContextValue<any, any> | undefin
 
 export type HoneyFormProviderProps<
   Form extends UseHoneyFormForm,
-  Response = void
+  Response = void,
 > = UseHoneyFormOptions<Form, Response>;
 
 export const HoneyFormProvider = <Form extends UseHoneyFormForm, Response = void>({
@@ -34,7 +34,7 @@ export const useHoneyFormProvider = <Form extends UseHoneyFormForm, Response = v
   const formContext = useContext<HoneyFormContextValue<Form, Response>>(HoneyFormContext);
   if (!formContext) {
     throw new Error(
-      '[use-honey-form]: useHoneyFormProvider() can be used only inside <HoneyFormProvider/>'
+      '[use-honey-form]: useHoneyFormProvider() can be used only inside <HoneyFormProvider/>',
     );
   }
 
