@@ -19,6 +19,11 @@ export const warningMessage = (message: string) => {
   console.warn(`[use-honey-form]: ${message}`);
 };
 
+export const errorMessage = (message: string) => {
+  // eslint-disable-next-line no-console
+  console.error(`[use-honey-form]: ${message}`);
+};
+
 export const getHoneyFormUniqueId = () => {
   const timestamp = Date.now().toString();
   const randomNum = Math.floor(Math.random() * 10000)

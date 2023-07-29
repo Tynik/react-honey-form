@@ -4,13 +4,14 @@ import type { Ref, FormEventHandler, FormHTMLAttributes, ReactNode } from 'react
 import type { UseHoneyFormForm, UseHoneyFormApi } from '../use-honey-form.types';
 
 import { useHoneyFormProvider } from './honey-form.provider';
+import { errorMessage } from '../use-honey-form.helpers';
 
 export type UseHoneyFormFormContent<Form extends UseHoneyFormForm, Response> =
   | ReactNode
   | ((honeyFormApi: UseHoneyFormApi<Form, Response>) => ReactNode);
 
 export type HoneyFormFormProps<Form extends UseHoneyFormForm, Response> = Omit<
-  FormHTMLAttributes<unknown>,
+  FormHTMLAttributes<HTMLFormElement>,
   'onSubmit' | 'children'
 > & {
   children?: UseHoneyFormFormContent<Form, Response>;
@@ -25,7 +26,7 @@ const HoneyFormComponent = <Form extends UseHoneyFormForm, Response = void>(
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
 
-    honeyFormApi.submitForm().catch(e => console.error(e));
+    honeyFormApi.submitForm().catch(errorMessage);
   };
 
   return (

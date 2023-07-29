@@ -261,6 +261,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   };
 
+  // TODO: not used
   const validateField: UseHoneyFormValidateField<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
@@ -286,7 +287,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         ...formFields,
         [fieldName]: {
           ...formField,
-          // there are some cases when the form can have alien field errors when the server can return non existed form fields
+          // When the form can have alien field errors when the server can return non-existed form fields
           errors: [...(formField?.errors ?? []), error],
         },
       };
@@ -451,15 +452,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     }
   }, []);
 
-  const resetForm: UseHoneyFormReset = () => {
-    setFormFields(initialFormFieldsGetter);
-  };
-
-  const formErrors = useMemo<UseHoneyFormErrors<Form>>(
-    () => getFormErrors(formFields),
-    [formFields],
-  );
-
   useEffect(() => {
     if (parentField) {
       if (!Array.isArray(parentField.value)) {
@@ -502,6 +494,17 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     };
   }, []);
 
+  const resetForm: UseHoneyFormReset = () => {
+    setFormFields(initialFormFieldsGetter);
+  };
+
+  const formErrors = useMemo<UseHoneyFormErrors<Form>>(
+    () => getFormErrors(formFields),
+    [formFields],
+  );
+
+  const hasFormErrors = Object.keys(formErrors).length > 0;
+
   return {
     formFields,
     isFormDefaultsFetching,
@@ -509,6 +512,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     isFormDirty: isFormDirtyRef.current,
     isFormSubmitting,
     formErrors,
+    hasFormErrors,
     // functions
     setFormValues,
     addFormField,

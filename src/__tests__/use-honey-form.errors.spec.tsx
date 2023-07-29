@@ -7,6 +7,7 @@ describe('Use honey form. Work with errors', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 
     expect(result.current.formErrors).toStrictEqual({});
+    expect(result.current.hasFormErrors).toBeFalsy();
   });
 
   it('error should not be present for just declared field', () => {
@@ -15,7 +16,7 @@ describe('Use honey form. Work with errors', () => {
         fields: {
           name: {},
         },
-      })
+      }),
     );
 
     expect(result.current.formErrors.name).toBeUndefined();
@@ -29,7 +30,7 @@ describe('Use honey form. Work with errors', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -39,6 +40,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.value).toBe(1.5);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
 
+    expect(result.current.hasFormErrors).toBeTruthy();
     expect(result.current.formErrors).toStrictEqual({
       age: [
         {
@@ -58,7 +60,7 @@ describe('Use honey form. Work with errors', () => {
             validator: value => value > 18 && value < 100,
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -92,7 +94,7 @@ describe('Use honey form. Work with errors', () => {
               ],
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
@@ -127,7 +129,7 @@ describe('Use honey form. Work with errors', () => {
         fields: {
           age: {},
         },
-      })
+      }),
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
@@ -158,11 +160,11 @@ describe('Use honey form. Work with errors', () => {
         fields: {
           age: {},
         },
-      })
+      }),
     );
 
     act(() => {
-      // there are some cases when the form can have alien field errors when the server can return non existed form fields
+      // there are some cases when the form can have alien field errors when the server can return non-existed form fields
       result.current.addFormFieldError('name' as never, {
         type: 'server',
         message: 'name should be less than 255',
@@ -172,8 +174,8 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formErrors).toStrictEqual({
       name: [
         {
-          message: 'name should be less than 255',
           type: 'server',
+          message: 'name should be less than 255',
         },
       ],
     });
