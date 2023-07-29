@@ -95,12 +95,12 @@ export type UseHoneyFormFieldConfig<
   decimal?: boolean;
   negative?: boolean;
   maxFraction?: number;
-  // clear that field value when dependent field is changed
+  // Clears that field value when dependent field is changed
   dependsOn?: keyof Form | (keyof Form)[];
   mode?: UseHoneyFormFieldMode;
   errorMessages?: UseHoneyFormFieldErrorMessages;
   validator?: UseHoneyFormFieldValidator<Form, FieldName, FieldValue>;
-  // Remove some chars from value
+  // Filter some chars from value
   filter?: (value: FieldValue) => FieldValue;
   // Modify a value
   format?: (value: FieldValue) => unknown;
@@ -218,6 +218,10 @@ export type UseHoneyFormFieldsConfigs<Form extends UseHoneyFormForm> = {
   [FieldName in keyof Form]: UseHoneyFormFieldConfig<Form, FieldName, Form[FieldName]>;
 };
 
+export type UseHoneyFormErrors<Form extends UseHoneyFormForm> = {
+  [K in keyof Form]: UseHoneyFormFieldError[];
+};
+
 export type UseHoneyFormDefaults<Form extends UseHoneyFormForm> =
   | Partial<Form>
   | (() => Promise<Partial<Form>>);
@@ -247,10 +251,6 @@ export type UseHoneyFormOptions<Form extends UseHoneyFormForm, Response> = {
   onSubmit?: UseHoneyFormOnSubmit<Form, Response>;
   onChange?: UseHoneyFormOnChange<Form>;
   onChangeDebounce?: number;
-};
-
-export type UseHoneyFormErrors<Form extends UseHoneyFormForm> = {
-  [K in keyof Form]: UseHoneyFormFieldError[];
 };
 
 export type UseHoneyFormSetFormValues<Form extends UseHoneyFormForm> = (
@@ -304,6 +304,7 @@ export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   isFormDefaultsFetchingErred: boolean;
   isFormDirty: boolean;
   isFormSubmitting: boolean;
+  formValues: Form;
   hasFormErrors: boolean;
   formErrors: UseHoneyFormErrors<Form>;
   // functions

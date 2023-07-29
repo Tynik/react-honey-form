@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   UseHoneyFormForm,
   UseHoneyFormAddFormField,
-  UseHoneyFormErrors,
   UseHoneyFormFieldConfig,
   UseHoneyFormFields,
   UseHoneyFormSetFieldValueInternal,
@@ -39,14 +38,15 @@ import {
 } from './use-honey-form.field';
 import {
   getFormErrors,
-  getFieldsCleanValues,
+  getFormCleanValues,
   warningMessage,
   unregisterChildForm,
   registerChildForm,
   getHoneyFormUniqueId,
   isSkipField,
   runChildFormsValidation,
-  captureChildFormsFieldValues,
+  captureChildFormsValues,
+  getFormValues,
 } from './use-honey-form.helpers';
 import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
 
@@ -229,7 +229,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getFieldsCleanValues(nextFormFields), getFormErrors(nextFormFields));
+          onChange(getFormCleanValues(nextFormFields), getFormErrors(nextFormFields));
         }, onChangeDebounce ?? 0);
       }
 
@@ -441,7 +441,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       setIsFormSubmitting(true);
 
       if (await validateForm()) {
-        const submitData = getFieldsCleanValues(formFieldsRef.current);
+        const submitData = getFormCleanValues(formFieldsRef.current);
 
         await (submitHandler || onSubmit)?.(submitData);
 
@@ -471,7 +471,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         validateForm,
       });
 
-      captureChildFormsFieldValues(parentField);
+      captureChildFormsValues(parentField);
     }
 
     if (typeof defaults === 'function') {
@@ -498,10 +498,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     setFormFields(initialFormFieldsGetter);
   };
 
-  const formErrors = useMemo<UseHoneyFormErrors<Form>>(
-    () => getFormErrors(formFields),
-    [formFields],
-  );
+  const formValues = useMemo(() => getFormValues(formFields), [formFields]);
+
+  const formErrors = useMemo(() => getFormErrors(formFields), [formFields]);
 
   const hasFormErrors = Object.keys(formErrors).length > 0;
 
@@ -511,6 +510,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     isFormDefaultsFetchingErred,
     isFormDirty: isFormDirtyRef.current,
     isFormSubmitting,
+    formValues,
     formErrors,
     hasFormErrors,
     // functions

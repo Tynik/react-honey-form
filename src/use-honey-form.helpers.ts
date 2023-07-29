@@ -33,24 +33,12 @@ export const getHoneyFormUniqueId = () => {
   return `${timestamp}${randomNum}`;
 };
 
-export const getFormErrors = <Form extends UseHoneyFormForm>(
-  formFields: UseHoneyFormFields<Form>,
-) =>
-  Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
-    const formField = formFields[fieldName];
-
-    if (formField.errors.length) {
-      result[fieldName] = formField.errors;
-    }
-    return result;
-  }, {} as UseHoneyFormErrors<Form>);
-
 export const isSkipField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   fieldName: FieldName,
   formFields: UseHoneyFormFields<Form>,
 ) => formFields[fieldName].config.skip?.(formFields) === true;
 
-export const getFieldsValues = <Form extends UseHoneyFormForm>(
+export const getFormValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>,
 ) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
@@ -59,7 +47,7 @@ export const getFieldsValues = <Form extends UseHoneyFormForm>(
     return formData;
   }, {} as Form);
 
-export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
+export const getFormCleanValues = <Form extends UseHoneyFormForm>(
   formFields: UseHoneyFormFields<Form>,
 ) =>
   Object.keys(formFields).reduce((cleanFormFields, fieldName: keyof Form) => {
@@ -73,7 +61,7 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
       const childrenFormCleanValues: Form[] = [];
 
       formField.__meta__.childForms.forEach(childForm => {
-        childrenFormCleanValues.push(getFieldsCleanValues(childForm.formFieldsRef.current));
+        childrenFormCleanValues.push(getFormCleanValues(childForm.formFieldsRef.current));
       });
 
       cleanFormFields[fieldName] = childrenFormCleanValues as Form[keyof Form];
@@ -83,6 +71,18 @@ export const getFieldsCleanValues = <Form extends UseHoneyFormForm>(
 
     return cleanFormFields;
   }, {} as Form);
+
+export const getFormErrors = <Form extends UseHoneyFormForm>(
+  formFields: UseHoneyFormFields<Form>,
+) =>
+  Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
+    const formField = formFields[fieldName];
+
+    if (formField.errors.length) {
+      result[fieldName] = formField.errors;
+    }
+    return result;
+  }, {} as UseHoneyFormErrors<Form>);
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
   formField: UseHoneyFormField<Form, any>,
@@ -101,13 +101,13 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
   );
 };
 
-export const captureChildFormsFieldValues = <Form extends UseHoneyFormForm>(
+export const captureChildFormsValues = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormField<Form, any>,
 ) => {
   Object.defineProperty(formField, 'nestedValues', {
     get() {
       return formField.__meta__.childForms.map(childForm =>
-        getFieldsValues(childForm.formFieldsRef.current),
+        getFormValues(childForm.formFieldsRef.current),
       );
     },
   });

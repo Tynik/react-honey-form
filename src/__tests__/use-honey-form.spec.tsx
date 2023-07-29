@@ -4,7 +4,7 @@ import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/re
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Use honey form. General', () => {
-  it('should set initial form fields', () => {
+  it('should set initial form fields values', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -20,6 +20,11 @@ describe('Use honey form. General', () => {
 
     expect(result.current.formFields.name.value).toBe('Alex');
     expect(result.current.formFields.age.value).toBe(45);
+
+    expect(result.current.formValues).toStrictEqual({
+      name: 'Alex',
+      age: 45,
+    });
   });
 
   it('should reset to initial field values', () => {
@@ -44,12 +49,22 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.age.value).toBe(47);
     expect(result.current.formFields.name.value).toBe('Dima');
 
+    expect(result.current.formValues).toStrictEqual({
+      age: 47,
+      name: 'Dima',
+    });
+
     act(() => {
       result.current.resetForm();
     });
 
     expect(result.current.formFields.name.value).toBe('Alex');
     expect(result.current.formFields.age.value).toBe(45);
+
+    expect(result.current.formValues).toStrictEqual({
+      age: 45,
+      name: 'Alex',
+    });
   });
 
   it('a form should be dirty after setting value', () => {
@@ -137,6 +152,7 @@ describe('Use honey form. General', () => {
           },
         },
       });
+
       renderers += 1;
 
       return <input {...formFields.name.props} data-testid="name" />;
@@ -199,9 +215,11 @@ describe('Use honey form. General', () => {
 
     expect(result.current.formFields.name.value).toBe('banana');
     expect(result.current.formFields.name.cleanValue).toBe('banana');
+    expect(result.current.formFields.name.props.value).toBe('banana');
 
     expect(result.current.formFields.kind.value).toBe('fruit');
     expect(result.current.formFields.kind.cleanValue).toBe('fruit');
+    expect(result.current.formFields.kind.props.value).toBe('fruit');
 
     act(() => {
       result.current.setFormValues({ name: 'apple' });
