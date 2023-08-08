@@ -182,6 +182,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
+  const formDefaultValuesRef = useRef<Partial<Form>>(
+    typeof defaults === 'function' ? {} : defaults,
+  );
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const childFormIdRef = useRef<UseHoneyFormChildFormId | null>(null);
   const isFormDirtyRef = useRef(false);
@@ -478,7 +481,11 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       setIsFormDefaultsFetching(true);
 
       defaults()
-        .then(setFormValues)
+        .then(defaultValues => {
+          formDefaultValuesRef.current = defaultValues;
+
+          setFormValues(defaultValues);
+        })
         .catch(() => {
           setIsFormDefaultsFetchingErred(true);
         })
@@ -510,6 +517,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     isFormDefaultsFetchingErred,
     isFormDirty: isFormDirtyRef.current,
     isFormSubmitting,
+    formDefaultValues: formDefaultValuesRef.current,
     formValues,
     formErrors,
     hasFormErrors,

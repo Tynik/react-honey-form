@@ -304,6 +304,7 @@ export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   isFormDefaultsFetchingErred: boolean;
   isFormDirty: boolean;
   isFormSubmitting: boolean;
+  formDefaultValues: Partial<Form>;
   formValues: Form;
   hasFormErrors: boolean;
   formErrors: UseHoneyFormErrors<Form>;

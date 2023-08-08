@@ -11,7 +11,7 @@ describe('Use honey form. Fields', () => {
         fields: {
           name: {},
         },
-      })
+      }),
     );
 
     act(() => {
@@ -31,7 +31,7 @@ describe('Use honey form. Fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.age.value).toBeUndefined();
@@ -46,7 +46,7 @@ describe('Use honey form. Fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -67,7 +67,7 @@ describe('Use honey form. Fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -88,7 +88,7 @@ describe('Use honey form. Fields', () => {
             validator: value => value === 45,
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
@@ -119,7 +119,7 @@ describe('Use honey form. Fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -160,8 +160,10 @@ describe('Use honey form. Fields', () => {
         defaults: {
           name: 'banana',
         },
-      })
+      }),
     );
+
+    expect(result.current.formDefaultValues.name).toBe('banana');
 
     expect(result.current.formFields.name.value).toBe('banana');
     expect(result.current.formFields.name.cleanValue).toBe('banana');
@@ -178,24 +180,27 @@ describe('Use honey form. Fields', () => {
           new Promise(resolve => {
             setTimeout(() => {
               resolve({
-                name: 'banana',
+                name: 'apple',
               });
             });
           }),
-      })
+      }),
     );
+
+    expect(result.current.formDefaultValues.name).toBeUndefined();
 
     expect(result.current.formFields.name.value).toBeUndefined();
     expect(result.current.formFields.name.cleanValue).toBeUndefined();
     expect(result.current.formFields.name.props.value).toBeUndefined();
 
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeTruthy());
-
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeFalsy());
 
-    expect(result.current.formFields.name.value).toBe('banana');
-    expect(result.current.formFields.name.cleanValue).toBe('banana');
-    expect(result.current.formFields.name.props.value).toBe('banana');
+    expect(result.current.formDefaultValues.name).toBe('apple');
+
+    expect(result.current.formFields.name.value).toBe('apple');
+    expect(result.current.formFields.name.cleanValue).toBe('apple');
+    expect(result.current.formFields.name.props.value).toBe('apple');
   });
 
   it('should call onChange() when field value is changed', async () => {
@@ -208,7 +213,7 @@ describe('Use honey form. Fields', () => {
             onChange: onNameChange,
           },
         },
-      })
+      }),
     );
 
     expect(onNameChange).not.toBeCalled();
@@ -233,7 +238,7 @@ describe('Use honey form. Array fields', () => {
         fields: {
           items: {},
         },
-      })
+      }),
     );
 
     act(() => {
@@ -256,7 +261,7 @@ describe('Use honey form. Array fields', () => {
             value: [],
           },
         },
-      })
+      }),
     );
 
     const { unmount } = renderHook(() =>
@@ -273,7 +278,7 @@ describe('Use honey form. Array fields', () => {
           name: '',
           weight: 0,
         },
-      })
+      }),
     );
 
     expect(itemsResult.current.formFields.items.nestedValues).toStrictEqual([
@@ -301,7 +306,7 @@ describe('Use honey form. Array fields', () => {
             value: [],
           },
         },
-      })
+      }),
     );
 
     const { result: itemResult1 } = renderHook(() =>
@@ -314,7 +319,7 @@ describe('Use honey form. Array fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     const { result: itemResult2 } = renderHook(() =>
@@ -327,7 +332,7 @@ describe('Use honey form. Array fields', () => {
             type: 'number',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -372,7 +377,7 @@ describe('Use honey form. Dependent fields', () => {
             dependsOn: 'city',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -405,7 +410,7 @@ describe('Use honey form. Dependent fields', () => {
             dependsOn: 'address',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -443,7 +448,7 @@ describe('Use honey form. Dependent fields', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -468,7 +473,7 @@ describe('Use honey form. Dependent fields', () => {
             dependsOn: 'address1',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -503,7 +508,7 @@ describe('Use honey form. Dependent fields', () => {
             dependsOn: 'category',
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -529,7 +534,7 @@ describe('Use honey form. Work with dynamic fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
         fields: {},
-      })
+      }),
     );
 
     act(() => {
@@ -552,7 +557,7 @@ describe('Use honey form. Work with dynamic fields', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -574,7 +579,7 @@ describe('Use honey form. Work with dynamic fields', () => {
             value: 10,
           },
         },
-      })
+      }),
     );
     expect(result.current.formFields.age?.value).toBe(10);
 
@@ -604,7 +609,7 @@ describe('Use honey form. Skipping fields', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -620,7 +625,7 @@ describe('Use honey form. Skipping fields', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         name: 'Apple',
-      })
+      }),
     );
   });
 
@@ -642,7 +647,7 @@ describe('Use honey form. Skipping fields', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -656,7 +661,7 @@ describe('Use honey form. Skipping fields', () => {
       expect(onSubmit).toBeCalledWith({
         name: 'Orange',
         price: 15,
-      })
+      }),
     );
 
     act(() => {
@@ -670,7 +675,7 @@ describe('Use honey form. Skipping fields', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         name: 'Pear',
-      })
+      }),
     );
   });
 });
@@ -685,7 +690,7 @@ describe('Use honey form. Filter field function', () => {
             filter: value => value.replace(/[^0-9]/g, ''),
           },
         },
-      })
+      }),
     );
 
     expect(result.current.formFields.age.value).toBe('13');
@@ -701,7 +706,7 @@ describe('Use honey form. Filter field function', () => {
             filter: value => value.replace(/[^0-9]/g, ''),
           },
         },
-      })
+      }),
     );
 
     act(() => {
@@ -724,7 +729,7 @@ describe('Use honey form. Filter field function', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -779,7 +784,7 @@ describe('Use honey form. Format field function', () => {
             format: value => `$${value}`,
           },
         },
-      })
+      }),
     );
 
     act(() => {
