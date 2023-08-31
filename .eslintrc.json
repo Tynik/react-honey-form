@@ -12,20 +12,20 @@
     "project": "./tsconfig.json"
   },
   "rules": {
+    "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-shadow": "off",
     "react/jsx-props-no-spreading": "off",
     "react/require-default-props": "off",
     "react/prop-types": "off",
-    "import/prefer-default-export": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "no-param-reassign": "off",
-    "import/extensions": "off",
-    "no-underscore-dangle": "off",
     "react/function-component-definition": [
       2,
       {
         "namedComponents": "arrow-function"
       }
-    ]
+    ],
+    "import/prefer-default-export": "off",
+    "import/extensions": "off",
+    "no-param-reassign": "off",
+    "no-underscore-dangle": "off"
   }
 }

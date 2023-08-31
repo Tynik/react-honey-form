@@ -204,7 +204,6 @@ export type UseHoneyFormField<
   cleanValue: FieldValue;
   // the value after filtering and formatting
   value: FieldValue;
-  nestedValues: FieldValue;
   errors: UseHoneyFormFieldError[];
   // to destruct these props directly to a component
   props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;

@@ -104,11 +104,19 @@ export const unregisterChildForm = <Form extends UseHoneyFormForm>(
 export const captureChildFormsValues = <Form extends UseHoneyFormForm>(
   formField: UseHoneyFormField<Form, any>,
 ) => {
-  Object.defineProperty(formField, 'nestedValues', {
+  let { value } = formField;
+
+  Object.defineProperty(formField, 'value', {
     get() {
-      return formField.__meta__.childForms.map(childForm =>
-        getFormValues(childForm.formFieldsRef.current),
+      return (
+        formField.__meta__.childForms?.map(childForm =>
+          getFormValues(childForm.formFieldsRef.current),
+        ) ?? value
       );
+    },
+    set(newValue: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      value = newValue;
     },
   });
 };

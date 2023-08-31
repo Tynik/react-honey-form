@@ -30,7 +30,7 @@ describe('HoneyForm component. Basic usage', () => {
             Save
           </button>
         )}
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     expect(getByTestId('save')).toBeDefined();
@@ -54,7 +54,7 @@ describe('HoneyForm component. Basic usage', () => {
         <button type="submit" data-testid="save">
           Save
         </button>
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     expect(onSubmit).not.toBeCalledWith();
@@ -92,7 +92,7 @@ describe('HoneyForm component. Field mode usage', () => {
             </button>
           </>
         )}
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     fireEvent.change(getByTestId('name'), { target: { value: 'App' } });
@@ -108,7 +108,7 @@ describe('HoneyForm component. Field mode usage', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         name: 'Apple',
-      })
+      }),
     );
   });
 });
@@ -212,7 +212,7 @@ describe('HoneyForm component. Nested forms', () => {
             </button>
           </>
         )}
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     // Initial form submission attempt
@@ -221,7 +221,7 @@ describe('HoneyForm component. Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         items: [],
-      })
+      }),
     );
     onSubmit.mockClear();
 
@@ -247,7 +247,7 @@ describe('HoneyForm component. Nested forms', () => {
             price: 10,
           },
         ],
-      })
+      }),
     );
     onSubmit.mockClear();
 
@@ -276,7 +276,7 @@ describe('HoneyForm component. Nested forms', () => {
             price: 30,
           },
         ],
-      })
+      }),
     );
     onSubmit.mockClear();
 
@@ -296,7 +296,7 @@ describe('HoneyForm component. Nested forms', () => {
             price: 30,
           },
         ],
-      })
+      }),
     );
   });
 
@@ -367,7 +367,7 @@ describe('HoneyForm component. Nested forms', () => {
             </button>
           </>
         )}
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     fireEvent.click(getByTestId('item[0].removeItem'));
@@ -451,7 +451,7 @@ describe('HoneyForm component. Nested forms', () => {
             </button>
           </>
         )}
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     // Add a new item to the form
@@ -477,7 +477,7 @@ describe('HoneyForm component. Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith({
         items: [],
-      })
+      }),
     );
 
     expect(queryByTestId('item[0].price')).toBeNull();

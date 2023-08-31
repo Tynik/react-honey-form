@@ -302,7 +302,7 @@ describe('Use honey form. Array fields', () => {
       }),
     );
 
-    expect(itemsResult.current.formFields.items.nestedValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
       {
         name: '',
         weight: 0,
@@ -311,7 +311,7 @@ describe('Use honey form. Array fields', () => {
 
     unmount();
 
-    expect(itemsResult.current.formFields.items.nestedValues).toStrictEqual([]);
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([]);
   });
 
   it('should synchronize child form field values with the parent form field', () => {
@@ -360,7 +360,7 @@ describe('Use honey form. Array fields', () => {
       itemResult1.current.formFields.name.setValue('Apple');
     });
 
-    expect(itemsResult.current.formFields.items.nestedValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
       {
         name: 'Apple',
         weight: undefined,
@@ -375,7 +375,7 @@ describe('Use honey form. Array fields', () => {
       itemResult2.current.formFields.name.setValue('Banana');
     });
 
-    expect(itemsResult.current.formFields.items.nestedValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.value).toStrictEqual([
       {
         name: 'Apple',
         weight: undefined,
