@@ -18,7 +18,7 @@ import type {
   UseHoneyFormAddFieldError,
 } from './use-honey-form.types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './use-honey-form.validators';
-import { captureChildFormsValues, isSkipField } from './use-honey-form.helpers';
+import { isSkipField } from './use-honey-form.helpers';
 
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -112,8 +112,6 @@ export const createField = <
       formFieldRef.current.focus();
     },
   };
-
-  captureChildFormsValues(newFormField);
 
   return newFormField;
 };
