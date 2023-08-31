@@ -1,6 +1,13 @@
 // https://dev.to/pffigueiredo/typescript-utility-keyof-nested-object-2pa3
 
-import type { ChangeEvent, FocusEvent, HTMLAttributes, MutableRefObject, RefObject } from 'react';
+import type {
+  ReactElement,
+  ChangeEvent,
+  FocusEvent,
+  HTMLAttributes,
+  MutableRefObject,
+  RefObject,
+} from 'react';
 
 type UseHoneyFormFieldName = string;
 
@@ -11,7 +18,7 @@ export type UseHoneyFormFieldType = 'string' | 'numeric' | 'number' | 'email';
 
 type UseHoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max' | 'minMax';
 
-type UseHoneyFormFieldErrorMessage = string;
+type UseHoneyFormFieldErrorMessage = string | ReactElement;
 
 export type UseHoneyFormForm = Record<UseHoneyFormFieldName, unknown>;
 
@@ -30,7 +37,11 @@ export type UseHoneyFormFieldError = {
  * true: when validation is passed and false otherwise
  * string: the custom error string value
  */
-export type UseHoneyFormFieldValidationResult = boolean | string | UseHoneyFormFieldError[];
+export type UseHoneyFormFieldValidationResult =
+  | boolean
+  | string
+  | ReactElement
+  | UseHoneyFormFieldError[];
 
 type UseHoneyFormFieldSetValueOptions = {
   isDirty?: boolean;

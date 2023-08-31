@@ -153,16 +153,15 @@ const handleFieldValidationResult = <Form extends UseHoneyFormForm, FieldName ex
   validationResult: UseHoneyFormFieldValidationResult,
 ) => {
   if (validationResult) {
-    if (typeof validationResult === 'string') {
+    if (Array.isArray(validationResult)) {
+      fieldErrors.push(...validationResult);
+      //
+    } else if (typeof validationResult !== 'boolean') {
       fieldErrors.push({
         type: 'invalid',
         message: validationResult,
       });
-      //
-    } else if (typeof validationResult === 'object') {
-      fieldErrors.push(...validationResult);
     }
-    //
   } else if (validationResult === false) {
     fieldErrors.push({
       type: 'invalid',
@@ -236,14 +235,15 @@ const handleFieldPromiseValidationResult = <
   validationResponse
     .then(validationResult => {
       if (validationResult) {
-        if (typeof validationResult === 'string') {
+        if (Array.isArray(validationResult)) {
+          // TODO: each error triggers one re-render
+          validationResult.forEach(formField.addError);
+          //
+        } else if (typeof validationResult !== 'boolean') {
           formField.addError({
             type: 'invalid',
             message: validationResult,
           });
-        } else if (typeof validationResult === 'object') {
-          // TODO: each error triggers one re-render
-          validationResult.forEach(formField.addError);
         }
       } else if (validationResult === false) {
         formField.addError({

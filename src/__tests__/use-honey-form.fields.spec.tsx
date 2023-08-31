@@ -187,8 +187,6 @@ describe('Use honey form. Fields', () => {
       }),
     );
 
-    expect(result.current.formDefaultValues.name).toBeUndefined();
-
     expect(result.current.formFields.name.value).toBeUndefined();
     expect(result.current.formFields.name.cleanValue).toBeUndefined();
     expect(result.current.formFields.name.props.value).toBeUndefined();
@@ -196,11 +194,34 @@ describe('Use honey form. Fields', () => {
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeTruthy());
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeFalsy());
 
-    expect(result.current.formDefaultValues.name).toBe('apple');
-
     expect(result.current.formFields.name.value).toBe('apple');
     expect(result.current.formFields.name.cleanValue).toBe('apple');
     expect(result.current.formFields.name.props.value).toBe('apple');
+  });
+
+  it('form default values should be filled with resolved value of Promise function', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        defaults: () =>
+          new Promise(resolve => {
+            setTimeout(() => {
+              resolve({
+                name: 'apple',
+              });
+            });
+          }),
+      }),
+    );
+
+    expect(result.current.formDefaultValues.name).toBeUndefined();
+
+    await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeTruthy());
+    await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeFalsy());
+
+    expect(result.current.formDefaultValues.name).toBe('apple');
   });
 
   it('should call onChange() when field value is changed', async () => {
