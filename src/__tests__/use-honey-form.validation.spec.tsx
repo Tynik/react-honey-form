@@ -789,7 +789,6 @@ describe('Use honey form. Email field type validation', () => {
 describe('Use honey form. Predefined validators', () => {
   it('should validate date range correctly', () => {
     type DateRangeForm = {
-      name: string;
       fromDate: Date | null;
       toDate: Date | null;
     };
@@ -797,7 +796,6 @@ describe('Use honey form. Predefined validators', () => {
     const { result } = renderHook(() =>
       useHoneyForm<DateRangeForm>({
         fields: {
-          name: {},
           fromDate: {
             // <DateRangeForm, 'fromDate', 'toDate'> as an example how it can be used with any additional properties like `name: string`
             validator: createHoneyFormDateFromValidator<DateRangeForm, 'fromDate', 'toDate'>({
@@ -841,6 +839,91 @@ describe('Use honey form. Predefined validators', () => {
 
     act(() => {
       result.current.formFields.toDate.setValue(new Date('04/05/2031'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+
+  it('should validate date range with min/max date limits', () => {
+    type DateRangeForm = {
+      fromDate: Date | null;
+      toDate: Date | null;
+    };
+
+    const MIN_DATE = new Date('04/05/2031');
+    const MAX_DATE = new Date('04/05/2032');
+
+    const { result } = renderHook(() =>
+      useHoneyForm<DateRangeForm>({
+        fields: {
+          fromDate: {
+            validator: createHoneyFormDateFromValidator({
+              dateToKey: 'toDate',
+              minDate: MIN_DATE,
+            }),
+          },
+          toDate: {
+            validator: createHoneyFormDateToValidator({
+              dateFromKey: 'fromDate',
+              maxDate: MAX_DATE,
+            }),
+          },
+        },
+      }),
+    );
+
+    // Set valid from date
+    act(() => {
+      result.current.formFields.fromDate.setValue(MIN_DATE);
+    });
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    // Set valid to date
+    act(() => {
+      result.current.formFields.toDate.setValue(new Date('06/01/2031'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    // Set invalid from date (< min date)
+    act(() => {
+      result.current.formFields.fromDate.setValue(new Date('04/04/2031'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      fromDate: [
+        {
+          type: 'invalid',
+          message: '"Date From" should be equal or less than "Date To"',
+        },
+      ],
+    });
+
+    // Set valid from date
+    act(() => {
+      result.current.formFields.fromDate.setValue(new Date('05/01/2031'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    // Set invalid to date (> max date)
+    act(() => {
+      result.current.formFields.toDate.setValue(new Date('04/06/2032'));
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      toDate: [
+        {
+          type: 'invalid',
+          message: '"Date To" should be equal or greater than "Date From"',
+        },
+      ],
+    });
+
+    // Set valid to date
+    act(() => {
+      result.current.formFields.toDate.setValue(MAX_DATE);
     });
 
     expect(result.current.formErrors).toStrictEqual({});

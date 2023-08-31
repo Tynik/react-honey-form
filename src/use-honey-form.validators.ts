@@ -239,6 +239,8 @@ type CreateHoneyFormDateFromValidatorOptions<
   DateToKey extends DatePropertyKey<Form>,
 > = {
   dateToKey: DateToKey;
+  minDate?: Date;
+  maxDate?: Date;
   errorMsg?: string;
   ignoreTime?: boolean;
 };
@@ -250,6 +252,8 @@ export const createHoneyFormDateFromValidator =
     DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
   >({
     dateToKey,
+    minDate,
+    maxDate,
     errorMsg = '"Date From" should be equal or less than "Date To"',
     ignoreTime = true,
   }: CreateHoneyFormDateFromValidatorOptions<
@@ -260,22 +264,29 @@ export const createHoneyFormDateFromValidator =
   (dateFrom, { formFields }) => {
     formFields[dateToKey].scheduleValidation();
 
-    const dateTo = formFields[dateToKey].value;
-
-    if (!dateFrom || !dateTo) {
+    if (!dateFrom) {
       return true;
     }
 
+    const dateTo = formFields[dateToKey].value;
+
     if (ignoreTime) {
+      minDate?.setHours(0, 0, 0, 0);
+      maxDate?.setHours(0, 0, 0, 0);
+
       dateFrom.setHours(0, 0, 0, 0);
-      dateTo.setHours(0, 0, 0, 0);
+      dateTo?.setHours(0, 0, 0, 0);
     }
 
-    if (dateFrom.getTime() > dateTo.getTime()) {
-      return errorMsg;
+    if (
+      (!minDate || dateFrom.getTime() >= minDate.getTime()) &&
+      (!maxDate || dateFrom.getTime() <= maxDate.getTime()) &&
+      (!dateTo || dateFrom.getTime() <= dateTo.getTime())
+    ) {
+      return true;
     }
 
-    return true;
+    return errorMsg;
   };
 
 type CreateHoneyFormDateToValidatorOptions<
@@ -284,6 +295,8 @@ type CreateHoneyFormDateToValidatorOptions<
   DateToKey extends DatePropertyKey<Form>,
 > = {
   dateFromKey: DateFromKey;
+  minDate?: Date;
+  maxDate?: Date;
   errorMsg?: string;
   ignoreTime?: boolean;
 };
@@ -295,6 +308,8 @@ export const createHoneyFormDateToValidator =
     DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
   >({
     dateFromKey,
+    minDate,
+    maxDate,
     errorMsg = '"Date To" should be equal or greater than "Date From"',
     ignoreTime = true,
   }: CreateHoneyFormDateToValidatorOptions<
@@ -305,22 +320,29 @@ export const createHoneyFormDateToValidator =
   (dateTo, { formFields }) => {
     formFields[dateFromKey].scheduleValidation();
 
-    const dateFrom = formFields[dateFromKey].value;
-
-    if (!dateTo || !dateFrom) {
+    if (!dateTo) {
       return true;
     }
 
+    const dateFrom = formFields[dateFromKey].value;
+
     if (ignoreTime) {
+      minDate?.setHours(0, 0, 0, 0);
+      maxDate?.setHours(0, 0, 0, 0);
+
       dateTo.setHours(0, 0, 0, 0);
-      dateFrom.setHours(0, 0, 0, 0);
+      dateFrom?.setHours(0, 0, 0, 0);
     }
 
-    if (dateFrom.getTime() > dateTo.getTime()) {
-      return errorMsg;
+    if (
+      (!minDate || dateTo.getTime() >= minDate.getTime()) &&
+      (!maxDate || dateTo.getTime() <= maxDate.getTime()) &&
+      (!dateFrom || dateFrom.getTime() <= dateTo.getTime())
+    ) {
+      return true;
     }
 
-    return true;
+    return errorMsg;
   };
 
 export const INTERNAL_FIELD_VALIDATORS = [
