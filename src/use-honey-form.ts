@@ -24,6 +24,7 @@ import type {
   UseHoneyFormClearFieldErrors,
   UseHoneyFormValidateField,
   UseHoneyFormField,
+  UseHoneyFormFormState,
 } from './use-honey-form.types';
 
 import {
@@ -177,7 +178,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   onChange,
   onChangeDebounce,
 }: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
-  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [formState, setFormState] = useState<UseHoneyFormFormState>({
+    isValidating: false,
+    isSubmitting: false,
+  });
 
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
@@ -188,13 +192,20 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
   const childFormIdRef = useRef<UseHoneyFormChildFormId | null>(null);
   const isFormDirtyRef = useRef(false);
+  const isFormValidRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
+
+  const updateFormState = useCallback((newFormState: Partial<UseHoneyFormFormState>) => {
+    setFormState(prevFormState => ({ ...prevFormState, ...newFormState }));
+  }, []);
 
   const setFieldValue: UseHoneyFormSetFieldValueInternal<Form> = (
     fieldName,
     fieldValue,
     { isValidate = true, isPushValue = false, isDirty = true } = {},
   ) => {
+    isFormValidRef.current = false;
+
     if (isDirty) {
       isFormDirtyRef.current = true;
     }
@@ -236,7 +247,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getFormCleanValues(nextFormFields), getFormErrors(nextFormFields));
+          onChange(getFormCleanValues(nextFormFields), {
+            formErrors: getFormErrors(nextFormFields),
+          });
         }, onChangeDebounce ?? 0);
       }
 
@@ -407,7 +420,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     );
   }, []);
 
-  const validateForm: UseHoneyFormValidate<Form> = async fieldNames => {
+  const validateForm = useCallback<UseHoneyFormValidate<Form>>(async fieldNames => {
     let hasErrors = false;
 
     const nextFormFields = {} as UseHoneyFormFields<Form>;
@@ -437,27 +450,56 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       }),
     );
 
+    isFormValidRef.current = !hasErrors;
+
     formFieldsRef.current = nextFormFields;
     setFormFields(nextFormFields);
 
     return !hasErrors;
-  };
+  }, []);
 
-  const submitForm: UseHoneyFormSubmit<Form, Response> = useCallback(async submitHandler => {
+  const outerValidateForm = useCallback<UseHoneyFormValidate<Form>>(async fieldNames => {
+    updateFormState({
+      isValidating: true,
+    });
+
     try {
-      setIsFormSubmitting(true);
-
-      if (await validateForm()) {
-        const submitData = getFormCleanValues(formFieldsRef.current);
-
-        await (submitHandler || onSubmit)?.(submitData);
-
-        isFormDirtyRef.current = false;
-      }
+      return await validateForm(fieldNames);
     } finally {
-      setIsFormSubmitting(false);
+      updateFormState({
+        isValidating: false,
+      });
     }
   }, []);
+
+  const submitForm = useCallback<UseHoneyFormSubmit<Form, Response>>(
+    async submitHandler => {
+      updateFormState({
+        isValidating: true,
+      });
+
+      try {
+        if (await validateForm()) {
+          updateFormState({
+            isValidating: false,
+            isSubmitting: true,
+          });
+
+          const submitData = getFormCleanValues(formFieldsRef.current);
+
+          await (submitHandler || onSubmit)?.(submitData);
+
+          isFormDirtyRef.current = false;
+        }
+      } finally {
+        updateFormState({
+          isValidating: false,
+          isSubmitting: false,
+        });
+      }
+    },
+    [validateForm],
+  );
 
   useEffect(() => {
     if (parentField) {
@@ -522,7 +564,9 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
     isFormDirty: isFormDirtyRef.current,
-    isFormSubmitting,
+    isFormValidating: formState.isValidating,
+    isFormValid: isFormValidRef.current,
+    isFormSubmitting: formState.isSubmitting,
     formDefaultValues: formDefaultValuesRef.current,
     formValues,
     formErrors,
@@ -533,7 +577,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     removeFormField,
     addFormFieldError,
     clearFormErrors,
-    validateForm,
+    validateForm: outerValidateForm,
     submitForm,
     resetForm,
   };

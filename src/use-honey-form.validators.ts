@@ -243,6 +243,7 @@ type CreateHoneyFormDateFromValidatorOptions<
   maxDate?: Date;
   errorMsg?: string;
   ignoreTime?: boolean;
+  inclusiveRange?: boolean;
 };
 
 export const createHoneyFormDateFromValidator =
@@ -256,6 +257,7 @@ export const createHoneyFormDateFromValidator =
     maxDate,
     errorMsg = '"Date From" should be equal or less than "Date To"',
     ignoreTime = true,
+    inclusiveRange = true,
   }: CreateHoneyFormDateFromValidatorOptions<
     Form,
     DateFromKey,
@@ -281,7 +283,10 @@ export const createHoneyFormDateFromValidator =
     if (
       (!minDate || dateFrom.getTime() >= minDate.getTime()) &&
       (!maxDate || dateFrom.getTime() <= maxDate.getTime()) &&
-      (!dateTo || dateFrom.getTime() <= dateTo.getTime())
+      (!dateTo ||
+        (inclusiveRange
+          ? dateFrom.getTime() <= dateTo.getTime()
+          : dateFrom.getTime() < dateTo.getTime()))
     ) {
       return true;
     }
@@ -299,6 +304,7 @@ type CreateHoneyFormDateToValidatorOptions<
   maxDate?: Date;
   errorMsg?: string;
   ignoreTime?: boolean;
+  inclusiveRange?: boolean;
 };
 
 export const createHoneyFormDateToValidator =
@@ -312,6 +318,7 @@ export const createHoneyFormDateToValidator =
     maxDate,
     errorMsg = '"Date To" should be equal or greater than "Date From"',
     ignoreTime = true,
+    inclusiveRange = true,
   }: CreateHoneyFormDateToValidatorOptions<
     Form,
     DateFromKey,
@@ -337,7 +344,10 @@ export const createHoneyFormDateToValidator =
     if (
       (!minDate || dateTo.getTime() >= minDate.getTime()) &&
       (!maxDate || dateTo.getTime() <= maxDate.getTime()) &&
-      (!dateFrom || dateFrom.getTime() <= dateTo.getTime())
+      (!dateFrom ||
+        (inclusiveRange
+          ? dateFrom.getTime() <= dateTo.getTime()
+          : dateFrom.getTime() < dateTo.getTime()))
     ) {
       return true;
     }

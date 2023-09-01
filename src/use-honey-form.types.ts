@@ -240,9 +240,13 @@ export type UseHoneyFormOnSubmit<Form extends UseHoneyFormForm, Response> = (
   data: Form,
 ) => Promise<Response>;
 
+type UseHoneyFormOnChangeContext<Form extends UseHoneyFormForm> = {
+  formErrors: UseHoneyFormErrors<Form>;
+};
+
 export type UseHoneyFormOnChange<Form extends UseHoneyFormForm> = (
   data: Form,
-  errors: UseHoneyFormErrors<Form>,
+  context: UseHoneyFormOnChangeContext<Form>,
 ) => void;
 
 export type UseHoneyFormParentField<Form extends UseHoneyFormForm> = UseHoneyFormField<
@@ -308,11 +312,18 @@ type UseHoneyFormSetFormValuesOptions = {
 
 export type UseHoneyFormReset = () => void;
 
+export type UseHoneyFormFormState = {
+  isValidating: boolean;
+  isSubmitting: boolean;
+};
+
 export type UseHoneyFormApi<Form extends UseHoneyFormForm, Response> = {
   formFields: UseHoneyFormFields<Form>;
   isFormDefaultsFetching: boolean;
   isFormDefaultsFetchingErred: boolean;
   isFormDirty: boolean;
+  isFormValidating: boolean;
+  isFormValid: boolean;
   isFormSubmitting: boolean;
   formDefaultValues: Partial<Form>;
   formValues: Form;
