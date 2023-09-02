@@ -293,10 +293,11 @@ describe('Use honey form. General', () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
-      useHoneyForm<{ name: string; price: number }>({
+      useHoneyForm<{ name: string; price: string }>({
         fields: {
           name: {},
           price: {
+            type: 'number',
             format: value => `$${value}`,
           },
         },
@@ -306,10 +307,10 @@ describe('Use honey form. General', () => {
 
     act(() => {
       result.current.formFields.name.setValue('apple');
-      result.current.formFields.price.setValue(15);
+      result.current.formFields.price.setValue('15');
     });
 
-    expect(result.current.formFields.price.rawValue).toBe(15);
+    expect(result.current.formFields.price.rawValue).toBe('15');
     expect(result.current.formFields.price.cleanValue).toBe(15);
     expect(result.current.formFields.price.value).toBe('$15');
 

@@ -1,10 +1,10 @@
 import React, { forwardRef } from 'react';
 
 import type { Ref, FormEventHandler, FormHTMLAttributes, ReactNode } from 'react';
-import type { UseHoneyFormForm, UseHoneyFormApi } from '../use-honey-form.types';
+import type { UseHoneyFormForm, UseHoneyFormApi } from '../types';
 
 import { useHoneyFormProvider } from './honey-form.provider';
-import { errorMessage } from '../use-honey-form.helpers';
+import { errorMessage } from '../helpers';
 
 export type UseHoneyFormFormContent<Form extends UseHoneyFormForm, Response> =
   | ReactNode

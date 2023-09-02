@@ -16,9 +16,11 @@ import type {
   UseHoneyFormField,
   UseHoneyFormFlatFieldMeta,
   UseHoneyFormAddFieldError,
-} from './use-honey-form.types';
-import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './use-honey-form.validators';
-import { isSkipField } from './use-honey-form.helpers';
+} from './types';
+import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
+import { isSkipField } from './helpers';
+
+const DEFAULT_FIELD_TYPE = 'string';
 
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   Record<UseHoneyFormFieldType, UseHoneyFormFieldValueConvertor>
@@ -48,7 +50,7 @@ export const createField = <
   },
 ): UseHoneyFormField<Form, FieldName, FieldValue> => {
   const config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue> = {
-    type: 'string',
+    type: DEFAULT_FIELD_TYPE,
     mode: 'change',
     ...fieldConfig,
   };
@@ -62,21 +64,18 @@ export const createField = <
 
   const fieldProps: UseHoneyFormFieldProps<Form, FieldName, FieldValue> = {
     ref: formFieldRef,
-    // @ts-expect-error
     value: formattedValue,
     //
     onFocus: e => {
       //
     },
     onChange: e => {
-      // @ts-expect-error
       setFieldValue(fieldName, e.target.value, {
         isValidate: config.mode === 'change',
       });
     },
     ...(config.mode === 'blur' && {
       onBlur: e => {
-        // @ts-expect-error
         setFieldValue(fieldName, e.target.value);
       },
     }),
@@ -86,7 +85,7 @@ export const createField = <
 
   const fieldMeta: UseHoneyFormFlatFieldMeta<Form> = {
     isValidationScheduled: false,
-    childForms: undefined,
+    childrenForms: undefined,
   };
 
   const newFormField: UseHoneyFormField<Form, FieldName, FieldValue> = {
@@ -95,7 +94,6 @@ export const createField = <
     defaultValue: config.defaultValue,
     rawValue: filteredValue,
     cleanValue: filteredValue,
-    // @ts-expect-error
     value: formattedValue,
     props: fieldProps,
     __meta__: fieldMeta,
@@ -109,6 +107,10 @@ export const createField = <
     addError: error => addFormFieldError(fieldName, error),
     clearErrors: () => clearFieldErrors(fieldName),
     focus: () => {
+      if (!formFieldRef.current) {
+        throw new Error('The `formFieldRef` is not available');
+      }
+
       formFieldRef.current.focus();
     },
   };
@@ -149,7 +151,7 @@ export const getNextClearedField = <Form extends UseHoneyFormForm, FieldName ext
 const handleFieldValidationResult = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   fieldErrors: UseHoneyFormFieldError[],
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName>,
-  validationResult: UseHoneyFormFieldValidationResult,
+  validationResult: UseHoneyFormFieldValidationResult | null,
 ) => {
   if (validationResult) {
     if (Array.isArray(validationResult)) {
@@ -171,9 +173,9 @@ const handleFieldValidationResult = <Form extends UseHoneyFormForm, FieldName ex
 
 const getNextValidatedField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   fieldErrors: UseHoneyFormFieldError[],
-  validationResult: UseHoneyFormFieldValidationResult,
+  validationResult: UseHoneyFormFieldValidationResult | null,
   formField: UseHoneyFormField<Form, FieldName>,
-  cleanValue: Form[FieldName],
+  cleanValue: Form[FieldName] | undefined,
 ): UseHoneyFormField<Form, FieldName> => {
   handleFieldValidationResult(fieldErrors, formField.config, validationResult);
 
@@ -196,9 +198,9 @@ const executeFieldTypeValidator = <
 >(
   formFields: UseHoneyFormFields<Form>,
   formField: UseHoneyFormField<Form, FieldName>,
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
 ): UseHoneyFormFieldValidationResult | null => {
-  const validator = FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
+  const validator = FIELD_TYPE_VALIDATORS_MAP[formField.config.type ?? DEFAULT_FIELD_TYPE];
 
   const validationResponse = validator(fieldValue, {
     fieldConfig: formField.config,
@@ -217,7 +219,7 @@ const executeInternalFieldValidators = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName],
 >(
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName>,
   fieldErrors: UseHoneyFormFieldError[],
 ) => {
@@ -270,7 +272,7 @@ const sanitizeFieldValue = <
   FieldValue extends Form[FieldName],
 >(
   fieldType: UseHoneyFormFieldType | undefined,
-  rawFieldValue: FieldValue,
+  rawFieldValue: FieldValue | undefined,
 ) => {
   const valueConvertor = fieldType
     ? (DEFAULT_FIELD_VALUE_CONVERTORS_MAP[fieldType] as UseHoneyFormFieldValueConvertor<FieldValue>)
@@ -286,7 +288,7 @@ export const executeFieldValidator = <
 >(
   formFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
 ) => {
   const fieldErrors: UseHoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
@@ -331,17 +333,17 @@ export const executeFieldValidatorAsync = async <
     ? formField.config.filter(formField.rawValue)
     : formField.rawValue;
 
-  const cleanValue = sanitizeFieldValue(formField.config.type, filteredValue);
+  const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
 
-  let validationResult = executeFieldTypeValidator(formFields, formField, cleanValue);
+  let validationResult = executeFieldTypeValidator(formFields, formField, sanitizedValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
-    executeInternalFieldValidators(cleanValue, formField.config, fieldErrors);
+    executeInternalFieldValidators(sanitizedValue, formField.config, fieldErrors);
 
     // execute custom validator. Can be run only when default validator return true
     if (formField.config.validator) {
-      const validationResponse = formField.config.validator(cleanValue, {
+      const validationResponse = formField.config.validator(sanitizedValue, {
         fieldConfig: formField.config,
         formFields,
       });
@@ -360,7 +362,7 @@ export const executeFieldValidatorAsync = async <
     }
   }
 
-  return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
+  return getNextValidatedField(fieldErrors, validationResult, formField, sanitizedValue);
 };
 
 export const checkSkippableFields = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
@@ -421,7 +423,7 @@ export const clearAllFields = <Form extends UseHoneyFormForm>(
 export const clearDependentFields = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
   nextFormFields: UseHoneyFormFields<Form>,
   fieldName: FieldName,
-  initiatorFieldName: FieldName = null,
+  initiatorFieldName: FieldName | null = null,
 ) => {
   initiatorFieldName = initiatorFieldName || fieldName;
 

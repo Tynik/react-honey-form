@@ -1,11 +1,7 @@
 import React, { createContext, useContext } from 'react';
 
 import type { PropsWithChildren } from 'react';
-import type {
-  UseHoneyFormForm,
-  UseHoneyFormApi,
-  UseHoneyFormOptions,
-} from '../use-honey-form.types';
+import type { UseHoneyFormForm, UseHoneyFormApi, UseHoneyFormOptions } from '../types';
 
 import { useHoneyForm } from '../use-honey-form';
 
@@ -31,7 +27,10 @@ export const HoneyFormProvider = <Form extends UseHoneyFormForm, Response = void
 };
 
 export const useHoneyFormProvider = <Form extends UseHoneyFormForm, Response = void>() => {
-  const formContext = useContext<HoneyFormContextValue<Form, Response>>(HoneyFormContext);
+  const formContext = useContext<HoneyFormContextValue<Form, Response> | undefined>(
+    HoneyFormContext,
+  );
+
   if (!formContext) {
     throw new Error(
       '[use-honey-form]: useHoneyFormProvider() can be used only inside <HoneyFormProvider/>',

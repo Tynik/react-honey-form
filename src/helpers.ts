@@ -6,7 +6,8 @@ import type {
   UseHoneyFormErrors,
   UseHoneyFormChildFormContext,
   UseHoneyFormChildFormId,
-} from './use-honey-form.types';
+  UseHoneyFormParentField,
+} from './types';
 
 export const noop = () => {
   //
@@ -57,11 +58,16 @@ export const getFormCleanValues = <Form extends UseHoneyFormForm>(
 
     const formField = formFields[fieldName];
 
-    if (formField.__meta__.childForms) {
+    if (formField.__meta__.childrenForms) {
       const childrenFormCleanValues: Form[] = [];
 
-      formField.__meta__.childForms.forEach(childForm => {
-        childrenFormCleanValues.push(getFormCleanValues(childForm.formFieldsRef.current));
+      formField.__meta__.childrenForms.forEach(childForm => {
+        const childFormFields = childForm.formFieldsRef.current;
+        if (!childFormFields) {
+          throw new Error('The child `formFieldsRef` value is null');
+        }
+
+        childrenFormCleanValues.push(getFormCleanValues(childFormFields));
       });
 
       cleanFormFields[fieldName] = childrenFormCleanValues as Form[keyof Form];
@@ -85,54 +91,60 @@ export const getFormErrors = <Form extends UseHoneyFormForm>(
   }, {} as UseHoneyFormErrors<Form>);
 
 export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
-  formField: UseHoneyFormField<Form, any>,
+  parentFormField: UseHoneyFormParentField<Form>,
   childFormContext: UseHoneyFormChildFormContext<Form, Response>,
 ) => {
-  formField.__meta__.childForms ||= [];
-  formField.__meta__.childForms.push(childFormContext);
+  parentFormField.__meta__.childrenForms ||= [];
+  parentFormField.__meta__.childrenForms.push(childFormContext);
 };
 
 export const unregisterChildForm = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormField<Form, any>,
+  parentFormField: UseHoneyFormParentField<Form>,
   childFormId: UseHoneyFormChildFormId,
 ) => {
-  formField.__meta__.childForms = formField.__meta__.childForms.filter(
+  parentFormField.__meta__.childrenForms = parentFormField.__meta__.childrenForms?.filter(
     childForm => childForm.id !== childFormId,
   );
 };
 
-export const captureChildFormsValues = <Form extends UseHoneyFormForm>(
-  formField: UseHoneyFormField<Form, any>,
+export const captureChildrenFormsValues = <Form extends UseHoneyFormForm>(
+  parentFormField: UseHoneyFormParentField<Form>,
 ) => {
-  const { value } = formField;
+  const { value } = parentFormField;
 
-  Object.defineProperty(formField, 'value', {
+  Object.defineProperty(parentFormField, 'value', {
     get() {
       return (
-        formField.__meta__.childForms?.map(childForm =>
-          getFormValues(childForm.formFieldsRef.current),
-        ) ?? value
+        parentFormField.__meta__.childrenForms?.map(childForm => {
+          const childFormFields = childForm.formFieldsRef.current;
+          if (!childFormFields) {
+            throw new Error('The child `formFieldsRef` value is null');
+          }
+
+          return getFormValues<Form>(childFormFields);
+        }) ?? value
       );
     },
   });
 };
 
-export const runChildFormsValidation = async <
+export const runChildrenFormsValidation = async <
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
 >(
   formField: UseHoneyFormField<Form, FieldName>,
 ) => {
-  if (!formField.__meta__.childForms?.length) {
+  const { childrenForms } = formField.__meta__;
+  if (!childrenForms?.length) {
     // no errors
     return false;
   }
 
   let hasErrors = false;
 
-  // Perform validation on child forms (when the field is an array that includes child forms)
+  // Perform validation on children forms (when the field is an array that includes child forms)
   await Promise.all(
-    formField.__meta__.childForms.map(async childForm => {
+    childrenForms.map(async childForm => {
       if (!(await childForm.validateForm())) {
         hasErrors = true;
       }

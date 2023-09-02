@@ -2,9 +2,9 @@ import type {
   UseHoneyFormFieldInternalValidator,
   UseHoneyFormFieldType,
   UseHoneyFormFieldValidator,
-} from './use-honey-form.types';
+} from './types';
 
-import type { CustomDateRangeForm } from './use-honey-form.form-types';
+import type { CustomDateRangeForm } from './form.types';
 
 export const FIELD_TYPE_VALIDATORS_MAP: Record<
   UseHoneyFormFieldType,

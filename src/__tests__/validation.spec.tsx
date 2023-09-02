@@ -2,10 +2,7 @@ import type { ChangeEvent } from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
-import {
-  createHoneyFormDateFromValidator,
-  createHoneyFormDateToValidator,
-} from '../use-honey-form.validators';
+import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from '../validators';
 
 describe('Use honey form. Validation', () => {
   it('use min value validation', () => {

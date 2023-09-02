@@ -1,18 +1,14 @@
 import React, { useEffect } from 'react';
 
 import type { ReactNode } from 'react';
-import type {
-  UseHoneyFormField,
-  UseHoneyFormFieldConfig,
-  UseHoneyFormForm,
-} from '../use-honey-form.types';
+import type { UseHoneyFormField, UseHoneyFormFieldConfig, UseHoneyFormForm } from '../types';
 
 import { useHoneyFormProvider } from './honey-form.provider';
 
 type HoneyFormFieldProps<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName],
 > = UseHoneyFormFieldConfig<Form, FieldName, FieldValue> & {
   name: FieldName;
   children: (field: UseHoneyFormField<Form, FieldName, FieldValue>) => ReactNode;
@@ -21,7 +17,7 @@ type HoneyFormFieldProps<
 export const HoneyFormField = <
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName]
+  FieldValue extends Form[FieldName],
 >({
   children,
   name,

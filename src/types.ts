@@ -2,11 +2,10 @@
 
 import type {
   ReactElement,
-  ChangeEvent,
-  FocusEvent,
   HTMLAttributes,
   MutableRefObject,
   RefObject,
+  InputHTMLAttributes,
 } from 'react';
 
 type UseHoneyFormFieldName = string;
@@ -90,7 +89,7 @@ export type UseHoneyFormFieldOnChange<
   Form extends UseHoneyFormForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = (fieldValue: FieldValue, context: UseHoneyFormFieldOnChangeContext<Form>) => void;
+> = (cleanValue: FieldValue | undefined, context: UseHoneyFormFieldOnChangeContext<Form>) => void;
 
 export type UseHoneyFormFieldConfig<
   Form extends UseHoneyFormForm,
@@ -101,21 +100,35 @@ export type UseHoneyFormFieldConfig<
   defaultValue?: FieldValue;
   type?: UseHoneyFormFieldType;
   required?: boolean;
+  // The minimum allowed value for numbers or minimum length for strings
   min?: number;
+  // The maximum allowed value for numbers or maximum length for strings
   max?: number;
+  // Indicates if decimal values are allowed
   decimal?: boolean;
+  // Indicates if negative values are allowed
   negative?: boolean;
+  // The maximum number of decimal places allowed
   maxFraction?: number;
   // Clears that field value when dependent field is changed
   dependsOn?: keyof Form | (keyof Form)[];
+  /**
+   * In depends on mode, the validation process is changed.
+   * - If `change` mode is set, each typed character triggers the validation process.
+   * - If `blur` mode is set, the validation will be triggered when focus leaves the input.
+   */
   mode?: UseHoneyFormFieldMode;
+  // Custom error messages for this field
   errorMessages?: UseHoneyFormFieldErrorMessages;
+  // Custom validation function
   validator?: UseHoneyFormFieldValidator<Form, FieldName, FieldValue>;
-  // Filter some chars from value
-  filter?: (value: FieldValue) => FieldValue;
-  // Modify a value
-  format?: (value: FieldValue) => unknown;
+  // A function to filter characters from the value
+  filter?: (value: FieldValue | undefined) => FieldValue | undefined;
+  // A function to modify the field's value
+  format?: (value: FieldValue | undefined) => FieldValue | undefined;
+  // A function to determine whether to skip validation and submission for this field
   skip?: (formFields: UseHoneyFormFields<Form>) => boolean;
+  // Callback function triggered when the field value changes
   onChange?: UseHoneyFormFieldOnChange<Form, FieldName, FieldValue>;
 }>;
 
@@ -140,7 +153,7 @@ export type UseHoneyFormFieldValidator<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = (
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
   context: UseHoneyFormFieldValidatorContext<Form, FieldName, FieldValue>,
 ) => UseHoneyFormFieldValidationResult | Promise<UseHoneyFormFieldValidationResult>;
 
@@ -149,7 +162,7 @@ export type UseHoneyFormFieldInternalValidator = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
   fieldConfig: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
   fieldErrors: UseHoneyFormFieldError[],
 ) => void;
@@ -167,18 +180,16 @@ export type UseHoneyFormFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  Pick<HTMLAttributes<any>, 'aria-invalid'> & {
-    ref: RefObject<any>;
-    value: FieldValue;
-    onFocus: (e: FocusEvent<HTMLInputElement>) => void;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
-  }
+  Pick<HTMLAttributes<any>, 'onFocus' | 'onBlur' | 'aria-invalid'> &
+    Pick<InputHTMLAttributes<any>, 'onChange'> & {
+      ref: RefObject<any>;
+      value: FieldValue | undefined;
+    }
 >;
 
 export type UseHoneyFormChildFormContext<Form extends UseHoneyFormForm, Response> = {
   id: UseHoneyFormChildFormId;
-  formFieldsRef: MutableRefObject<UseHoneyFormFields<Form>>;
+  formFieldsRef: MutableRefObject<UseHoneyFormFields<Form> | null>;
   submitForm: UseHoneyFormSubmit<Form, Response>;
   validateForm: UseHoneyFormValidate<Form>;
 };
@@ -186,10 +197,10 @@ export type UseHoneyFormChildFormContext<Form extends UseHoneyFormForm, Response
 export type UseHoneyFormFlatFieldMeta<Form extends UseHoneyFormForm> = {
   isValidationScheduled: boolean;
   /**
-   * undefined: as initial state when child forms are not mounted yet.
+   * `undefined`: as initial state when child forms are not mounted yet.
    * When child forms are mounted/unmounted the array or empty array is present
    */
-  childForms: UseHoneyFormChildFormContext<Form, unknown>[] | undefined;
+  childrenForms: UseHoneyFormChildFormContext<Form, any>[] | undefined;
 };
 
 export type UseHoneyFormField<
@@ -197,26 +208,34 @@ export type UseHoneyFormField<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<{
-  defaultValue: FieldValue;
-  // filtered, but not formatted value
-  rawValue: FieldValue;
-  // a value is `undefined` when any error for the field is present
-  cleanValue: FieldValue;
-  // the value after filtering and formatting
-  value: FieldValue;
+  defaultValue: FieldValue | undefined;
+  // The unprocessed, filtered, but not formatted value
+  rawValue: FieldValue | undefined;
+  // The value after filtering and formatting, with `undefined` indicating errors
+  cleanValue: FieldValue | undefined;
+  // The final processed and formatted value, directly shown to the end user
+  value: FieldValue | undefined;
+  // An array of errors associated with this field
   errors: UseHoneyFormFieldError[];
-  // to destruct these props directly to a component
+  // Properties used for component destructuring
   props: UseHoneyFormFieldProps<Form, FieldName, FieldValue>;
+  // Configuration options for this field
   config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
-  // functions
+  // A function to set the field's value
   setValue: (value: FieldValue, options?: UseHoneyFormFieldSetValueOptions) => void;
+  // A function to add a value to an array field
   pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+  // A function to remove a value from an array field by index
   removeValue: (formIndex: number) => void;
+  // A function to schedule validation for this field. Can only be used inside field's validator
   scheduleValidation: () => void;
+  // A function to add an error to the field's error array
   addError: (error: UseHoneyFormFieldError) => void;
+  // A function to clear all errors associated with this field
   clearErrors: () => void;
+  // A function to focus on this field. Can only be used when `props` are destructured within a component
   focus: () => void;
-  //
+  // Internal metadata used by the library
   __meta__: UseHoneyFormFlatFieldMeta<Form>;
 }>;
 

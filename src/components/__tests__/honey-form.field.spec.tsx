@@ -21,7 +21,7 @@ describe('HoneyFormField component', () => {
         <button type="submit" data-testid="save">
           Save
         </button>
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     fireEvent.click(getByTestId('save'));
@@ -69,7 +69,7 @@ describe('HoneyFormField component', () => {
         <button type="submit" data-testid="save">
           Save
         </button>
-      </HoneyForm>
+      </HoneyForm>,
     );
 
     // case 1

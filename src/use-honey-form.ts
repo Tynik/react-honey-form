@@ -25,7 +25,7 @@ import type {
   UseHoneyFormValidateField,
   UseHoneyFormField,
   UseHoneyFormFormState,
-} from './use-honey-form.types';
+} from './types';
 
 import {
   clearDependentFields,
@@ -36,7 +36,7 @@ import {
   getNextFreeErrorsField,
   executeFieldValidatorAsync,
   checkSkippableFields,
-} from './use-honey-form.field';
+} from './field';
 import {
   getFormErrors,
   getFormCleanValues,
@@ -45,15 +45,15 @@ import {
   registerChildForm,
   getHoneyFormUniqueId,
   isSkipField,
-  runChildFormsValidation,
+  runChildrenFormsValidation,
   getFormValues,
-  captureChildFormsValues,
-} from './use-honey-form.helpers';
-import { USE_HONEY_FORM_ERRORS } from './use-honey-form.constants';
+  captureChildrenFormsValues,
+} from './helpers';
+import { USE_HONEY_FORM_ERRORS } from './constants';
 
 type CreateInitialFormFieldsGetterOptions<Form extends UseHoneyFormForm> = {
-  formIndex: number;
-  parentField: UseHoneyFormParentField<Form>;
+  formIndex: number | undefined;
+  parentField: UseHoneyFormParentField<Form> | undefined;
   fieldsConfigs: UseHoneyFormFieldsConfigs<Form>;
   defaults: UseHoneyFormDefaults<Form>;
   setFieldValue: UseHoneyFormSetFieldValueInternal<Form>;
@@ -79,8 +79,9 @@ const createInitialFormFieldsGetter =
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
 
-      let childFormFieldValue: Form[keyof Form];
-      if (parentField) {
+      let childFormFieldValue: Form[keyof Form] | null | undefined = null;
+
+      if (formIndex !== undefined && parentField) {
         const childForm = Array.isArray(parentField.value)
           ? parentField.value[formIndex]
           : parentField.value;
@@ -114,7 +115,7 @@ const getNextHoneyFormFieldsState = <
   FieldValue extends Form[FieldName],
 >(
   fieldName: FieldName,
-  fieldValue: FieldValue,
+  fieldValue: FieldValue | undefined,
   {
     formFields,
     isValidate,
@@ -125,12 +126,11 @@ const getNextHoneyFormFieldsState = <
 ) => {
   const nextFormFields = { ...formFields };
 
-  let filteredValue = fieldValue;
-
   const formField = formFields[fieldName];
 
   const fieldConfig = formField.config as UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
 
+  let filteredValue = fieldValue;
   if (fieldConfig.filter) {
     filteredValue = fieldConfig.filter(fieldValue);
 
@@ -154,7 +154,6 @@ const getNextHoneyFormFieldsState = <
     ...nextFormField,
     rawValue: filteredValue,
     value: formattedValue,
-    // @ts-expect-error
     props: {
       ...nextFormField.props,
       value: formattedValue,
@@ -229,14 +228,14 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
       );
 
       if (parentField) {
-        captureChildFormsValues(parentField);
+        captureChildrenFormsValues(parentField);
       }
 
       const fieldConfig = nextFormFields[fieldName].config;
 
       if (fieldConfig.onChange) {
         window.setTimeout(() => {
-          fieldConfig.onChange(nextFormFields[fieldName].cleanValue, {
+          fieldConfig.onChange?.(nextFormFields[fieldName].cleanValue, {
             formFields: nextFormFields,
           });
         }, 0);
@@ -271,7 +270,12 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   const removeFieldValue: UseHoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
-    const formField = formFieldsRef.current[fieldName];
+    const formFields = formFieldsRef.current;
+    if (!formFields) {
+      throw new Error('The `formFieldsRef` value is null');
+    }
+
+    const formField = formFields[fieldName];
 
     setFieldValue(
       fieldName,
@@ -359,7 +363,6 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
             ...nextFormField,
             rawValue: filteredValue,
             value: formattedValue,
-            // @ts-expect-error
             props: {
               ...nextFormField.props,
               value: formattedValue,
@@ -421,25 +424,30 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   }, []);
 
   const validateForm = useCallback<UseHoneyFormValidate<Form>>(async fieldNames => {
+    const formFields = formFieldsRef.current;
+    if (!formFields) {
+      throw new Error('The `formFieldsRef` value is null');
+    }
+
     let hasErrors = false;
 
     const nextFormFields = {} as UseHoneyFormFields<Form>;
 
     await Promise.all(
-      Object.keys(formFieldsRef.current).map(async (fieldName: keyof Form) => {
-        const formField = formFieldsRef.current[fieldName];
+      Object.keys(formFields).map(async (fieldName: keyof Form) => {
+        const formField = formFields[fieldName];
 
         const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
-        if (isSkipFieldValidation || isSkipField(fieldName, formFieldsRef.current)) {
+        if (isSkipFieldValidation || isSkipField(fieldName, formFields)) {
           nextFormFields[fieldName] = getNextFreeErrorsField(formField);
           return;
         }
 
-        const hasChildFormsErrors = await runChildFormsValidation(formField);
+        const hasChildFormsErrors = await runChildrenFormsValidation(formField);
         hasErrors ||= hasChildFormsErrors;
 
-        const nextField = await executeFieldValidatorAsync(formFieldsRef.current, fieldName);
+        const nextField = await executeFieldValidatorAsync(formFields, fieldName);
         if (nextField.errors.length) {
           hasErrors = true;
         }
@@ -452,6 +460,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     isFormValidRef.current = !hasErrors;
 
+    // Set the new `nextFormFields` value to ref to access it at getting clean values at submitting
     formFieldsRef.current = nextFormFields;
     setFormFields(nextFormFields);
 
@@ -474,6 +483,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const submitForm = useCallback<UseHoneyFormSubmit<Form, Response>>(
     async submitHandler => {
+      if (!formFieldsRef.current) {
+        throw new Error('The `formFieldsRef` value is null');
+      }
+
       updateFormState({
         isValidating: true,
       });
@@ -489,6 +502,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
           await (submitHandler || onSubmit)?.(submitData);
 
+          // Only submitting the form can clear the dirty state
           isFormDirtyRef.current = false;
         }
       } finally {
@@ -513,14 +527,14 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
       childFormIdRef.current = getHoneyFormUniqueId();
 
-      registerChildForm(parentField, {
+      registerChildForm<Form, Response>(parentField, {
         id: childFormIdRef.current,
         formFieldsRef,
         submitForm,
         validateForm,
       });
 
-      captureChildFormsValues(parentField);
+      captureChildrenFormsValues(parentField);
     }
 
     if (typeof defaults === 'function') {
@@ -541,10 +555,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     }
 
     return () => {
-      if (parentField) {
+      if (parentField && childFormIdRef.current) {
         unregisterChildForm(parentField, childFormIdRef.current);
 
-        captureChildFormsValues(parentField);
+        captureChildrenFormsValues(parentField);
       }
     };
   }, []);

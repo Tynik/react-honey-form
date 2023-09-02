@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 
-import type { UseHoneyFormFieldsConfigs } from '../../use-honey-form.types';
+import type { UseHoneyFormFieldsConfigs } from '../../types';
 
 import { HoneyForm } from '../honey-form';
 import { useHoneyForm } from '../../use-honey-form';
