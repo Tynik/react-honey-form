@@ -127,7 +127,8 @@ export type HoneyFormFieldConfig<
   /**
    * In depends on mode, the validation process is changed.
    * - If `change` mode is set, each typed character triggers the validation process.
-   * - If `blur` mode is set, the validation will be triggered when focus leaves the input.
+   * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
+   *    but the re-validate the new field value even validation field mode is `blur` if there is any error.
    */
   mode?: HoneyFormFieldMode;
   /**

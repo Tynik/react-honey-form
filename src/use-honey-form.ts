@@ -225,7 +225,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         isPushValue ? [...formField.value, fieldValue] : fieldValue,
         {
           formFields,
-          isValidate,
+          // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
+          isValidate: isValidate || formField.errors.length > 0,
         },
       );
 
