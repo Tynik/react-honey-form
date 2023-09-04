@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
-describe('Use honey form. Work with errors', () => {
+describe('Hook [use-honey-form]: Work with errors', () => {
   it('errors initially should have empty object', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 

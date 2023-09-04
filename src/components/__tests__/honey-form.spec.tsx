@@ -7,7 +7,7 @@ import { HoneyForm } from '../honey-form';
 import { useHoneyForm } from '../../use-honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
 
-describe('HoneyForm component. Basic usage', () => {
+describe('Component [HoneyForm]: Basic usage', () => {
   it('the form should be mounted', () => {
     const fields = {};
 
@@ -65,7 +65,7 @@ describe('HoneyForm component. Basic usage', () => {
   });
 });
 
-describe('HoneyForm component. Field mode usage', () => {
+describe('Component [HoneyForm]: Field mode usage', () => {
   it('should validate field when onBlur event is triggered', async () => {
     type Form = {
       name: string;
@@ -113,7 +113,7 @@ describe('HoneyForm component. Field mode usage', () => {
   });
 });
 
-describe('HoneyForm component. Nested forms', () => {
+describe('Component [HoneyForm]: Nested forms', () => {
   type ItemForm = {
     id: string;
     name: string;

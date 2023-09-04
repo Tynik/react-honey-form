@@ -39,7 +39,7 @@ import {
 } from './field';
 import {
   getFormErrors,
-  getFormCleanValues,
+  getSubmitFormValues,
   warningMessage,
   unregisterChildForm,
   registerChildForm,
@@ -240,7 +240,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getFormCleanValues(nextFormFields), {
+          onChange(getSubmitFormValues(nextFormFields), {
             formErrors: getFormErrors(nextFormFields),
           });
         }, onChangeDebounce ?? 0);
@@ -492,7 +492,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
             isSubmitting: true,
           });
 
-          const submitData = getFormCleanValues(formFieldsRef.current);
+          const submitData = getSubmitFormValues(formFieldsRef.current);
 
           await (submitHandler || onSubmit)?.(submitData);
 

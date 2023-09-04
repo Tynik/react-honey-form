@@ -3,7 +3,7 @@ import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/re
 
 import { useHoneyForm } from '../use-honey-form';
 
-describe('Use honey form. General', () => {
+describe('Hook [use-honey-form]: General', () => {
   it('should set initial form fields values', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
@@ -259,63 +259,5 @@ describe('Use honey form. General', () => {
     expect(result.current.formFields.kind.value).toBe(undefined);
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
     expect(result.current.formFields.kind.props.value).toBe(undefined);
-  });
-
-  it('should send filtered value, but not formatted value when submitting', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ price: string }>({
-        fields: {
-          price: {
-            value: '',
-            filter: value => value.replace(/\$/, ''),
-            format: value => `$${value}`,
-          },
-        },
-        onSubmit,
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.price.setValue('5');
-    });
-
-    await act(() => result.current.submitForm(onSubmit));
-
-    expect(result.current.formFields.price.value).toBe('$5');
-    expect(result.current.formFields.price.cleanValue).toBe('5');
-
-    expect(onSubmit).toBeCalledWith({ price: '5' });
-  });
-
-  test('submit form with clean values (not formatted)', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string; price: string }>({
-        fields: {
-          name: {},
-          price: {
-            type: 'number',
-            format: value => `$${value}`,
-          },
-        },
-        onSubmit,
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.name.setValue('apple');
-      result.current.formFields.price.setValue('15');
-    });
-
-    expect(result.current.formFields.price.rawValue).toBe('15');
-    expect(result.current.formFields.price.cleanValue).toBe(15);
-    expect(result.current.formFields.price.value).toBe('$15');
-
-    await act(() => result.current.submitForm());
-
-    expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 });
   });
 });

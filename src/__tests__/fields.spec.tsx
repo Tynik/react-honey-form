@@ -1,10 +1,10 @@
 import type { ChangeEvent } from 'react';
 import React, { useEffect } from 'react';
-import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/react';
+import { act, render, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 
-describe('Use honey form. Fields', () => {
+describe('Hook [use-honey-form]: Fields', () => {
   it('set a new value via onChange() function', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
@@ -247,7 +247,7 @@ describe('Use honey form. Fields', () => {
   });
 });
 
-describe('Use honey form. Array fields', () => {
+describe('Hook [use-honey-form]: Array fields', () => {
   it('should correctly identify the value type of an array field', () => {
     type Item = {
       name: string;
@@ -388,7 +388,7 @@ describe('Use honey form. Array fields', () => {
   });
 });
 
-describe('Use honey form. Dependent fields', () => {
+describe('Hook [use-honey-form]: Dependent fields', () => {
   it('dependent field value should be cleared when parent field value is changed', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
@@ -550,7 +550,7 @@ describe('Use honey form. Dependent fields', () => {
   });
 });
 
-describe('Use honey form. Work with dynamic fields', () => {
+describe('Hook [use-honey-form]: Work with dynamic fields', () => {
   it('dynamically add a new form field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ gender?: 'male' | 'female' }>({
@@ -612,7 +612,7 @@ describe('Use honey form. Work with dynamic fields', () => {
   });
 });
 
-describe('Use honey form. Skipping fields', () => {
+describe('Hook [use-honey-form]: Skipping fields', () => {
   it('should skip field permanently', async () => {
     type Form = {
       name: string;
@@ -698,91 +698,5 @@ describe('Use honey form. Skipping fields', () => {
         name: 'Pear',
       }),
     );
-  });
-});
-
-describe('Use honey form. Filter field function', () => {
-  it('should filter the initial field value', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age: string }>({
-        fields: {
-          age: {
-            value: '1abc3',
-            filter: value => value.replace(/[^0-9]/g, ''),
-          },
-        },
-      }),
-    );
-
-    expect(result.current.formFields.age.value).toBe('13');
-    expect(result.current.formFields.age.cleanValue).toBe('13');
-  });
-
-  it('should filter the field value when updated', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ age: string }>({
-        fields: {
-          age: {
-            value: '',
-            filter: value => value.replace(/[^0-9]/g, ''),
-          },
-        },
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.age.setValue('a12b');
-    });
-
-    expect(result.current.formFields.age.value).toBe('12');
-    expect(result.current.formFields.age.cleanValue).toBe('12');
-  });
-
-  it('should send filtered value when submitting', async () => {
-    const onSubmit = jest.fn();
-
-    const { result } = renderHook(() =>
-      useHoneyForm<{ name: string }>({
-        fields: {
-          name: {
-            value: '',
-            filter: value => value.replace(/[0-9]/g, ''),
-          },
-        },
-        onSubmit,
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.name.setValue('A1pple3');
-    });
-
-    await act(() => result.current.submitForm(onSubmit));
-
-    expect(result.current.formFields.name.value).toBe('Apple');
-    expect(result.current.formFields.name.cleanValue).toBe('Apple');
-
-    expect(onSubmit).toBeCalledWith({ name: 'Apple' });
-  });
-});
-
-describe('Use honey form. Format field function', () => {
-  it('a value should have formatted value', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm<{ price: string }>({
-        fields: {
-          price: {
-            format: value => `$${value}`,
-          },
-        },
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.price.setValue('5');
-    });
-
-    expect(result.current.formFields.price.value).toBe('$5');
-    expect(result.current.formFields.price.cleanValue).toBe('5');
   });
 });

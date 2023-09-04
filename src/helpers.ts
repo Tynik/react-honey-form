@@ -46,7 +46,7 @@ export const getFormValues = <Form extends HoneyFormBaseForm>(formFields: HoneyF
     return formData;
   }, {} as Form);
 
-export const getFormCleanValues = <Form extends HoneyFormBaseForm>(
+export const getSubmitFormValues = <Form extends HoneyFormBaseForm>(
   formFields: HoneyFormFields<Form>,
 ) =>
   Object.keys(formFields).reduce((cleanFormFields, fieldName: keyof Form) => {
@@ -65,12 +65,14 @@ export const getFormCleanValues = <Form extends HoneyFormBaseForm>(
           throw new Error('The child `formFieldsRef` value is null');
         }
 
-        childrenFormCleanValues.push(getFormCleanValues(childFormFields));
+        childrenFormCleanValues.push(getSubmitFormValues(childFormFields));
       });
 
       cleanFormFields[fieldName] = childrenFormCleanValues as Form[keyof Form];
     } else {
-      cleanFormFields[fieldName] = formField.cleanValue;
+      cleanFormFields[fieldName] = formField.config.submitFormattedValue
+        ? formField.value
+        : formField.cleanValue;
     }
 
     return cleanFormFields;

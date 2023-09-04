@@ -1,3 +1,4 @@
+export * from './formatters';
 export * from './use-honey-form';
 export * from './types';
 export * from './form.types';

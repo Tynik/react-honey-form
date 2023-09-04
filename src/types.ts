@@ -136,6 +136,10 @@ export type HoneyFormFieldConfig<
    */
   errorMessages?: HoneyFormFieldErrorMessages;
   /**
+   * Set as `true` when formatted field value should be submitted instead of clean value
+   */
+  submitFormattedValue?: boolean;
+  /**
    * Custom validation function
    */
   validator?: HoneyFormFieldValidator<Form, FieldName, FieldValue>;

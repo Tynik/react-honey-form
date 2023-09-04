@@ -4,7 +4,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { HoneyForm } from '../honey-form';
 import { HoneyFormDynamicField } from '../honey-form-dynamic.field';
 
-describe('HoneyFormDynamicField component', () => {
+describe('Component [HoneyFormDynamicField]', () => {
   it('set and submit the field value', async () => {
     type Form = {
       product: string;

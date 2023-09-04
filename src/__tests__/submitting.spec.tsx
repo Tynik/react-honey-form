@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
-describe('Use honey form. Submitting', () => {
+describe('Hook [use-honey-form]: Submitting', () => {
   it('should submit', async () => {
     const onSubmit = jest.fn();
 
@@ -17,7 +17,7 @@ describe('Use honey form. Submitting', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
     expect(onSubmit).not.toBeCalled();
 
@@ -37,7 +37,7 @@ describe('Use honey form. Submitting', () => {
           },
           age: {},
         },
-      })
+      }),
     );
 
     expect(onSubmit).not.toBeCalled();
@@ -64,7 +64,7 @@ describe('Use honey form. Submitting', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {
@@ -97,7 +97,7 @@ describe('Use honey form. Submitting', () => {
           },
         },
         onSubmit,
-      })
+      }),
     );
 
     act(() => {

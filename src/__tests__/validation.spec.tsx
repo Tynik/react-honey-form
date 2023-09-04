@@ -4,7 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from '../validators';
 
-describe('Use honey form. Validation', () => {
+describe('Hook [use-honey-form]: Validation', () => {
   it('use min value validation', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
@@ -354,7 +354,7 @@ describe('Use honey form. Validation', () => {
   });
 });
 
-describe('Use honey form. Direct form fields validation', () => {
+describe('Hook [use-honey-form]: Direct form fields validation', () => {
   it('should validate all form fields', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
@@ -424,7 +424,7 @@ describe('Use honey form. Direct form fields validation', () => {
   });
 });
 
-describe('Use honey form. Validator as the promise function', () => {
+describe('Hook [use-honey-form]: Validator as the promise function', () => {
   it('should handle promise-based validator function (resolve)', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
@@ -528,7 +528,7 @@ describe('Use honey form. Validator as the promise function', () => {
   });
 });
 
-describe('Use honey form. Scheduled validation', () => {
+describe('Hook [use-honey-form]: Scheduled validation', () => {
   it('schedule validation for another field inside field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
@@ -593,7 +593,7 @@ describe('Use honey form. Scheduled validation', () => {
   });
 });
 
-describe('Use honey form. Numeric field type validation', () => {
+describe('Hook [use-honey-form]: Numeric field type validation', () => {
   it('should not raise an error when numeric value is empty', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ phone: string }>({
@@ -657,7 +657,7 @@ describe('Use honey form. Numeric field type validation', () => {
   });
 });
 
-describe('Use honey form. Email field type validation', () => {
+describe('Hook [use-honey-form]: Email field type validation', () => {
   it('should not raise an error when email is empty', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ email: string }>({
@@ -783,7 +783,7 @@ describe('Use honey form. Email field type validation', () => {
   });
 });
 
-describe('Use honey form. Predefined validators', () => {
+describe('Hook [use-honey-form]: Predefined validators', () => {
   it('should validate date range correctly', () => {
     type DateRangeForm = {
       fromDate: Date | null;
