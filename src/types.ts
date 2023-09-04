@@ -91,6 +91,35 @@ export type HoneyFormFieldOnChange<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = (cleanValue: FieldValue | undefined, context: HoneyFormFieldOnChangeContext<Form>) => void;
 
+export type HoneyFormFieldValidatorContext<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = {
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FieldValue>;
+  formFields: HoneyFormFields<Form>;
+};
+
+/**
+ * A custom validation function for the field. Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid), or an array of `UseHoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
+ *
+ * @param fieldValue - The current value of the field.
+ * @param validatorContext - The validation context, containing the field configuration and other form fields.
+ * @returns `true` if the value is valid, an error message if the value is invalid, an array of `UseHoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ */
+export type HoneyFormFieldValidator<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = (
+  fieldValue: FieldValue | undefined,
+  context: HoneyFormFieldValidatorContext<Form, FieldName, FieldValue>,
+) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
+
+export type HoneyFormFieldFilter<Value> = (value: Value | undefined) => Value | undefined;
+
+export type HoneyFormFieldFormatter<Value> = (value: Value | undefined) => Value | undefined;
+
 export type HoneyFormFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -136,10 +165,6 @@ export type HoneyFormFieldConfig<
    */
   errorMessages?: HoneyFormFieldErrorMessages;
   /**
-   * Set as `true` when formatted field value should be submitted instead of clean value
-   */
-  submitFormattedValue?: boolean;
-  /**
    * Custom validation function
    */
   validator?: HoneyFormFieldValidator<Form, FieldName, FieldValue>;
@@ -147,12 +172,16 @@ export type HoneyFormFieldConfig<
    * A function to filter characters from the value
    * @param value
    */
-  filter?: (value: FieldValue | undefined) => FieldValue | undefined;
+  filter?: HoneyFormFieldFilter<FieldValue>;
   /**
    * A function to modify the field's value
    * @param value
    */
-  format?: (value: FieldValue | undefined) => FieldValue | undefined;
+  format?: HoneyFormFieldFormatter<FieldValue>;
+  /**
+   * Set as `true` when formatted field value should be submitted instead of clean value
+   */
+  submitFormattedValue?: boolean;
   /**
    * A function to determine whether to skip validation and submission for this field
    * @param formFields
@@ -163,31 +192,6 @@ export type HoneyFormFieldConfig<
    */
   onChange?: HoneyFormFieldOnChange<Form, FieldName, FieldValue>;
 }>;
-
-export type HoneyFormFieldValidatorContext<
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName] = Form[FieldName],
-> = {
-  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FieldValue>;
-  formFields: HoneyFormFields<Form>;
-};
-
-/**
- * A custom validation function for the field. Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid), or an array of `UseHoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
- *
- * @param fieldValue - The current value of the field.
- * @param validatorContext - The validation context, containing the field configuration and other form fields.
- * @returns `true` if the value is valid, an error message if the value is invalid, an array of `UseHoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
- */
-export type HoneyFormFieldValidator<
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName] = Form[FieldName],
-> = (
-  fieldValue: FieldValue | undefined,
-  context: HoneyFormFieldValidatorContext<Form, FieldName, FieldValue>,
-) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 export type HoneyFormFieldInternalValidator = <
   Form extends HoneyFormBaseForm,
