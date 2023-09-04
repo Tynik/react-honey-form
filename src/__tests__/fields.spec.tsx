@@ -764,36 +764,6 @@ describe('Use honey form. Filter field function', () => {
 
     expect(onSubmit).toBeCalledWith({ name: 'Apple' });
   });
-
-  test.skip('should not re-render form when filter() does not change a value', () => {
-    let renderers = 0;
-
-    const Comp = () => {
-      const { formFields } = useHoneyForm<{ age: string }>({
-        fields: {
-          age: {
-            value: '',
-            filter: value => value.replace(/[^0-9]/g, ''),
-          },
-        },
-      });
-      renderers += 1;
-
-      return <input {...formFields.age.props} data-testid="age" />;
-    };
-
-    const { getByTestId } = render(<Comp />);
-
-    expect(renderers).toBe(1);
-
-    fireEvent.change(getByTestId('age'), { target: { value: '10' } });
-
-    expect(renderers).toBe(2);
-
-    fireEvent.change(getByTestId('age'), { target: { value: '10a' } });
-
-    expect(renderers).toBe(2);
-  });
 });
 
 describe('Use honey form. Format field function', () => {

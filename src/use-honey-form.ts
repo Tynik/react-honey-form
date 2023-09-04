@@ -127,20 +127,11 @@ const getNextHoneyFormFieldsState = <
   const nextFormFields = { ...formFields };
 
   const formField = formFields[fieldName];
+  let nextFormField: HoneyFormField<Form, FieldName> = formField;
 
   const fieldConfig = formField.config as HoneyFormFieldConfig<Form, FieldName, FieldValue>;
 
-  let filteredValue = fieldValue;
-  if (fieldConfig.filter) {
-    filteredValue = fieldConfig.filter(fieldValue);
-
-    if (filteredValue === formField.props.value) {
-      // Do not re-render, nothing changed. Return previous state
-      return formFields;
-    }
-  }
-
-  let nextFormField: HoneyFormField<Form, FieldName> = formField;
+  const filteredValue = fieldConfig.filter ? fieldConfig.filter(fieldValue) : fieldValue;
 
   if (isValidate) {
     clearDependentFields(nextFormFields, fieldName);
@@ -148,7 +139,7 @@ const getNextHoneyFormFieldsState = <
     nextFormField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
   }
 
-  const formattedValue = fieldConfig.format?.(filteredValue) ?? filteredValue;
+  const formattedValue = fieldConfig.format ? fieldConfig.format(filteredValue) : filteredValue;
 
   nextFormField = {
     ...nextFormField,
