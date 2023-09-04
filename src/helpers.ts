@@ -1,12 +1,12 @@
 import React from 'react';
 import type {
-  UseHoneyFormForm,
-  UseHoneyFormFields,
-  UseHoneyFormField,
-  UseHoneyFormErrors,
-  UseHoneyFormChildFormContext,
-  UseHoneyFormChildFormId,
-  UseHoneyFormParentField,
+  HoneyFormBaseForm,
+  HoneyFormFields,
+  HoneyFormField,
+  HoneyFormErrors,
+  HoneyFormChildFormContext,
+  HoneyFormChildFormId,
+  HoneyFormParentField,
 } from './types';
 
 export const noop = () => {
@@ -34,22 +34,20 @@ export const getHoneyFormUniqueId = () => {
   return `${timestamp}${randomNum}`;
 };
 
-export const isSkipField = <Form extends UseHoneyFormForm, FieldName extends keyof Form>(
+export const isSkipField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
   fieldName: FieldName,
-  formFields: UseHoneyFormFields<Form>,
+  formFields: HoneyFormFields<Form>,
 ) => formFields[fieldName].config.skip?.(formFields) === true;
 
-export const getFormValues = <Form extends UseHoneyFormForm>(
-  formFields: UseHoneyFormFields<Form>,
-) =>
+export const getFormValues = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
     formData[fieldName] = formFields[fieldName].value;
 
     return formData;
   }, {} as Form);
 
-export const getFormCleanValues = <Form extends UseHoneyFormForm>(
-  formFields: UseHoneyFormFields<Form>,
+export const getFormCleanValues = <Form extends HoneyFormBaseForm>(
+  formFields: HoneyFormFields<Form>,
 ) =>
   Object.keys(formFields).reduce((cleanFormFields, fieldName: keyof Form) => {
     if (isSkipField(fieldName, formFields)) {
@@ -78,9 +76,7 @@ export const getFormCleanValues = <Form extends UseHoneyFormForm>(
     return cleanFormFields;
   }, {} as Form);
 
-export const getFormErrors = <Form extends UseHoneyFormForm>(
-  formFields: UseHoneyFormFields<Form>,
-) =>
+export const getFormErrors = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>
   Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
     const formField = formFields[fieldName];
 
@@ -88,27 +84,27 @@ export const getFormErrors = <Form extends UseHoneyFormForm>(
       result[fieldName] = formField.errors;
     }
     return result;
-  }, {} as UseHoneyFormErrors<Form>);
+  }, {} as HoneyFormErrors<Form>);
 
-export const registerChildForm = <Form extends UseHoneyFormForm, Response>(
-  parentFormField: UseHoneyFormParentField<Form>,
-  childFormContext: UseHoneyFormChildFormContext<Form, Response>,
+export const registerChildForm = <Form extends HoneyFormBaseForm, Response>(
+  parentFormField: HoneyFormParentField<Form>,
+  childFormContext: HoneyFormChildFormContext<Form, Response>,
 ) => {
   parentFormField.__meta__.childrenForms ||= [];
   parentFormField.__meta__.childrenForms.push(childFormContext);
 };
 
-export const unregisterChildForm = <Form extends UseHoneyFormForm>(
-  parentFormField: UseHoneyFormParentField<Form>,
-  childFormId: UseHoneyFormChildFormId,
+export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
+  parentFormField: HoneyFormParentField<Form>,
+  childFormId: HoneyFormChildFormId,
 ) => {
   parentFormField.__meta__.childrenForms = parentFormField.__meta__.childrenForms?.filter(
     childForm => childForm.id !== childFormId,
   );
 };
 
-export const captureChildrenFormsValues = <Form extends UseHoneyFormForm>(
-  parentFormField: UseHoneyFormParentField<Form>,
+export const captureChildrenFormsValues = <Form extends HoneyFormBaseForm>(
+  parentFormField: HoneyFormParentField<Form>,
 ) => {
   const { value } = parentFormField;
 
@@ -129,10 +125,10 @@ export const captureChildrenFormsValues = <Form extends UseHoneyFormForm>(
 };
 
 export const runChildrenFormsValidation = async <
-  Form extends UseHoneyFormForm,
+  Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
 >(
-  formField: UseHoneyFormField<Form, FieldName>,
+  formField: HoneyFormField<Form, FieldName>,
 ) => {
   const { childrenForms } = formField.__meta__;
   if (!childrenForms?.length) {

@@ -1,30 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
-  UseHoneyFormForm,
-  UseHoneyFormAddFormField,
-  UseHoneyFormFieldConfig,
-  UseHoneyFormFields,
-  UseHoneyFormSetFieldValueInternal,
-  UseHoneyFormOptions,
-  UseHoneyFormFieldsConfigs,
-  UseHoneyFormRemoveFormField,
-  UseHoneyFormSubmit,
-  UseHoneyFormAddFieldError,
-  UseHoneyFormReset,
-  UseHoneyFormClearErrors,
-  UseHoneyFormSetFormValues,
-  UseHoneyFormDefaults,
-  UseHoneyFormApi,
-  UseHoneyFormPushFieldValue,
-  UseHoneyFormValidate,
-  UseHoneyFormRemoveFieldValue,
-  UseHoneyFormParentField,
-  UseHoneyFormChildFormId,
-  UseHoneyFormClearFieldErrors,
-  UseHoneyFormValidateField,
-  UseHoneyFormField,
-  UseHoneyFormFormState,
+  HoneyFormBaseForm,
+  HoneyFormAddFormField,
+  HoneyFormFieldConfig,
+  HoneyFormFields,
+  HoneyFormSetFieldValueInternal,
+  HoneyFormOptions,
+  HoneyFormFieldsConfigs,
+  HoneyFormRemoveFormField,
+  HoneyFormSubmit,
+  HoneyFormAddFieldError,
+  HoneyFormReset,
+  HoneyFormClearErrors,
+  HoneyFormSetFormValues,
+  HoneyFormDefaults,
+  HoneyFormApi,
+  HoneyFormPushFieldValue,
+  HoneyFormValidate,
+  HoneyFormRemoveFieldValue,
+  HoneyFormParentField,
+  HoneyFormChildFormId,
+  HoneyFormClearFieldErrors,
+  HoneyFormValidateField,
+  HoneyFormField,
+  HoneyFormFormState,
 } from './types';
 
 import {
@@ -51,20 +51,20 @@ import {
 } from './helpers';
 import { USE_HONEY_FORM_ERRORS } from './constants';
 
-type CreateInitialFormFieldsGetterOptions<Form extends UseHoneyFormForm> = {
+type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm> = {
   formIndex: number | undefined;
-  parentField: UseHoneyFormParentField<Form> | undefined;
-  fieldsConfigs: UseHoneyFormFieldsConfigs<Form>;
-  defaults: UseHoneyFormDefaults<Form>;
-  setFieldValue: UseHoneyFormSetFieldValueInternal<Form>;
-  clearFieldErrors: UseHoneyFormClearFieldErrors<Form>;
-  pushFieldValue: UseHoneyFormPushFieldValue<Form>;
-  removeFieldValue: UseHoneyFormRemoveFieldValue<Form>;
-  addFormFieldError: UseHoneyFormAddFieldError<Form>;
+  parentField: HoneyFormParentField<Form> | undefined;
+  fieldsConfigs: HoneyFormFieldsConfigs<Form>;
+  defaults: HoneyFormDefaults<Form>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  pushFieldValue: HoneyFormPushFieldValue<Form>;
+  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
+  addFormFieldError: HoneyFormAddFieldError<Form>;
 };
 
 const createInitialFormFieldsGetter =
-  <Form extends UseHoneyFormForm>({
+  <Form extends HoneyFormBaseForm>({
     formIndex,
     parentField,
     fieldsConfigs,
@@ -107,10 +107,10 @@ const createInitialFormFieldsGetter =
       );
 
       return initialFormFields;
-    }, {} as UseHoneyFormFields<Form>);
+    }, {} as HoneyFormFields<Form>);
 
 const getNextHoneyFormFieldsState = <
-  Form extends UseHoneyFormForm,
+  Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName],
 >(
@@ -120,7 +120,7 @@ const getNextHoneyFormFieldsState = <
     formFields,
     isValidate,
   }: {
-    formFields: UseHoneyFormFields<Form>;
+    formFields: HoneyFormFields<Form>;
     isValidate: boolean;
   },
 ) => {
@@ -128,7 +128,7 @@ const getNextHoneyFormFieldsState = <
 
   const formField = formFields[fieldName];
 
-  const fieldConfig = formField.config as UseHoneyFormFieldConfig<Form, FieldName, FieldValue>;
+  const fieldConfig = formField.config as HoneyFormFieldConfig<Form, FieldName, FieldValue>;
 
   let filteredValue = fieldValue;
   if (fieldConfig.filter) {
@@ -140,7 +140,7 @@ const getNextHoneyFormFieldsState = <
     }
   }
 
-  let nextFormField: UseHoneyFormField<Form, FieldName> = formField;
+  let nextFormField: HoneyFormField<Form, FieldName> = formField;
 
   if (isValidate) {
     clearDependentFields(nextFormFields, fieldName);
@@ -168,7 +168,7 @@ const getNextHoneyFormFieldsState = <
   return nextFormFields;
 };
 
-export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
+export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
   formIndex,
   parentField,
   fields: fieldsConfigs = {} as never,
@@ -176,8 +176,8 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   onSubmit,
   onChange,
   onChangeDebounce,
-}: UseHoneyFormOptions<Form, Response>): UseHoneyFormApi<Form, Response> => {
-  const [formState, setFormState] = useState<UseHoneyFormFormState>({
+}: HoneyFormOptions<Form, Response>): HoneyFormApi<Form, Response> => {
+  const [formState, setFormState] = useState<HoneyFormFormState>({
     isValidating: false,
     isSubmitting: false,
   });
@@ -188,22 +188,24 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   const formDefaultValuesRef = useRef<Partial<Form>>(
     typeof defaults === 'function' ? {} : defaults,
   );
-  const formFieldsRef = useRef<UseHoneyFormFields<Form> | null>(null);
-  const childFormIdRef = useRef<UseHoneyFormChildFormId | null>(null);
+  const formFieldsRef = useRef<HoneyFormFields<Form> | null>(null);
+  const childFormIdRef = useRef<HoneyFormChildFormId | null>(null);
   const isFormDirtyRef = useRef(false);
   const isFormValidRef = useRef(false);
+  const isFormSubmittedRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const updateFormState = useCallback((newFormState: Partial<UseHoneyFormFormState>) => {
+  const updateFormState = useCallback((newFormState: Partial<HoneyFormFormState>) => {
     setFormState(prevFormState => ({ ...prevFormState, ...newFormState }));
   }, []);
 
-  const setFieldValue: UseHoneyFormSetFieldValueInternal<Form> = (
+  const setFieldValue: HoneyFormSetFieldValueInternal<Form> = (
     fieldName,
     fieldValue,
     { isValidate = true, isPushValue = false, isDirty = true } = {},
   ) => {
     isFormValidRef.current = false;
+    isFormSubmittedRef.current = false;
 
     if (isDirty) {
       isFormDirtyRef.current = true;
@@ -256,7 +258,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     });
   };
 
-  const clearFieldErrors: UseHoneyFormClearFieldErrors<Form> = fieldName => {
+  const clearFieldErrors: HoneyFormClearFieldErrors<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => ({
       ...formFields,
@@ -264,12 +266,12 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     }));
   };
 
-  const pushFieldValue: UseHoneyFormPushFieldValue<Form> = (fieldName, value) => {
+  const pushFieldValue: HoneyFormPushFieldValue<Form> = (fieldName, value) => {
     // @ts-expect-error
     setFieldValue(fieldName, value, { isPushValue: true });
   };
 
-  const removeFieldValue: UseHoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
+  const removeFieldValue: HoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
     const formFields = formFieldsRef.current;
     if (!formFields) {
       throw new Error('The `formFieldsRef` value is null');
@@ -286,7 +288,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
   };
 
   // TODO: not used
-  const validateField: UseHoneyFormValidateField<Form> = fieldName => {
+  const validateField: HoneyFormValidateField<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
       const formField = formFields[fieldName];
@@ -302,7 +304,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     });
   };
 
-  const addFormFieldError = useCallback<UseHoneyFormAddFieldError<Form>>((fieldName, error) => {
+  const addFormFieldError = useCallback<HoneyFormAddFieldError<Form>>((fieldName, error) => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
       const formField = formFields[fieldName];
@@ -330,10 +332,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     addFormFieldError,
   });
 
-  const [formFields, setFormFields] = useState<UseHoneyFormFields<Form>>(initialFormFieldsGetter);
+  const [formFields, setFormFields] = useState<HoneyFormFields<Form>>(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
 
-  const setFormValues = useCallback<UseHoneyFormSetFormValues<Form>>(
+  const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
     (values, { clearAll = false } = {}) => {
       setFormFields(formFields => {
         const nextFormFields = { ...formFields };
@@ -349,7 +351,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
             ? fieldConfig.filter(values[fieldName])
             : values[fieldName];
 
-          let nextFormField: UseHoneyFormField<Form, keyof Form> = executeFieldValidator(
+          let nextFormField: HoneyFormField<Form, keyof Form> = executeFieldValidator(
             nextFormFields,
             fieldName,
             filteredValue,
@@ -378,10 +380,10 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     [],
   );
 
-  const addFormField = useCallback<UseHoneyFormAddFormField<Form>>(
+  const addFormField = useCallback<HoneyFormAddFormField<Form>>(
     <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
       fieldName: FieldName,
-      config: UseHoneyFormFieldConfig<Form, FieldName, FieldValue>,
+      config: HoneyFormFieldConfig<Form, FieldName, FieldValue>,
     ) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
@@ -403,7 +405,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     [],
   );
 
-  const removeFormField = useCallback<UseHoneyFormRemoveFormField<Form>>(fieldName => {
+  const removeFormField = useCallback<HoneyFormRemoveFormField<Form>>(fieldName => {
     setFormFields(formFields => {
       const newFormFields = { ...formFields };
       //
@@ -413,17 +415,17 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     });
   }, []);
 
-  const clearFormErrors = useCallback<UseHoneyFormClearErrors>(() => {
+  const clearFormErrors = useCallback<HoneyFormClearErrors>(() => {
     setFormFields(formFields =>
       Object.keys(formFields).reduce((nextFormFields, fieldName: keyof Form) => {
         nextFormFields[fieldName] = getNextFreeErrorsField(formFields[fieldName]);
 
         return nextFormFields;
-      }, {} as UseHoneyFormFields<Form>),
+      }, {} as HoneyFormFields<Form>),
     );
   }, []);
 
-  const validateForm = useCallback<UseHoneyFormValidate<Form>>(async fieldNames => {
+  const validateForm = useCallback<HoneyFormValidate<Form>>(async fieldNames => {
     const formFields = formFieldsRef.current;
     if (!formFields) {
       throw new Error('The `formFieldsRef` value is null');
@@ -431,7 +433,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
     let hasErrors = false;
 
-    const nextFormFields = {} as UseHoneyFormFields<Form>;
+    const nextFormFields = {} as HoneyFormFields<Form>;
 
     await Promise.all(
       Object.keys(formFields).map(async (fieldName: keyof Form) => {
@@ -467,7 +469,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     return !hasErrors;
   }, []);
 
-  const outerValidateForm = useCallback<UseHoneyFormValidate<Form>>(async fieldNames => {
+  const outerValidateForm = useCallback<HoneyFormValidate<Form>>(async fieldNames => {
     updateFormState({
       isValidating: true,
     });
@@ -481,7 +483,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     }
   }, []);
 
-  const submitForm = useCallback<UseHoneyFormSubmit<Form, Response>>(
+  const submitForm = useCallback<HoneyFormSubmit<Form, Response>>(
     async submitHandler => {
       if (!formFieldsRef.current) {
         throw new Error('The `formFieldsRef` value is null');
@@ -504,6 +506,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
           // Only submitting the form can clear the dirty state
           isFormDirtyRef.current = false;
+          isFormSubmittedRef.current = true;
         }
       } finally {
         updateFormState({
@@ -563,7 +566,7 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
     };
   }, []);
 
-  const resetForm: UseHoneyFormReset = () => {
+  const resetForm: HoneyFormReset = () => {
     setFormFields(initialFormFieldsGetter);
   };
 
@@ -571,20 +574,21 @@ export const useHoneyForm = <Form extends UseHoneyFormForm, Response = void>({
 
   const formErrors = useMemo(() => getFormErrors(formFields), [formFields]);
 
-  const hasFormErrors = Object.keys(formErrors).length > 0;
+  const isFormErred = Object.keys(formErrors).length > 0;
 
   return {
     formFields,
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
+    isFormErred,
     isFormDirty: isFormDirtyRef.current,
     isFormValidating: formState.isValidating,
     isFormValid: isFormValidRef.current,
     isFormSubmitting: formState.isSubmitting,
+    isFormSubmitted: isFormSubmittedRef.current,
     formDefaultValues: formDefaultValuesRef.current,
     formValues,
     formErrors,
-    hasFormErrors,
     // functions
     setFormValues,
     addFormField,

@@ -2,9 +2,9 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 
 import { HoneyForm } from '../honey-form';
-import { HoneyFormField } from '../honey-form.field';
+import { HoneyFormDynamicField } from '../honey-form-dynamic.field';
 
-describe('HoneyFormField component', () => {
+describe('HoneyFormDynamicField component', () => {
   it('set and submit the field value', async () => {
     type Form = {
       product: string;
@@ -14,9 +14,9 @@ describe('HoneyFormField component', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormField name="product" value="apple">
+        <HoneyFormDynamicField name="product" value="apple">
           {field => <input {...field.props} />}
-        </HoneyFormField>
+        </HoneyFormDynamicField>
 
         <button type="submit" data-testid="save">
           Save
@@ -38,7 +38,7 @@ describe('HoneyFormField component', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormField name="gender" value={null}>
+        <HoneyFormDynamicField name="gender" value={null}>
           {field => (
             <fieldset name="gender">
               <input
@@ -64,7 +64,7 @@ describe('HoneyFormField component', () => {
               />
             </fieldset>
           )}
-        </HoneyFormField>
+        </HoneyFormDynamicField>
 
         <button type="submit" data-testid="save">
           Save

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 
-import type { UseHoneyFormFieldsConfigs } from '../../types';
+import type { HoneyFormFieldsConfigs } from '../../types';
 
 import { HoneyForm } from '../honey-form';
 import { useHoneyForm } from '../../use-honey-form';
@@ -21,7 +21,7 @@ describe('HoneyForm component. Basic usage', () => {
       name: string;
     };
 
-    const fields: UseHoneyFormFieldsConfigs<Form> = { name: {} };
+    const fields: HoneyFormFieldsConfigs<Form> = { name: {} };
 
     const { getByTestId } = render(
       <HoneyForm fields={fields}>
@@ -43,7 +43,7 @@ describe('HoneyForm component. Basic usage', () => {
 
     const onSubmit = jest.fn<Promise<void>, Form[]>();
 
-    const fields: UseHoneyFormFieldsConfigs<Form> = {
+    const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
         //
       },
@@ -73,7 +73,7 @@ describe('HoneyForm component. Field mode usage', () => {
 
     const onSubmit = jest.fn<Promise<void>, Form[]>();
 
-    const fields: UseHoneyFormFieldsConfigs<Form> = {
+    const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
         mode: 'blur',
         value: '',
@@ -179,7 +179,7 @@ describe('HoneyForm component. Nested forms', () => {
       );
     };
 
-    const fields: UseHoneyFormFieldsConfigs<ItemsForm> = {
+    const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       items: {
         value: [],
       },
@@ -337,7 +337,7 @@ describe('HoneyForm component. Nested forms', () => {
       );
     };
 
-    const fields: UseHoneyFormFieldsConfigs<ItemsForm> = {
+    const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       items: {
         value: [
           {
@@ -418,7 +418,7 @@ describe('HoneyForm component. Nested forms', () => {
       );
     };
 
-    const fields: UseHoneyFormFieldsConfigs<ItemsForm> = {
+    const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       items: {
         value: [],
       },

@@ -1,14 +1,14 @@
 import type {
-  UseHoneyFormFieldInternalValidator,
-  UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator,
+  HoneyFormFieldInternalValidator,
+  HoneyFormFieldType,
+  HoneyFormFieldValidator,
 } from './types';
 
 import type { CustomDateRangeForm } from './form.types';
 
 export const FIELD_TYPE_VALIDATORS_MAP: Record<
-  UseHoneyFormFieldType,
-  UseHoneyFormFieldValidator<any, any>
+  HoneyFormFieldType,
+  HoneyFormFieldValidator<any, any>
 > = {
   string: () => true,
   numeric: (value: string | undefined, { fieldConfig: { errorMessages = {} } }) => {
@@ -73,7 +73,7 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
   },
 };
 
-export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const requiredInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -92,7 +92,7 @@ export const requiredInternalFieldValidator: UseHoneyFormFieldInternalValidator 
   }
 };
 
-export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -113,7 +113,7 @@ export const minValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
   }
 };
 
-export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const maxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -134,7 +134,7 @@ export const maxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator 
   }
 };
 
-export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minMaxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -156,7 +156,7 @@ export const minMaxValueInternalFieldValidator: UseHoneyFormFieldInternalValidat
   }
 };
 
-export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -176,7 +176,7 @@ export const minLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
   }
 };
 
-export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const maxLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -196,7 +196,7 @@ export const maxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator
   }
 };
 
-export const minMaxLengthInternalFieldValidator: UseHoneyFormFieldInternalValidator = (
+export const minMaxLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -262,7 +262,7 @@ export const createHoneyFormDateFromValidator =
     Form,
     DateFromKey,
     DateToKey
-  >): UseHoneyFormFieldValidator<Form, DateFromKey> =>
+  >): HoneyFormFieldValidator<Form, DateFromKey> =>
   (dateFrom, { formFields }) => {
     formFields[dateToKey].scheduleValidation();
 
@@ -319,11 +319,10 @@ export const createHoneyFormDateToValidator =
     errorMsg = '"Date To" should be equal or greater than "Date From"',
     ignoreTime = true,
     inclusiveRange = true,
-  }: CreateHoneyFormDateToValidatorOptions<
+  }: CreateHoneyFormDateToValidatorOptions<Form, DateFromKey, DateToKey>): HoneyFormFieldValidator<
     Form,
-    DateFromKey,
     DateToKey
-  >): UseHoneyFormFieldValidator<Form, DateToKey> =>
+  > =>
   (dateTo, { formFields }) => {
     formFields[dateFromKey].scheduleValidation();
 

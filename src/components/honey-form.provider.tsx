@@ -1,23 +1,20 @@
 import React, { createContext, useContext } from 'react';
 
 import type { PropsWithChildren } from 'react';
-import type { UseHoneyFormForm, UseHoneyFormApi, UseHoneyFormOptions } from '../types';
+import type { HoneyFormBaseForm, HoneyFormApi, HoneyFormOptions } from '../types';
 
 import { useHoneyForm } from '../use-honey-form';
 
-type HoneyFormContextValue<Form extends UseHoneyFormForm, Response> = UseHoneyFormApi<
-  Form,
-  Response
->;
+type HoneyFormContextValue<Form extends HoneyFormBaseForm, Response> = HoneyFormApi<Form, Response>;
 
 const HoneyFormContext = createContext<HoneyFormContextValue<any, any> | undefined>(undefined);
 
 export type HoneyFormProviderProps<
-  Form extends UseHoneyFormForm,
+  Form extends HoneyFormBaseForm,
   Response = void,
-> = UseHoneyFormOptions<Form, Response>;
+> = HoneyFormOptions<Form, Response>;
 
-export const HoneyFormProvider = <Form extends UseHoneyFormForm, Response = void>({
+export const HoneyFormProvider = <Form extends HoneyFormBaseForm, Response = void>({
   children,
   ...props
 }: PropsWithChildren<HoneyFormProviderProps<Form, Response>>) => {
@@ -26,7 +23,7 @@ export const HoneyFormProvider = <Form extends UseHoneyFormForm, Response = void
   return <HoneyFormContext.Provider value={honeyFormApi}>{children}</HoneyFormContext.Provider>;
 };
 
-export const useHoneyFormProvider = <Form extends UseHoneyFormForm, Response = void>() => {
+export const useHoneyFormProvider = <Form extends HoneyFormBaseForm, Response = void>() => {
   const formContext = useContext<HoneyFormContextValue<Form, Response> | undefined>(
     HoneyFormContext,
   );

@@ -7,7 +7,7 @@ describe('Use honey form. Work with errors', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 
     expect(result.current.formErrors).toStrictEqual({});
-    expect(result.current.hasFormErrors).toBeFalsy();
+    expect(result.current.isFormErred).toBeFalsy();
   });
 
   it('error should not be present for just declared field', () => {
@@ -40,7 +40,7 @@ describe('Use honey form. Work with errors', () => {
     expect(result.current.formFields.age.value).toBe(1.5);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
 
-    expect(result.current.hasFormErrors).toBeTruthy();
+    expect(result.current.isFormErred).toBeTruthy();
     expect(result.current.formErrors).toStrictEqual({
       age: [
         {
