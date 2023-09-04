@@ -1,12 +1,12 @@
 import type { HoneyFormFieldFormatter } from './types';
 
 /**
- * Creates a string formatter that formats a string into segments.
+ * Creates a string formatter that formats a string into segments separated by delimiter.
  * @param {number} segmentLength - The length of each segment.
  * @param {string} delimiter - The delimiter to join segments (default is a space).
  * @returns {function(string): string} - The string formatter function.
  */
-export const createHoneyFormStringFormatterForSegments =
+export const createHoneyFormSplitStringFormatter =
   (segmentLength: number, delimiter: string = ' '): HoneyFormFieldFormatter<string> =>
   (value = '') => {
     const segments = [];

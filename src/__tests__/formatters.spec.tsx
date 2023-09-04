@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
-import { createHoneyFormStringFormatterForSegments } from '../formatters';
+import { createHoneyFormSplitStringFormatter } from '../formatters';
 import { createHoneyFormNumbersFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Format function', () => {
@@ -90,7 +90,7 @@ describe('Hook [use-honey-form]: Format function', () => {
           cardExpirationDate: {
             submitFormattedValue: true,
             filter: createHoneyFormNumbersFilter({ maxLength: 4 }),
-            format: createHoneyFormStringFormatterForSegments(2, '/'),
+            format: createHoneyFormSplitStringFormatter(2, '/'),
           },
         },
         onSubmit,
@@ -115,7 +115,7 @@ describe('Hook [use-honey-form]: Use predefined string formatter for segments', 
       useHoneyForm<{ cardNumber: string }>({
         fields: {
           cardNumber: {
-            format: createHoneyFormStringFormatterForSegments(4),
+            format: createHoneyFormSplitStringFormatter(4),
           },
         },
       }),
