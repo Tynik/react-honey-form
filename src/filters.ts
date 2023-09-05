@@ -10,7 +10,9 @@ type FilterOptions = {
  * @returns {function(string): string} - The filter function.
  */
 export const createHoneyFormNumbersFilter =
-  ({ maxLength }: FilterOptions = {}): HoneyFormFieldFilter<string> =>
-  (value = '') =>
+  <FieldValue extends string>({
+    maxLength,
+  }: FilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
+  value =>
     // Remove non-numeric characters and limit the result to N characters
-    value.replace(/[^0-9]+/g, '').slice(0, maxLength);
+    value?.replace(/[^0-9]+/g, '').slice(0, maxLength) as FieldValue;
