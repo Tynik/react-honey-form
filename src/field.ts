@@ -76,7 +76,9 @@ export const createField = <
     },
     ...(config.mode === 'blur' && {
       onBlur: e => {
-        setFieldValue(fieldName, e.target.value);
+        if (!e.target.readOnly) {
+          setFieldValue(fieldName, e.target.value);
+        }
       },
     }),
     // ARIA
