@@ -221,8 +221,10 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         },
       );
 
-      if (parentField) {
-        captureChildrenFormsValues(parentField);
+      const field = formField.__meta__.childrenForms ? formField : parentField;
+      if (field) {
+        // @ts-expect-error
+        captureChildrenFormsValues(field);
       }
 
       const fieldConfig = nextFormFields[fieldName].config;

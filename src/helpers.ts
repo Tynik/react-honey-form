@@ -105,15 +105,18 @@ export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
   );
 };
 
-export const captureChildrenFormsValues = <Form extends HoneyFormBaseForm>(
-  parentFormField: HoneyFormParentField<Form>,
+export const captureChildrenFormsValues = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+>(
+  formField: HoneyFormField<Form, FieldName>,
 ) => {
-  const { value } = parentFormField;
+  const { value } = formField;
 
-  Object.defineProperty(parentFormField, 'value', {
+  Object.defineProperty(formField, 'value', {
     get() {
       return (
-        parentFormField.__meta__.childrenForms?.map(childForm => {
+        formField.__meta__.childrenForms?.map(childForm => {
           const childFormFields = childForm.formFieldsRef.current;
           if (!childFormFields) {
             throw new Error('The child `formFieldsRef` value is null');
