@@ -221,10 +221,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         },
       );
 
-      const field = formField.__meta__.childrenForms ? formField : parentField;
-      if (field) {
-        // @ts-expect-error
-        captureChildrenFormsValues(field);
+      if (parentField) {
+        captureChildrenFormsValues(parentField);
       }
 
       const fieldConfig = nextFormFields[fieldName].config;
@@ -509,7 +507,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         });
       }
     },
-    [validateForm],
+    [validateForm, onSubmit],
   );
 
   useEffect(() => {
