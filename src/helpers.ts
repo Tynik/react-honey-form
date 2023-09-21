@@ -117,6 +117,7 @@ export const captureChildrenFormsValues = <Form extends HoneyFormBaseForm>(
   const { value } = parentFormField;
 
   Object.defineProperty(parentFormField, 'value', {
+    enumerable: true,
     get() {
       return (
         parentFormField.__meta__.childrenForms?.map(childForm => {

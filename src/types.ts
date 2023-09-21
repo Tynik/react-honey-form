@@ -237,8 +237,8 @@ export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends
    * When child forms are mounted/unmounted the array or empty array is present
    */
   childrenForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
-    ? HoneyFormChildFormContext<ChildForm, any>[]
-    : undefined;
+    ? HoneyFormChildFormContext<ChildForm, any>[] | undefined
+    : never;
 };
 
 export type HoneyFormField<
