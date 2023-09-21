@@ -221,10 +221,6 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         },
       );
 
-      if (parentField) {
-        captureChildrenFormsValues(parentField);
-      }
-
       const fieldConfig = nextFormFields[fieldName].config;
 
       if (fieldConfig.onChange) {

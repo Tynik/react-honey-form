@@ -52,6 +52,7 @@ export const createField = <
   const config: HoneyFormFieldConfig<Form, FieldName, FieldValue> = {
     type: DEFAULT_FIELD_TYPE,
     mode: 'change',
+    required: false,
     ...fieldConfig,
   };
 

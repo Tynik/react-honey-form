@@ -482,5 +482,28 @@ describe('Component [HoneyForm]: Nested forms', () => {
 
     expect(queryByTestId('item[0].price')).toBeNull();
     expect(queryByTestId('item[1].price')).toBeNull();
+
+    // Add new item after deleting all items
+    fireEvent.click(getByTestId('addItem'));
+
+    expect(queryByTestId('item[0].price')).not.toBeNull();
+
+    fireEvent.change(getByTestId('item[0].name'), { target: { value: 'Apple' } });
+    fireEvent.change(getByTestId('item[0].price'), { target: { value: '30' } });
+
+    // Submit the form
+    fireEvent.click(getByTestId('save'));
+
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({
+        items: [
+          {
+            id: '3',
+            name: 'Apple',
+            price: 30,
+          },
+        ],
+      }),
+    );
   });
 });
