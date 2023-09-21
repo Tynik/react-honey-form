@@ -525,9 +525,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         validateForm,
       });
 
-      if (!formIndex) {
-        captureChildrenFormsValues(parentField);
-      }
+      captureChildrenFormsValues(parentField);
     }
 
     if (typeof defaults === 'function') {
