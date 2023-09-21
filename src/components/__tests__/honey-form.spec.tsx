@@ -483,7 +483,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     expect(queryByTestId('item[0].price')).toBeNull();
     expect(queryByTestId('item[1].price')).toBeNull();
 
-    // Add new item after deleting all items
+    // Add new item after deleting all items one by one
     fireEvent.click(getByTestId('addItem'));
 
     expect(queryByTestId('item[0].price')).not.toBeNull();

@@ -7,6 +7,7 @@ import type {
   HoneyFormChildFormContext,
   HoneyFormChildFormId,
   HoneyFormParentField,
+  HoneyFormChildForm,
 } from './types';
 
 export const noop = () => {
@@ -57,7 +58,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm>(
     const formField = formFields[fieldName];
 
     if (formField.__meta__.childrenForms) {
-      const childrenFormCleanValues: Form[] = [];
+      const childrenFormCleanValues: HoneyFormChildForm[] = [];
 
       formField.__meta__.childrenForms.forEach(childForm => {
         const childFormFields = childForm.formFieldsRef.current;
@@ -93,6 +94,7 @@ export const registerChildForm = <Form extends HoneyFormBaseForm, Response>(
   childFormContext: HoneyFormChildFormContext<Form, Response>,
 ) => {
   parentFormField.__meta__.childrenForms ||= [];
+  // @ts-expect-error
   parentFormField.__meta__.childrenForms.push(childFormContext);
 };
 
@@ -100,12 +102,12 @@ export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
   parentFormField: HoneyFormParentField<Form>,
   childFormId: HoneyFormChildFormId,
 ) => {
-  const foundChildFormIndex = parentFormField.__meta__.childrenForms?.findIndex(
-    childForm => childForm.id === childFormId,
-  );
+  const { childrenForms } = parentFormField.__meta__;
+
+  const foundChildFormIndex = childrenForms?.findIndex(childForm => childForm.id === childFormId);
 
   if (foundChildFormIndex !== -1) {
-    parentFormField.__meta__.childrenForms?.splice(foundChildFormIndex, 1);
+    childrenForms?.splice(foundChildFormIndex, 1);
   }
 };
 
@@ -123,7 +125,7 @@ export const captureChildrenFormsValues = <Form extends HoneyFormBaseForm>(
             throw new Error('The child `formFieldsRef` value is null');
           }
 
-          return getFormValues<Form>(childFormFields);
+          return getFormValues(childFormFields);
         }) ?? value
       );
     },

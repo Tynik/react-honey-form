@@ -548,6 +548,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
     return () => {
       if (parentField && childFormIdRef.current) {
         unregisterChildForm(parentField, childFormIdRef.current);
+
+        captureChildrenFormsValues(parentField);
       }
     };
   }, []);

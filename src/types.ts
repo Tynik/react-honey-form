@@ -21,6 +21,8 @@ type HoneyFormFieldErrorMessage = string | ReactElement;
 
 export type HoneyFormBaseForm = Record<HoneyFormFieldName, unknown>;
 
+export type HoneyFormChildForm = HoneyFormBaseForm;
+
 type HoneyFormFieldMode = 'change' | 'blur';
 
 type HoneyFormFieldErrorMessages = Partial<
@@ -221,20 +223,22 @@ export type HoneyFormFieldProps<
     }
 >;
 
-export type HoneyFormChildFormContext<Form extends HoneyFormBaseForm, Response> = {
+export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, Response> = {
   id: HoneyFormChildFormId;
   formFieldsRef: MutableRefObject<HoneyFormFields<Form> | null>;
   submitForm: HoneyFormSubmit<Form, Response>;
   validateForm: HoneyFormValidate<Form>;
 };
 
-export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm> = {
+export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends keyof Form> = {
   isValidationScheduled: boolean;
   /**
    * `undefined`: as initial state when child forms are not mounted yet.
    * When child forms are mounted/unmounted the array or empty array is present
    */
-  childrenForms: HoneyFormChildFormContext<Form, any>[] | undefined;
+  childrenForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
+    ? HoneyFormChildFormContext<ChildForm, any>[]
+    : undefined;
 };
 
 export type HoneyFormField<
@@ -303,7 +307,7 @@ export type HoneyFormField<
   /**
    * Internal metadata used by the library
    */
-  __meta__: HoneyFormFieldMeta<Form>;
+  __meta__: HoneyFormFieldMeta<Form, FieldName>;
 }>;
 
 export type HoneyFormParentField<Form extends HoneyFormBaseForm> = HoneyFormField<any, any, Form[]>;

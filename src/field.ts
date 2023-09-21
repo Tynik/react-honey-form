@@ -87,7 +87,7 @@ export const createField = <
     'aria-invalid': false,
   };
 
-  const fieldMeta: HoneyFormFieldMeta<Form> = {
+  const fieldMeta: HoneyFormFieldMeta<Form, FieldName> = {
     isValidationScheduled: false,
     childrenForms: undefined,
   };
