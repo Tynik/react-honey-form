@@ -100,9 +100,13 @@ export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
   parentFormField: HoneyFormParentField<Form>,
   childFormId: HoneyFormChildFormId,
 ) => {
-  parentFormField.__meta__.childrenForms = parentFormField.__meta__.childrenForms?.filter(
-    childForm => childForm.id !== childFormId,
+  const foundChildFormIndex = parentFormField.__meta__.childrenForms?.findIndex(
+    childForm => childForm.id === childFormId,
   );
+
+  if (foundChildFormIndex !== -1) {
+    parentFormField.__meta__.childrenForms?.splice(foundChildFormIndex, 1);
+  }
 };
 
 export const captureChildrenFormsValues = <
