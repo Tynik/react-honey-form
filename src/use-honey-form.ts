@@ -525,7 +525,9 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         validateForm,
       });
 
-      captureChildrenFormsValues(parentField);
+      if (!formIndex) {
+        captureChildrenFormsValues(parentField);
+      }
     }
 
     if (typeof defaults === 'function') {
@@ -548,8 +550,6 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
     return () => {
       if (parentField && childFormIdRef.current) {
         unregisterChildForm(parentField, childFormIdRef.current);
-
-        captureChildrenFormsValues(parentField);
       }
     };
   }, []);
