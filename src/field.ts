@@ -102,14 +102,17 @@ export const createField = <
     props: fieldProps,
     // @ts-expect-error
     getChildFormsValues: () => {
-      return fieldMeta.childForms?.map(childForm => {
-        const childFormFields = childForm.formFieldsRef.current;
-        if (!childFormFields) {
-          throw new Error('The child `formFieldsRef` value is null');
-        }
+      return (
+        fieldMeta.childForms?.map(childForm => {
+          const childFormFields = childForm.formFieldsRef.current;
+          if (!childFormFields) {
+            throw new Error('The child `formFieldsRef` value is null');
+          }
 
-        return getFormValues(childFormFields);
-      });
+          return getFormValues(childFormFields);
+          // Return field value when child forms are not mounted yet at the beginning, but the field value is set as initial value
+        }) ?? formattedValue
+      );
     },
     __meta__: fieldMeta,
     // functions
