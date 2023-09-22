@@ -5,10 +5,11 @@ type NumberFilterOptions = {
   maxLengthBeforeDecimal?: number;
   maxLengthAfterDecimal?: number;
   decimal?: boolean;
+  negative?: boolean;
 };
 
 /**
- * Creates a filter function to allow only numbers and format them based on provided options.
+ * Creates a filter function to allow numbers and format them based on provided options.
  *
  * @param {NumberFilterOptions} options - Options for the filter.
  * @returns {function(string): string} - The filter function.
@@ -20,6 +21,7 @@ type NumberFilterOptions = {
  * @param {number} options.maxLengthBeforeDecimal - The maximum length of characters before the decimal point.
  * @param {number} options.maxLengthAfterDecimal - The maximum length of characters after the decimal point.
  * @param {boolean} options.decimal - Whether to allow decimal numbers (e.g., allow a decimal point '.').
+ * @param {boolean} options.negative - Whether to allow negative numbers (e.g., allow a minus sign '-' at the beginning).
  *
  * @returns {string} - The filtered and formatted numeric string.
  */
@@ -29,9 +31,10 @@ export const createHoneyFormNumberFilter =
     maxLengthBeforeDecimal = maxLength,
     maxLengthAfterDecimal = 2,
     decimal = false,
+    negative = true,
   }: NumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
   value => {
-    const pattern = decimal ? /[^0-9.]+/g : /[^0-9]+/g;
+    const pattern = new RegExp(`[^0-9${decimal ? '.' : ''}${negative ? '-' : ''}]+`, 'g');
 
     // Remove non-numeric characters and split by the decimal point
     const parts = value?.replace(pattern, '').split('.');
@@ -43,8 +46,13 @@ export const createHoneyFormNumberFilter =
       return parts[0] as FieldValue;
     }
 
+    const isNegativeSignPresent = parts[0][0] === '-';
+
     // Limit the lengths of the parts based on the maxLength options
-    const limitedBeforeDecimal = parts[0].slice(0, maxLengthBeforeDecimal);
+    const limitedBeforeDecimal = parts[0].slice(
+      0,
+      isNegativeSignPresent ? maxLengthBeforeDecimal + 1 : maxLengthBeforeDecimal,
+    );
     const limitedAfterDecimal = parts[1]?.slice(0, maxLengthAfterDecimal);
 
     // Combine the parts back together with the decimal point

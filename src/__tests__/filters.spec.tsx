@@ -102,13 +102,20 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
       result.current.formFields.zip.setValue(' -.!g%$#*&@');
     });
 
-    expect(result.current.formFields.zip.value).toBe('');
+    // Allow negative values (char "-")
+    expect(result.current.formFields.zip.value).toBe('-');
 
     act(() => {
-      result.current.formFields.zip.setValue('123456');
+      result.current.formFields.zip.setValue('123456789');
     });
 
     expect(result.current.formFields.zip.value).toBe('12345');
+
+    act(() => {
+      result.current.formFields.zip.setValue('-123456789');
+    });
+
+    expect(result.current.formFields.zip.value).toBe('-12345');
   });
 
   it('correctly formats and filters decimal numbers', () => {
