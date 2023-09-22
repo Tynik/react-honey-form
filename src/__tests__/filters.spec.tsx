@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
-import { createHoneyFormNumberFilter } from '../filters';
+import { createHoneyFormNumberFilter, createHoneyFormNumericFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Filter function', () => {
   it('should filter the initial field value', () => {
@@ -67,14 +67,14 @@ describe('Hook [use-honey-form]: Filter function', () => {
   });
 });
 
-describe('Hook [use-honey-form]: Use predefined number filter', () => {
+describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
   it('remove non-numeric characters from passed value and limit the length', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ zip: string }>({
         fields: {
           zip: {
             value: '',
-            filter: createHoneyFormNumberFilter({ maxLength: 5 }),
+            filter: createHoneyFormNumericFilter({ maxLength: 5 }),
           },
         },
       }),
@@ -102,20 +102,65 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
       result.current.formFields.zip.setValue(' -.!g%$#*&@');
     });
 
-    // Allow negative values (char "-")
-    expect(result.current.formFields.zip.value).toBe('-');
+    expect(result.current.formFields.zip.value).toBe('');
 
     act(() => {
       result.current.formFields.zip.setValue('123456789');
     });
 
     expect(result.current.formFields.zip.value).toBe('12345');
+  });
+});
+
+describe('Hook [use-honey-form]: Use predefined number filter', () => {
+  it('remove non-numeric characters from passed value and limit the length', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            value: '',
+            filter: createHoneyFormNumberFilter({ maxLength: 5 }),
+          },
+        },
+      }),
+    );
 
     act(() => {
-      result.current.formFields.zip.setValue('-123456789');
+      result.current.formFields.amount.setValue('');
     });
 
-    expect(result.current.formFields.zip.value).toBe('-12345');
+    expect(result.current.formFields.amount.value).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1');
+
+    act(() => {
+      result.current.formFields.amount.setValue('a');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue(' -.!g%$#*&@');
+    });
+
+    // Allow negative values (char "-")
+    expect(result.current.formFields.amount.value).toBe('-');
+
+    act(() => {
+      result.current.formFields.amount.setValue('123456789');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('12345');
+
+    act(() => {
+      result.current.formFields.amount.setValue('-123456789');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('-12345');
   });
 
   it('correctly formats and filters decimal numbers', () => {
@@ -156,6 +201,12 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     expect(result.current.formValues.amount).toBe('1.');
 
     act(() => {
+      result.current.formFields.amount.setValue('-1.');
+    });
+
+    expect(result.current.formValues.amount).toBe('-1.');
+
+    act(() => {
       result.current.formFields.amount.setValue('1.2');
     });
 
@@ -178,5 +229,11 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     });
 
     expect(result.current.formValues.amount).toBe('162.23');
+
+    act(() => {
+      result.current.formFields.amount.setValue('-16245.235');
+    });
+
+    expect(result.current.formValues.amount).toBe('-162.23');
   });
 });
