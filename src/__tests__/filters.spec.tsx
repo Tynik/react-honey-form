@@ -148,7 +148,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     });
 
     // Allow negative values (char "-")
-    expect(result.current.formFields.amount.value).toBe('-');
+    expect(result.current.formFields.amount.value).toBe('-.');
 
     act(() => {
       result.current.formFields.amount.setValue('123456789');
@@ -169,7 +169,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
         fields: {
           amount: {
             type: 'number',
-            filter: createHoneyFormNumberFilter({ maxLength: 3, decimal: true }),
+            filter: createHoneyFormNumberFilter({ maxLength: 3 }),
             value: '',
           },
         },
@@ -181,6 +181,18 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     });
 
     expect(result.current.formValues.amount).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue('.');
+    });
+
+    expect(result.current.formValues.amount).toBe('.');
+
+    act(() => {
+      result.current.formFields.amount.setValue('.1');
+    });
+
+    expect(result.current.formValues.amount).toBe('.1');
 
     act(() => {
       result.current.formFields.amount.setValue('1');
@@ -205,6 +217,12 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     });
 
     expect(result.current.formValues.amount).toBe('-1.');
+
+    act(() => {
+      result.current.formFields.amount.setValue('-.1');
+    });
+
+    expect(result.current.formValues.amount).toBe('-.1');
 
     act(() => {
       result.current.formFields.amount.setValue('1.2');

@@ -26,3 +26,29 @@ export const createHoneyFormSplitStringFormatter =
 
     return segments.join(delimiter) as FieldValue;
   };
+
+type NumberFormatterOptions = {
+  decimal?: boolean;
+  maxLengthAfterDecimal?: number;
+};
+
+export const createHoneyFormNumberFormatter =
+  <FieldValue extends string>({
+    decimal = false,
+    maxLengthAfterDecimal = 2,
+  }: NumberFormatterOptions = {}): HoneyFormFieldFormatter<FieldValue> =>
+  value => {
+    if (!value || !decimal) {
+      return value;
+    }
+
+    const parts = value.split('.');
+
+    const limitedAfterDecimal = parts[1]?.slice(0, maxLengthAfterDecimal) ?? '';
+
+    if (!parts[0] && !limitedAfterDecimal) {
+      return '' as FieldValue;
+    }
+
+    return `${parts[0]}.${limitedAfterDecimal.padEnd(maxLengthAfterDecimal, '0')}` as FieldValue;
+  };

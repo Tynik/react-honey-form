@@ -19,10 +19,10 @@ export const createHoneyFormNumericFilter =
 
 type NumberFilterOptions = {
   maxLength?: number;
+  negative?: boolean;
+  decimal?: boolean;
   maxLengthBeforeDecimal?: number;
   maxLengthAfterDecimal?: number;
-  decimal?: boolean;
-  negative?: boolean;
 };
 
 /**
@@ -47,22 +47,19 @@ export const createHoneyFormNumberFilter =
     maxLength,
     maxLengthBeforeDecimal = maxLength,
     maxLengthAfterDecimal = 2,
-    decimal = false,
+    decimal = true,
     negative = true,
   }: NumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
   value => {
-    const pattern = new RegExp(`[^0-9${decimal ? '.' : ''}${negative ? '-' : ''}]+`, 'g');
-
-    // Remove non-numeric characters and split by the decimal point
-    const parts = value?.replace(pattern, '').split('.');
-    if (!parts?.length) {
+    if (!value) {
       return value;
     }
 
-    if (!parts[0]) {
-      return parts[0] as FieldValue;
-    }
+    const pattern = new RegExp(`[^0-9${decimal ? '.' : ''}${negative ? '-' : ''}]+`, 'g');
 
+    // Remove non-numeric characters and split by the decimal point
+    const parts = value.replace(pattern, '').split('.');
+    //
     const isNegativeSignPresent = parts[0][0] === '-';
 
     // Limit the lengths of the parts based on the maxLength options

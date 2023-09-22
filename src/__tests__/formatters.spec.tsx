@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
-import { createHoneyFormSplitStringFormatter } from '../formatters';
-import { createHoneyFormNumberFilter } from '../filters';
+import { createHoneyFormNumberFormatter, createHoneyFormSplitStringFormatter } from '../formatters';
+import { createHoneyFormNumericFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Format function', () => {
   it('a value should have formatted value', () => {
@@ -91,7 +91,7 @@ describe('Hook [use-honey-form]: Format function', () => {
         fields: {
           cardExpirationDate: {
             submitFormattedValue: true,
-            filter: createHoneyFormNumberFilter({ maxLength: 4 }),
+            filter: createHoneyFormNumericFilter({ maxLength: 4 }),
             format: createHoneyFormSplitStringFormatter(2, '/'),
           },
         },
@@ -152,5 +152,87 @@ describe('Hook [use-honey-form]: Use predefined string formatter for segments', 
     });
 
     expect(result.current.formFields.cardNumber.value).toBe('1111 1111 1111 1111');
+  });
+});
+
+describe('Hook [use-honey-form]: Use predefined number formatter', () => {
+  it('correctly formats and filters input values', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            format: createHoneyFormNumberFormatter({
+              decimal: true,
+            }),
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.amount.setValue('');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('.');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue('.0');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.0');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.00');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.0013');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.00');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.2');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.20');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.23');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('1.23');
+
+    act(() => {
+      result.current.formFields.amount.setValue('-12');
+    });
+
+    expect(result.current.formFields.amount.value).toBe('-12.00');
   });
 });
