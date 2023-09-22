@@ -118,9 +118,11 @@ const getNextHoneyFormFieldsState = <
   {
     formFields,
     isValidate,
+    isFormat,
   }: {
     formFields: HoneyFormFields<Form>;
     isValidate: boolean;
+    isFormat: boolean;
   },
 ) => {
   const nextFormFields = { ...formFields };
@@ -138,7 +140,8 @@ const getNextHoneyFormFieldsState = <
     nextFormField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
   }
 
-  const formattedValue = fieldConfig.format ? fieldConfig.format(filteredValue) : filteredValue;
+  const formattedValue =
+    isFormat && fieldConfig.format ? fieldConfig.format(filteredValue) : filteredValue;
 
   nextFormField = {
     ...nextFormField,
@@ -192,7 +195,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
   const setFieldValue: HoneyFormSetFieldValueInternal<Form> = (
     fieldName,
     fieldValue,
-    { isValidate = true, isPushValue = false, isDirty = true } = {},
+    { isValidate = true, isFormat = true, isPushValue = false, isDirty = true } = {},
   ) => {
     isFormValidRef.current = false;
     isFormSubmittedRef.current = false;
@@ -215,6 +218,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         isPushValue ? [...formField.value, fieldValue] : fieldValue,
         {
           formFields,
+          isFormat,
           // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
           isValidate: isValidate || formField.errors.length > 0,
         },

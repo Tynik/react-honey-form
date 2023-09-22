@@ -61,6 +61,7 @@ type HoneyFormFieldSetValueOptions = {
 
 type HoneyFormSetFieldValueOptionsInternal = HoneyFormFieldSetValueOptions & {
   isPushValue?: boolean;
+  isFormat?: boolean;
 };
 
 export type HoneyFormSetFieldValueInternal<Form extends HoneyFormBaseForm> = <
@@ -128,9 +129,13 @@ export type HoneyFormFieldValidator<
   context: HoneyFormFieldValidatorContext<Form, FieldName, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
-export type HoneyFormFieldFilter<Value> = (value: Value | undefined) => Value | undefined;
+export type HoneyFormFieldFilter<FieldValue> = (
+  value: FieldValue | undefined,
+) => FieldValue | undefined;
 
-export type HoneyFormFieldFormatter<Value> = (value: Value | undefined) => Value | undefined;
+export type HoneyFormFieldFormatter<FieldValue> = (
+  value: FieldValue | undefined,
+) => FieldValue | undefined;
 
 export type HoneyFormFieldConfig<
   Form extends HoneyFormBaseForm,
@@ -191,6 +196,22 @@ export type HoneyFormFieldConfig<
    */
   format?: HoneyFormFieldFormatter<FieldValue>;
   /**
+   * A boolean flag indicating whether the formatter function should be applied
+   * to the field's value when the focus is removed from the input (on blur).
+   * When set to `true`, the formatter is applied onBlur, allowing users to see
+   * the formatted value after they have finished editing.
+   * When set to `false` (or omitted), the formatter is applied as characters are typed.
+   *
+   * @example
+   * - If `true`, the formatter will be applied when focus leaves the input.
+   * - If `false` (or omitted), the formatter is applied with each typed character.
+   *
+   * @remarks
+   * Use this option to control the timing of applying the formatter function.
+   * Set to `true` to show a formatted value after the user has completed input.
+   */
+  formatOnBlur?: boolean;
+  /**
    * Set as `true` when formatted field value should be submitted instead of clean value
    */
   submitFormattedValue?: boolean;
@@ -219,7 +240,7 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
   fieldName: FieldName,
 ) => void;
 
-export type HoneyFormFieldValueConvertor<Value = unknown> = (value: any) => Value;
+export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
 export type HoneyFormFieldProps<
   Form extends HoneyFormBaseForm,

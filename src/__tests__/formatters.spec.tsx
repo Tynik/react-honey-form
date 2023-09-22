@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormSplitStringFormatter } from '../formatters';
-import { createHoneyFormNumbersFilter } from '../filters';
+import { createHoneyFormNumberFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Format function', () => {
   it('a value should have formatted value', () => {
@@ -19,6 +19,7 @@ describe('Hook [use-honey-form]: Format function', () => {
       result.current.formFields.price.setValue('5');
     });
 
+    expect(result.current.formFields.price.rawValue).toBe('5');
     expect(result.current.formFields.price.value).toBe('$5');
     expect(result.current.formFields.price.cleanValue).toBe('5');
   });
@@ -45,6 +46,7 @@ describe('Hook [use-honey-form]: Format function', () => {
 
     await act(() => result.current.submitForm(onSubmit));
 
+    expect(result.current.formFields.price.rawValue).toBe('5');
     expect(result.current.formFields.price.value).toBe('$5');
     expect(result.current.formFields.price.cleanValue).toBe('5');
 
@@ -81,7 +83,7 @@ describe('Hook [use-honey-form]: Format function', () => {
     expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 });
   });
 
-  test('submit formatted value when flag `submitFormattedValue` set as `true`', async () => {
+  test('submit formatted value when flag `submitFormattedValue: true`', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -89,7 +91,7 @@ describe('Hook [use-honey-form]: Format function', () => {
         fields: {
           cardExpirationDate: {
             submitFormattedValue: true,
-            filter: createHoneyFormNumbersFilter({ maxLength: 4 }),
+            filter: createHoneyFormNumberFilter({ maxLength: 4 }),
             format: createHoneyFormSplitStringFormatter(2, '/'),
           },
         },

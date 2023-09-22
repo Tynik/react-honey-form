@@ -23,7 +23,7 @@ import { getFormValues, isSkipField } from './helpers';
 const DEFAULT_FIELD_TYPE = 'string';
 
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
-  Record<HoneyFormFieldType, HoneyFormFieldValueConvertor>
+  Record<HoneyFormFieldType, HoneyFormFieldValueConvertor<any>>
 > = {
   number: value => (value ? Number(value) : undefined),
 };
@@ -53,6 +53,7 @@ export const createField = <
     type: DEFAULT_FIELD_TYPE,
     mode: 'change',
     required: false,
+    formatOnBlur: false,
     ...fieldConfig,
   };
 
@@ -73,6 +74,7 @@ export const createField = <
     onChange: e => {
       setFieldValue(fieldName, e.target.value, {
         isValidate: config.mode === 'change',
+        isFormat: !config.formatOnBlur,
       });
     },
     ...(config.mode === 'blur' && {

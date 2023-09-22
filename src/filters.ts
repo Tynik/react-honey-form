@@ -1,18 +1,57 @@
 import type { HoneyFormFieldFilter } from './types';
 
-type FilterOptions = {
+type NumberFilterOptions = {
   maxLength?: number;
+  maxLengthBeforeDecimal?: number;
+  maxLengthAfterDecimal?: number;
+  decimal?: boolean;
 };
 
 /**
- * Creates a filter function to allow only numbers.
- * @param {FilterOptions} options - Options for the filter.
+ * Creates a filter function to allow only numbers and format them based on provided options.
+ *
+ * @param {NumberFilterOptions} options - Options for the filter.
  * @returns {function(string): string} - The filter function.
+ *
+ * @remarks
+ * This function filters and formats numeric input strings according to the specified options.
+ *
+ * @param {number} options.maxLength - The maximum total length of the resulting string.
+ * @param {number} options.maxLengthBeforeDecimal - The maximum length of characters before the decimal point.
+ * @param {number} options.maxLengthAfterDecimal - The maximum length of characters after the decimal point.
+ * @param {boolean} options.decimal - Whether to allow decimal numbers (e.g., allow a decimal point '.').
+ *
+ * @returns {string} - The filtered and formatted numeric string.
  */
-export const createHoneyFormNumbersFilter =
+export const createHoneyFormNumberFilter =
   <FieldValue extends string>({
     maxLength,
-  }: FilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
-  value =>
-    // Remove non-numeric characters and limit the result to N characters
-    value?.replace(/[^0-9]+/g, '').slice(0, maxLength) as FieldValue;
+    maxLengthBeforeDecimal = maxLength,
+    maxLengthAfterDecimal = 2,
+    decimal = false,
+  }: NumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
+  value => {
+    const pattern = decimal ? /[^0-9.]+/g : /[^0-9]+/g;
+
+    // Remove non-numeric characters and split by the decimal point
+    const parts = value?.replace(pattern, '').split('.');
+    if (!parts?.length) {
+      return value;
+    }
+
+    if (!parts[0]) {
+      return parts[0] as FieldValue;
+    }
+
+    // Limit the lengths of the parts based on the maxLength options
+    const limitedBeforeDecimal = parts[0].slice(0, maxLengthBeforeDecimal);
+    const limitedAfterDecimal = parts[1]?.slice(0, maxLengthAfterDecimal);
+
+    // Combine the parts back together with the decimal point
+    const result =
+      limitedAfterDecimal === undefined
+        ? limitedBeforeDecimal
+        : `${limitedBeforeDecimal}.${limitedAfterDecimal}`;
+
+    return result as FieldValue;
+  };

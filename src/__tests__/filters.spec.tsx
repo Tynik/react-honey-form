@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
-import { createHoneyFormNumbersFilter } from '../filters';
+import { createHoneyFormNumberFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Filter function', () => {
   it('should filter the initial field value', () => {
@@ -67,18 +67,24 @@ describe('Hook [use-honey-form]: Filter function', () => {
   });
 });
 
-describe('Hook [use-honey-form]: Use predefined numbers filter', () => {
+describe('Hook [use-honey-form]: Use predefined number filter', () => {
   it('remove non-numeric characters from passed value and limit the length', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ zip: string }>({
         fields: {
           zip: {
             value: '',
-            filter: createHoneyFormNumbersFilter({ maxLength: 5 }),
+            filter: createHoneyFormNumberFilter({ maxLength: 5 }),
           },
         },
       }),
     );
+
+    act(() => {
+      result.current.formFields.zip.setValue('');
+    });
+
+    expect(result.current.formFields.zip.value).toBe('');
 
     act(() => {
       result.current.formFields.zip.setValue('1');
@@ -103,5 +109,67 @@ describe('Hook [use-honey-form]: Use predefined numbers filter', () => {
     });
 
     expect(result.current.formFields.zip.value).toBe('12345');
+  });
+
+  it('correctly formats and filters decimal numbers', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            type: 'number',
+            filter: createHoneyFormNumberFilter({ maxLength: 3, decimal: true }),
+            value: '',
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.amount.setValue('');
+    });
+
+    expect(result.current.formValues.amount).toBe('');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1');
+    });
+
+    expect(result.current.formValues.amount).toBe('1');
+
+    act(() => {
+      result.current.formFields.amount.setValue('12356');
+    });
+
+    expect(result.current.formValues.amount).toBe('123');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.');
+    });
+
+    expect(result.current.formValues.amount).toBe('1.');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.2');
+    });
+
+    expect(result.current.formValues.amount).toBe('1.2');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.23');
+    });
+
+    expect(result.current.formValues.amount).toBe('1.23');
+
+    act(() => {
+      result.current.formFields.amount.setValue('1.235');
+    });
+
+    expect(result.current.formValues.amount).toBe('1.23');
+
+    act(() => {
+      result.current.formFields.amount.setValue('16245.235');
+    });
+
+    expect(result.current.formValues.amount).toBe('162.23');
   });
 });
