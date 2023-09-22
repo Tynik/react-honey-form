@@ -272,7 +272,7 @@ export type HoneyFormField<
   /**
    * Get child forms values of the current field if the field is parent field
    */
-  childFormsValues: ExtractHoneyFormChildForms<FieldValue>;
+  getChildFormsValues: () => ExtractHoneyFormChildForms<FieldValue>;
   /**
    * An array of errors associated with this field
    */

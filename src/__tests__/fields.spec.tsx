@@ -302,7 +302,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       }),
     );
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: '',
         weight: 0,
@@ -311,7 +311,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
 
     unmount();
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([]);
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([]);
   });
 
   it('should synchronize child form field values with the parent form field', () => {
@@ -360,7 +360,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       itemResult1.current.formFields.name.setValue('Apple');
     });
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Apple',
         weight: undefined,
@@ -375,7 +375,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       itemResult2.current.formFields.name.setValue('Banana');
     });
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Apple',
         weight: undefined,
@@ -388,7 +388,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
 
     unmountItem1();
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Banana',
         weight: undefined,
@@ -408,7 +408,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       }),
     );
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Banana',
         weight: undefined,
@@ -423,7 +423,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       itemResult3.current.formFields.name.setValue('Apple');
     });
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Banana',
         weight: undefined,
@@ -436,7 +436,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
 
     unmountItem2();
 
-    expect(itemsResult.current.formFields.items.childFormsValues).toStrictEqual([
+    expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
         name: 'Apple',
         weight: undefined,

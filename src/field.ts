@@ -101,7 +101,7 @@ export const createField = <
     value: formattedValue,
     props: fieldProps,
     // @ts-expect-error
-    get childFormsValues() {
+    getChildFormsValues: () => {
       return fieldMeta.childForms?.map(childForm => {
         const childFormFields = childForm.formFieldsRef.current;
         if (!childFormFields) {
