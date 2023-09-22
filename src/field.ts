@@ -18,7 +18,7 @@ import type {
   HoneyFormAddFieldError,
 } from './types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
-import { isSkipField } from './helpers';
+import { getFormValues, isSkipField } from './helpers';
 
 const DEFAULT_FIELD_TYPE = 'string';
 
@@ -89,7 +89,7 @@ export const createField = <
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName> = {
     isValidationScheduled: false,
-    childrenForms: undefined,
+    childForms: undefined,
   };
 
   const newFormField: HoneyFormField<Form, FieldName, FieldValue> = {
@@ -100,6 +100,17 @@ export const createField = <
     cleanValue: filteredValue,
     value: formattedValue,
     props: fieldProps,
+    // @ts-expect-error
+    get childFormsValues() {
+      return fieldMeta.childForms?.map(childForm => {
+        const childFormFields = childForm.formFieldsRef.current;
+        if (!childFormFields) {
+          throw new Error('The child `formFieldsRef` value is null');
+        }
+
+        return getFormValues(childFormFields);
+      });
+    },
     __meta__: fieldMeta,
     // functions
     setValue: (value, options) => setFieldValue(fieldName, value, options),

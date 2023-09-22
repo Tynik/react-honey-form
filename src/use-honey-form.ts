@@ -45,9 +45,8 @@ import {
   registerChildForm,
   getHoneyFormUniqueId,
   isSkipField,
-  runChildrenFormsValidation,
+  runChildFormsValidation,
   getFormValues,
-  captureChildrenFormsValues,
 } from './helpers';
 import { USE_HONEY_FORM_ERRORS } from './constants';
 
@@ -434,7 +433,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
           return;
         }
 
-        const hasChildFormsErrors = await runChildrenFormsValidation(formField);
+        const hasChildFormsErrors = await runChildFormsValidation(formField);
         hasErrors ||= hasChildFormsErrors;
 
         const nextField = await executeFieldValidatorAsync(formFields, fieldName);
@@ -524,8 +523,6 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
         submitForm,
         validateForm,
       });
-
-      captureChildrenFormsValues(parentField);
     }
 
     if (typeof defaults === 'function') {

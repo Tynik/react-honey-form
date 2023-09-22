@@ -23,6 +23,16 @@ export type HoneyFormBaseForm = Record<HoneyFormFieldName, unknown>;
 
 export type HoneyFormChildForm = HoneyFormBaseForm;
 
+type ExtractHoneyFormChildForms<FieldValue> = FieldValue extends (infer ChildForm extends
+  HoneyFormChildForm)[]
+  ? ChildForm[]
+  : never;
+
+type ExtractHoneyFormChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
+  HoneyFormChildForm)[]
+  ? ChildForm
+  : never;
+
 type HoneyFormFieldMode = 'change' | 'blur';
 
 type HoneyFormFieldErrorMessages = Partial<
@@ -73,7 +83,7 @@ export type HoneyFormPushFieldValue<Form extends HoneyFormBaseForm> = <
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
   fieldName: FieldName,
-  value: FieldValue extends (infer Item)[] ? Item : never,
+  value: ExtractHoneyFormChildForm<FieldValue>,
 ) => void;
 
 export type HoneyFormRemoveFieldValue<Form extends HoneyFormBaseForm> = <
@@ -233,10 +243,10 @@ export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, Response>
 export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends keyof Form> = {
   isValidationScheduled: boolean;
   /**
-   * `undefined`: as initial state when child forms are not mounted yet.
-   * When child forms are mounted/unmounted the array or empty array is present
+   * The `undefined` as initial state when child forms are not mounted yet.
+   * When child forms are mounted/unmounted the array or empty array is present.
    */
-  childrenForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
+  childForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
     ? HoneyFormChildFormContext<ChildForm, any>[] | undefined
     : never;
 };
@@ -260,6 +270,10 @@ export type HoneyFormField<
    */
   value: FieldValue | undefined;
   /**
+   * Get child forms values of the current field if the field is parent field
+   */
+  childFormsValues: ExtractHoneyFormChildForms<FieldValue>;
+  /**
    * An array of errors associated with this field
    */
   errors: HoneyFormFieldError[];
@@ -281,7 +295,7 @@ export type HoneyFormField<
    * A function to add a value to an array field
    * @param value
    */
-  pushValue: (value: FieldValue extends (infer Item)[] ? Item : never) => void;
+  pushValue: (value: ExtractHoneyFormChildForm<FieldValue>) => void;
   /**
    * A function to remove a value from an array field by index
    * @param formIndex
