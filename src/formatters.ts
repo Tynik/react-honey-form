@@ -5,7 +5,7 @@ import type { HoneyFormFieldFormatter } from './types';
  * and joins them using a delimiter.
  *
  * @param {number} segmentLength - The length of each segment.
- * @param {string} delimiter - The delimiter used to join segments (default is a space).
+ * @param {string} delimiter - The delimiter used to join segments. Default: "space".
  * @returns {function(string): string} - The string formatter function.
  */
 export const createHoneyFormSplitStringFormatter =
@@ -27,16 +27,30 @@ export const createHoneyFormSplitStringFormatter =
     return segments.join(delimiter) as FieldValue;
   };
 
-type NumberFormatterOptions = {
+export type HoneyFormNumberFormatterOptions = {
   decimal?: boolean;
   maxLengthAfterDecimal?: number;
 };
 
+/**
+ * Creates a number formatter function to format numeric values based on provided options.
+ *
+ * @param {HoneyFormNumberFormatterOptions} options - Options for the number formatter.
+ * @returns {function(string): string} - The number formatter function.
+ *
+ * @remarks
+ * This function formats numeric input strings according to the specified options.
+ *
+ * @param {boolean} options.decimal - Whether to format as a decimal number (e.g., add trailing zeros). Default: true.
+ * @param {number} options.maxLengthAfterDecimal - The maximum number of digits after the decimal point. Default: 2.
+ *
+ * @returns {string} - The formatted numeric string.
+ */
 export const createHoneyFormNumberFormatter =
   <FieldValue extends string>({
-    decimal = false,
+    decimal = true,
     maxLengthAfterDecimal = 2,
-  }: NumberFormatterOptions = {}): HoneyFormFieldFormatter<FieldValue> =>
+  }: HoneyFormNumberFormatterOptions = {}): HoneyFormFieldFormatter<FieldValue> =>
   value => {
     if (!value || !decimal) {
       return value;

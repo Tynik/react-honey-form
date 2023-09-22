@@ -45,8 +45,9 @@ export type HoneyFormFieldError = {
 };
 
 /**
- * true: when validation is passed and false otherwise
- * string: the custom error string value
+ * @example
+ * - `true`: when validation is passed and `false` otherwise
+ * - `string`: the custom error string value
  */
 export type HoneyFormFieldValidationResult =
   | boolean
@@ -114,11 +115,13 @@ export type HoneyFormFieldValidatorContext<
 };
 
 /**
- * A custom validation function for the field. Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid), or an array of `UseHoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
+ * A custom validation function for the field.
+ * Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid),
+ *  or an array of `HoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
  *
  * @param fieldValue - The current value of the field.
  * @param validatorContext - The validation context, containing the field configuration and other form fields.
- * @returns `true` if the value is valid, an error message if the value is invalid, an array of `UseHoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ * @returns `true` if the value is valid, an error message if the value is invalid, an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
  */
 export type HoneyFormFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -147,59 +150,67 @@ export type HoneyFormFieldConfig<
   value?: FieldValue;
   defaultValue?: FieldValue;
   /**
-   * The minimum allowed value for numbers or minimum length for strings
+   * The minimum allowed value for numbers or minimum length for strings.
    */
   min?: number;
   /**
-   * The maximum allowed value for numbers or maximum length for strings
+   * The maximum allowed value for numbers or maximum length for strings.
    */
   max?: number;
   /**
-   * Indicates if decimal values are allowed
+   * Indicates if decimal values are allowed.
+   *
+   * @default false
    */
   decimal?: boolean;
   /**
-   * Indicates if negative values for number field type are allowed
+   * Indicates if negative values for number field type are allowed.
+   *
+   * @default true
    */
   negative?: boolean;
   /**
-   * The maximum number of decimal places allowed for number field type
+   * The maximum number of decimal places allowed for number field type.
+   *
+   * @default 2
    */
   maxFraction?: number;
   /**
-   * Clears that field value when dependent field is changed
+   * Clears that field value when dependent field is changed.
    */
   dependsOn?: keyof Form | (keyof Form)[];
   /**
    * In depends on mode, the validation process is changed.
+   *
+   * @example
    * - If `change` mode is set, each typed character triggers the validation process.
    * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
-   *    but the re-validate the new field value even validation field mode is `blur` if there is any error.
+   * but the re-validate the new field value even validation field mode is `blur` if there is any error.
+   *
+   * @default change
    */
   mode?: HoneyFormFieldMode;
   /**
-   * Custom error messages for this field
+   * Custom error messages for this field.
    */
   errorMessages?: HoneyFormFieldErrorMessages;
   /**
-   * Custom validation function
+   * Custom validation function.
    */
   validator?: HoneyFormFieldValidator<Form, FieldName, FieldValue>;
   /**
-   * A function to filter characters from the value
-   * @param value
+   * A function to filter characters from the value.
    */
   filter?: HoneyFormFieldFilter<FieldValue>;
   /**
-   * A function to modify the field's value
-   * @param value
+   * A function to modify the field's value.
    */
   format?: HoneyFormFieldFormatter<FieldValue>;
   /**
-   * A boolean flag indicating whether the formatter function should be applied
-   * to the field's value when the focus is removed from the input (on blur).
-   * When set to `true`, the formatter is applied onBlur, allowing users to see
-   * the formatted value after they have finished editing.
+   * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus
+   *  is removed from the input (on blur).
+   *
+   * When set to `true`, the formatter is applied `onBlur`, allowing users to see the formatted value after they have finished editing.
    * When set to `false` (or omitted), the formatter is applied as characters are typed.
    *
    * @example
@@ -209,19 +220,20 @@ export type HoneyFormFieldConfig<
    * @remarks
    * Use this option to control the timing of applying the formatter function.
    * Set to `true` to show a formatted value after the user has completed input.
+   *
+   * @default true
    */
   formatOnBlur?: boolean;
   /**
-   * Set as `true` when formatted field value should be submitted instead of clean value
+   * Set as `true` when formatted field value should be submitted instead of clean value.
    */
   submitFormattedValue?: boolean;
   /**
-   * A function to determine whether to skip validation and submission for this field
-   * @param formFields
+   * A function to determine whether to skip validation and submission for this field.
    */
   skip?: (formFields: HoneyFormFields<Form>) => boolean;
   /**
-   * Callback function triggered when the field value changes
+   * Callback function triggered when the field value changes.
    */
   onChange?: HoneyFormFieldOnChange<Form, FieldName, FieldValue>;
 }>;
@@ -279,68 +291,63 @@ export type HoneyFormField<
 > = Readonly<{
   defaultValue: FieldValue | undefined;
   /**
-   * The unprocessed, filtered, but not formatted value
+   * The unprocessed, filtered, but not formatted value.
    */
   rawValue: FieldValue | undefined;
   /**
-   * The value after filtering and formatting, with `undefined` indicating errors
+   * The value after filtering and formatting, with `undefined` indicating errors.
    */
   cleanValue: FieldValue | undefined;
   /**
-   * The final processed and formatted value, directly shown to the end user
+   * The final processed and formatted value, directly shown to the end user.
    */
   value: FieldValue | undefined;
   /**
-   * Get child forms values of the current field if the field is parent field
+   * Get child forms values of the current field if the field is parent field.
    */
   getChildFormsValues: () => ExtractHoneyFormChildForms<FieldValue>;
   /**
-   * An array of errors associated with this field
+   * An array of errors associated with this field.
    */
   errors: HoneyFormFieldError[];
   /**
-   * Properties used for component destructuring
+   * Properties used for component destructuring.
    */
   props: HoneyFormFieldProps<Form, FieldName, FieldValue>;
   /**
-   * Configuration options for this field
+   * Configuration options for this field.
    */
   config: HoneyFormFieldConfig<Form, FieldName, FieldValue>;
   /**
-   * A function to set the field's value
-   * @param value
-   * @param options
+   * A function to set the field's value.
    */
   setValue: (value: FieldValue, options?: HoneyFormFieldSetValueOptions) => void;
   /**
-   * A function to add a value to an array field
-   * @param value
+   * A function to add a value to an array field.
    */
   pushValue: (value: ExtractHoneyFormChildForm<FieldValue>) => void;
   /**
-   * A function to remove a value from an array field by index
-   * @param formIndex
+   * A function to remove a value from an array field by index.
    */
   removeValue: (formIndex: number) => void;
   /**
-   * A function to schedule validation for this field. Can only be used inside field's validator
+   * A function to schedule validation for this field. Can only be used inside field's validator.
    */
   scheduleValidation: () => void;
   /**
-   * A function to add an error to the field's error array
-   * @param error
+   * A function to add an error to the field's error array.
    */
   addError: (error: HoneyFormFieldError) => void;
   /**
-   * A function to clear all errors associated with this field
+   * A function to clear all errors associated with this field.
    */
   clearErrors: () => void;
   /**
-   * A function to focus on this field. Can only be used when `props` are destructured within a component
+   * A function to focus on this field. Can only be used when `props` are destructured within a component.
    */
   focus: () => void;
   /**
-   * Internal metadata used by the library
+   * Internal metadata used by the library.
    */
   __meta__: HoneyFormFieldMeta<Form, FieldName>;
 }>;
@@ -399,7 +406,7 @@ export type HoneyFormAddFormField<Form extends HoneyFormBaseForm> = <FieldName e
 ) => void;
 
 /**
- * Non-optional fields cannot be removed
+ * Non-optional fields cannot be removed.
  */
 export type HoneyFormRemoveFormField<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof Form,
@@ -424,7 +431,7 @@ export type HoneyFormSubmit<Form extends HoneyFormBaseForm, Response> = (
 
 type UseHoneyFormSetFormValuesOptions = {
   /**
-   * Clear all field values before setting new values
+   * Clear all field values before setting new values.
    */
   clearAll?: boolean;
 };

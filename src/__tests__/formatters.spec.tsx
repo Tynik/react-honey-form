@@ -161,9 +161,7 @@ describe('Hook [use-honey-form]: Use predefined number formatter', () => {
       useHoneyForm<{ amount: string }>({
         fields: {
           amount: {
-            format: createHoneyFormNumberFormatter({
-              decimal: true,
-            }),
+            format: createHoneyFormNumberFormatter(),
           },
         },
       }),
