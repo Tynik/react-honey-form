@@ -10,10 +10,12 @@ type NumericFilterOptions = {
  * @returns {function(string): string} - The filter function.
  */
 export const createHoneyFormNumericFilter =
-  ({ maxLength }: NumericFilterOptions = {}): ((value: string) => string) =>
-  (value = '') =>
+  <FieldValue extends string>({
+    maxLength,
+  }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
+  value =>
     // Remove non-numeric characters and limit the result to N characters
-    value.replace(/[^0-9]+/g, '').slice(0, maxLength);
+    value?.replace(/[^0-9]+/g, '').slice(0, maxLength) as FieldValue;
 
 type NumberFilterOptions = {
   maxLength?: number;
