@@ -565,6 +565,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
 
   return {
     formFields,
+    formValues,
+    formErrors,
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
     isFormErred,
@@ -574,8 +576,6 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, Response = void>({
     isFormSubmitting: formState.isSubmitting,
     isFormSubmitted: isFormSubmittedRef.current,
     formDefaultValues: formDefaultValuesRef.current,
-    formValues,
-    formErrors,
     // functions
     setFormValues,
     addFormField,

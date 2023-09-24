@@ -17,37 +17,66 @@ export type HoneyFormFieldType = 'string' | 'numeric' | 'number' | 'email';
 
 type HoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max' | 'minMax';
 
+/**
+ * Represents an error message for a form field.
+ * It can be a string or a React element.
+ */
 type HoneyFormFieldErrorMessage = string | ReactElement;
 
+/**
+ * Defines the structure of a basic form.
+ */
 export type HoneyFormBaseForm = Record<HoneyFormFieldName, unknown>;
 
+/**
+ * Represents a child form.
+ */
 export type HoneyFormChildForm = HoneyFormBaseForm;
 
+/**
+ * Utility type that extracts an array of child forms from a given field value.
+ */
 type ExtractHoneyFormChildForms<FieldValue> = FieldValue extends (infer ChildForm extends
   HoneyFormChildForm)[]
   ? ChildForm[]
   : never;
 
+/**
+ * Utility type that extracts a single child form from a given field value.
+ */
 type ExtractHoneyFormChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
   HoneyFormChildForm)[]
   ? ChildForm
   : never;
 
+/**
+ * Defines two possible modes for form field interactions: `'change'` and `'blur'`.
+ * This could be used to specify when field validation or other actions should occur.
+ */
 type HoneyFormFieldMode = 'change' | 'blur';
 
+/**
+ * Represents a mapping of error types.
+ * This allows for custom error messages for different error types.
+ */
 type HoneyFormFieldErrorMessages = Partial<
   Record<HoneyFormFieldErrorType, HoneyFormFieldErrorMessage>
 >;
 
+/**
+ * Represents a form field error with a specific error type and an associated error message.
+ */
 export type HoneyFormFieldError = {
   type: HoneyFormFieldErrorType;
   message: HoneyFormFieldErrorMessage;
 };
 
 /**
- * @example
- * - `true`: when validation is passed and `false` otherwise
- * - `string`: the custom error string value
+ * Result types that a field validator can return:
+ * - `true`: Indicates a successful validation.
+ * - `string`: Represents a custom error message.
+ * - `ReactElement`: Denotes a custom error component (e.g., a translated message).
+ * - `HoneyFormFieldError[]`: An array of error objects for more complex error handling.
  */
 export type HoneyFormFieldValidationResult =
   | boolean
@@ -115,13 +144,16 @@ export type HoneyFormFieldValidatorContext<
 };
 
 /**
- * A custom validation function for the field.
- * Should return either `true` (indicating the value is valid), an error message (indicating the value is invalid),
- *  or an array of `HoneyFormFieldError` objects. It can also be a `Promise` function that should resolve to the same response.
+ * A custom validation function for a form field. It should return one of the following:
+ * - `true` (indicating the value is valid).
+ * - An error message (indicating the value is invalid).
+ * - An array of `HoneyFormFieldError` objects (for multiple errors).
+ * - A `Promise` that resolves to any of the above responses.
  *
  * @param fieldValue - The current value of the field.
- * @param validatorContext - The validation context, containing the field configuration and other form fields.
- * @returns `true` if the value is valid, an error message if the value is invalid, an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ * @param context - The validation context, containing the field configuration and other form fields.
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
  */
 export type HoneyFormFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -140,21 +172,40 @@ export type HoneyFormFieldFormatter<FieldValue> = (
   value: FieldValue | undefined,
 ) => FieldValue | undefined;
 
+/**
+ * Form field configuration.
+ */
 export type HoneyFormFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<{
+  /**
+   * @default string
+   */
   type?: HoneyFormFieldType;
+  /**
+   * @default false
+   */
   required?: boolean;
+  /**
+   * @default undefined
+   */
   value?: FieldValue;
+  /**
+   * @default undefined
+   */
   defaultValue?: FieldValue;
   /**
    * The minimum allowed value for numbers or minimum length for strings.
+   *
+   * @default undefined
    */
   min?: number;
   /**
    * The maximum allowed value for numbers or maximum length for strings.
+   *
+   * @default undefined
    */
   max?: number;
   /**
@@ -207,8 +258,7 @@ export type HoneyFormFieldConfig<
    */
   format?: HoneyFormFieldFormatter<FieldValue>;
   /**
-   * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus
-   *  is removed from the input (on blur).
+   * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur).
    *
    * When set to `true`, the formatter is applied `onBlur`, allowing users to see the formatted value after they have finished editing.
    * When set to `false` (or omitted), the formatter is applied as characters are typed.
@@ -221,7 +271,7 @@ export type HoneyFormFieldConfig<
    * Use this option to control the timing of applying the formatter function.
    * Set to `true` to show a formatted value after the user has completed input.
    *
-   * @default true
+   * @default false
    */
   formatOnBlur?: boolean;
   /**
@@ -266,18 +316,38 @@ export type HoneyFormFieldProps<
     }
 >;
 
+/**
+ * Contextual information for child forms within a parent form.
+ */
 export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, Response> = {
+  /**
+   * The unique identifier for the child form.
+   */
   id: HoneyFormChildFormId;
+  /**
+   * A reference to the form fields of the child form.
+   */
   formFieldsRef: MutableRefObject<HoneyFormFields<Form> | null>;
+  /**
+   * A function to submit the child form.
+   */
   submitForm: HoneyFormSubmit<Form, Response>;
+  /**
+   * A function to validate the child form.
+   */
   validateForm: HoneyFormValidate<Form>;
 };
 
+/**
+ * Metadata associated with a form field.
+ */
 export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends keyof Form> = {
+  /**
+   * Indicates if field validation is scheduled.
+   */
   isValidationScheduled: boolean;
   /**
-   * The `undefined` as initial state when child forms are not mounted yet.
-   * When child forms are mounted/unmounted the array or empty array is present.
+   * An array of child form contexts when applicable, or `undefined` initially.
    */
   childForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
     ? HoneyFormChildFormContext<ChildForm, any>[] | undefined
@@ -387,14 +457,36 @@ export type HoneyFormOnChange<Form extends HoneyFormBaseForm> = (
 ) => void;
 
 export type HoneyFormOptions<Form extends HoneyFormBaseForm, Response> = {
+  /**
+   * The index of a child form within a parent form, if applicable.
+   */
   formIndex?: number;
+  /**
+   * A reference to a parent form field.
+   * Use this to create nested forms where the parent field can have child forms.
+   */
   parentField?: HoneyFormParentField<Form>;
-  //
+  /**
+   * Configuration for the form fields.
+   */
   fields?: HoneyFormFieldsConfigs<Form>;
+  /**
+   * Default values for the form fields.
+   * Can be a Promise function to asynchronously retrieve defaults.
+   */
   defaults?: HoneyFormDefaults<Form>;
-  //
+  /**
+   * A callback function triggered when the form is submitted.
+   */
   onSubmit?: HoneyFormOnSubmit<Form, Response>;
+  /**
+   * A callback function triggered whenever the value of any form field changes.
+   */
   onChange?: HoneyFormOnChange<Form>;
+  /**
+   * The debounce time in milliseconds for the `onChange` callback.
+   * This sets a delay before the callback is invoked after a field value change.
+   */
   onChangeDebounce?: number;
 };
 
