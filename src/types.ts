@@ -289,29 +289,28 @@ export type HoneyFormField<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<{
+  /**
+   * The default value initially set for the field.
+   */
   defaultValue: FieldValue | undefined;
   /**
-   * The unprocessed, filtered, but not formatted value.
+   * The unprocessed value, before any filtering or formatting.
    */
   rawValue: FieldValue | undefined;
   /**
-   * The value after filtering and formatting, with `undefined` indicating errors.
+   * The processed value after filtering and formatting. If there are errors, this may be `undefined`.
    */
   cleanValue: FieldValue | undefined;
   /**
-   * The final processed and formatted value, directly shown to the end user.
+   * The final, formatted value ready to be displayed to the user.
    */
   value: FieldValue | undefined;
-  /**
-   * Get child forms values of the current field if the field is parent field.
-   */
-  getChildFormsValues: () => ExtractHoneyFormChildForms<FieldValue>;
   /**
    * An array of errors associated with this field.
    */
   errors: HoneyFormFieldError[];
   /**
-   * Properties used for component destructuring.
+   * An object with the necessary props to bind to the corresponding input element in the form.
    */
   props: HoneyFormFieldProps<Form, FieldName, FieldValue>;
   /**
@@ -319,15 +318,19 @@ export type HoneyFormField<
    */
   config: HoneyFormFieldConfig<Form, FieldName, FieldValue>;
   /**
+   * A function to retrieve child forms' values if the field is a parent field.
+   */
+  getChildFormsValues: () => ExtractHoneyFormChildForms<FieldValue>;
+  /**
    * A function to set the field's value.
    */
   setValue: (value: FieldValue, options?: HoneyFormFieldSetValueOptions) => void;
   /**
-   * A function to add a value to an array field.
+   * A function to add a new value to a parent field that can have child forms.
    */
   pushValue: (value: ExtractHoneyFormChildForm<FieldValue>) => void;
   /**
-   * A function to remove a value from an array field by index.
+   * A function to remove a value from a parent field by its index.
    */
   removeValue: (formIndex: number) => void;
   /**
@@ -343,7 +346,7 @@ export type HoneyFormField<
    */
   clearErrors: () => void;
   /**
-   * A function to focus on this field. Can only be used when `props` are destructured within a component.
+   * A function to focus on this field. Note: Can only be used when `props` are destructured within a component.
    */
   focus: () => void;
   /**
@@ -444,17 +447,77 @@ export type HoneyFormFormState = {
 };
 
 export type HoneyFormApi<Form extends HoneyFormBaseForm, Response> = {
+  /**
+   * An object that contains the state of the form fields.
+   *
+   * @default {}
+   */
   formFields: HoneyFormFields<Form>;
+  /**
+   * Provides quick access to the current values of all form fields.
+   *
+   * @default {}
+   */
   formValues: Form;
+  /**
+   * Provides quick access to the default values of all form fields.
+   *
+   * @default {}
+   */
   formDefaultValues: Partial<Form>;
+  /**
+   * @default {}
+   */
   formErrors: HoneyFormErrors<Form>;
+  /**
+   * A boolean value that becomes `true` when the form has any error.
+   * It remains `false` when the form is error-free.
+   *
+   * @default false
+   */
   isFormErred: boolean;
+  /**
+   * @default false
+   */
   isFormDefaultsFetching: boolean;
+  /**
+   * @default false
+   */
   isFormDefaultsFetchingErred: boolean;
+  /**
+   * A boolean value that indicates whether any field value in the form has changed.
+   * It is `false` by default and becomes `true` when any field value is changed.
+   * It returns to `false` when the form is successfully submitted.
+   *
+   * @default false
+   */
   isFormDirty: boolean;
+  /**
+   * A boolean value that becomes `true` when the form is in the process of validation.
+   * It indicates that the validation of the form's fields is currently underway.
+   *
+   * @default false
+   */
   isFormValidating: boolean;
+  /**
+   * A boolean value that becomes `true` when the process of form validation has successfully finished,
+   *  and no errors have been detected in any of the form's fields.
+   *
+   * @default false
+   */
   isFormValid: boolean;
+  /**
+   * A boolean value that indicates whether the form is currently submitting.
+   *
+   * @default false
+   */
   isFormSubmitting: boolean;
+  /**
+   * A boolean value that becomes `true` when the form has been successfully submitted.
+   * It resets to `false` when any field value is changed.
+   *
+   * @default false
+   */
   isFormSubmitted: boolean;
   setFormValues: HoneyFormSetFormValues<Form>;
   addFormField: HoneyFormAddFormField<Form>;
