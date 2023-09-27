@@ -102,6 +102,7 @@ export const createField = <
     cleanValue: filteredValue,
     value: formattedValue,
     props: fieldProps,
+    // TODO: try to fix the next error
     // @ts-expect-error
     getChildFormsValues: () => {
       return (
@@ -155,6 +156,22 @@ export const getNextFreeErrorsField = <
   };
 };
 
+export const getNextErredField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+  formField: HoneyFormField<Form, FieldName>,
+  fieldErrors: HoneyFormFieldError[],
+): HoneyFormField<Form, FieldName> => {
+  return {
+    ...formField,
+    errors: fieldErrors,
+    // Set clean value as `undefined` if any error is present
+    cleanValue: fieldErrors.length ? undefined : formField.cleanValue,
+    props: {
+      ...formField.props,
+      'aria-invalid': fieldErrors.length > 0,
+    },
+  };
+};
+
 export const getNextClearedField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
   formField: HoneyFormField<Form, FieldName>,
 ): HoneyFormField<Form, FieldName> => {
@@ -202,15 +219,15 @@ const getNextValidatedField = <Form extends HoneyFormBaseForm, FieldName extends
 ): HoneyFormField<Form, FieldName> => {
   handleFieldValidationResult(fieldErrors, formField.config, validationResult);
 
+  if (fieldErrors.length) {
+    return getNextErredField(formField, fieldErrors);
+  }
+
+  const freeErrorsField = getNextFreeErrorsField(formField);
+
   return {
-    ...formField,
-    errors: fieldErrors,
-    // Set clean value as `undefined` if any error is present
-    cleanValue: fieldErrors.length ? undefined : cleanValue,
-    props: {
-      ...formField.props,
-      'aria-invalid': fieldErrors.length > 0,
-    },
+    ...freeErrorsField,
+    cleanValue,
   };
 };
 
