@@ -180,4 +180,83 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       ],
     });
   });
+
+  it('should ignore server type errors when submitting', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.setFormErrors({
+        name: [
+          {
+            type: 'server',
+            message: 'Apple is not allowed',
+          },
+        ],
+      });
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      name: [
+        {
+          type: 'server',
+          message: 'Apple is not allowed',
+        },
+      ],
+    });
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toBeCalled();
+    // The errors should be cleared because the submit handler does not return the new server errors
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+
+  it('should set server errors as the result of form submission', async () => {
+    const onSubmit = jest
+      .fn()
+      .mockResolvedValueOnce(
+        Promise.resolve({
+          name: ['Apple is not allowed', 'The name should not be fruit'],
+        }),
+      )
+      .mockResolvedValueOnce(Promise.resolve({}));
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {},
+        },
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+    });
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toBeCalled();
+    expect(result.current.formErrors).toStrictEqual({
+      name: [
+        {
+          type: 'server',
+          message: 'Apple is not allowed',
+        },
+        {
+          type: 'server',
+          message: 'The name should not be fruit',
+        },
+      ],
+    });
+  });
 });

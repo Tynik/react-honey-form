@@ -517,7 +517,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
           const submitData = getSubmitFormValues(formFieldsRef.current);
 
           const serverErrors = await (submitHandler || onSubmit)?.(submitData);
-          if (serverErrors) {
+
+          if (serverErrors && Object.keys(serverErrors).length) {
             setFormErrors(
               Object.keys(serverErrors).reduce((formErrorsResult, erredFieldName: keyof Form) => {
                 formErrorsResult[erredFieldName] = serverErrors[erredFieldName].map(
