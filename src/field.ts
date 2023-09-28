@@ -77,7 +77,7 @@ export const createField = <
         isFormat: !config.formatOnBlur,
       });
     },
-    ...(config.mode === 'blur' && {
+    ...((config.mode === 'blur' || config.formatOnBlur) && {
       onBlur: e => {
         if (!e.target.readOnly) {
           setFieldValue(fieldName, e.target.value);
