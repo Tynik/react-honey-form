@@ -16,6 +16,7 @@ import type {
   HoneyFormField,
   HoneyFormFieldMeta,
   HoneyFormAddFieldError,
+  HoneyFormDefaultsRef,
 } from './types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
 import { getFormValues, isSkipField } from './helpers';
@@ -36,12 +37,14 @@ export const createField = <
   fieldName: FieldName,
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FieldValue>,
   {
+    formDefaultValuesRef,
     setFieldValue,
     clearFieldErrors,
     pushFieldValue,
     removeFieldValue,
     addFormFieldError,
   }: {
+    formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
     setFieldValue: HoneyFormSetFieldValueInternal<Form>;
     clearFieldErrors: HoneyFormClearFieldErrors<Form>;
     pushFieldValue: HoneyFormPushFieldValue<Form>;
@@ -60,6 +63,8 @@ export const createField = <
   const formFieldRef = createRef<HTMLElement>();
 
   const fieldValue = config.value === undefined ? config.defaultValue : config.value;
+  // Set initial field value as the default value
+  formDefaultValuesRef.current[fieldName] = fieldValue;
 
   const filteredValue = config.filter ? config.filter(fieldValue) : fieldValue;
   const formattedValue = config.format ? config.format(filteredValue) : filteredValue;
@@ -122,6 +127,8 @@ export const createField = <
     setValue: (value, options) => setFieldValue(fieldName, value, options),
     pushValue: value => pushFieldValue(fieldName, value),
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
+    resetValue: () => setFieldValue(fieldName, formDefaultValuesRef.current[fieldName]),
+    //
     scheduleValidation: () => {
       fieldMeta.isValidationScheduled = true;
     },

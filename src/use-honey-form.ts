@@ -14,7 +14,6 @@ import type {
   HoneyFormReset,
   HoneyFormClearErrors,
   HoneyFormSetFormValues,
-  HoneyFormDefaults,
   HoneyFormApi,
   HoneyFormPushFieldValue,
   HoneyFormValidate,
@@ -28,6 +27,7 @@ import type {
   HoneyFormSetFormErrors,
   HoneyFormErrors,
   HoneyFormFieldError,
+  HoneyFormDefaultsRef,
 } from './types';
 
 import {
@@ -58,7 +58,7 @@ type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm> = {
   formIndex: number | undefined;
   parentField: HoneyFormParentField<Form> | undefined;
   fieldsConfigs: HoneyFormFieldsConfigs<Form>;
-  defaults: HoneyFormDefaults<Form>;
+  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
   pushFieldValue: HoneyFormPushFieldValue<Form>;
@@ -71,7 +71,7 @@ const createInitialFormFieldsGetter =
     formIndex,
     parentField,
     fieldsConfigs,
-    defaults,
+    formDefaultValuesRef,
     setFieldValue,
     clearFieldErrors,
     pushFieldValue,
@@ -92,15 +92,17 @@ const createInitialFormFieldsGetter =
         childFormFieldValue = childForm?.[fieldName];
       }
 
-      const defaultFieldValue = typeof defaults === 'function' ? undefined : defaults[fieldName];
-
       initialFormFields[fieldName] = createField(
         fieldName,
         {
           ...fieldConfig,
-          defaultValue: childFormFieldValue ?? fieldConfig.defaultValue ?? defaultFieldValue,
+          defaultValue:
+            childFormFieldValue ??
+            fieldConfig.defaultValue ??
+            formDefaultValuesRef.current[fieldName],
         },
         {
+          formDefaultValuesRef,
           setFieldValue,
           clearFieldErrors,
           pushFieldValue,
@@ -320,7 +322,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
     formIndex,
     parentField,
     fieldsConfigs,
-    defaults,
+    formDefaultValuesRef,
     setFieldValue,
     clearFieldErrors,
     pushFieldValue,
@@ -414,6 +416,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
         return {
           ...formFields,
           [fieldName]: createField(fieldName, config, {
+            formDefaultValuesRef,
             setFieldValue,
             clearFieldErrors,
             pushFieldValue,
@@ -427,6 +430,9 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
   );
 
   const removeFormField = useCallback<HoneyFormRemoveFormField<Form>>(fieldName => {
+    // Clearing the default field value
+    delete formDefaultValuesRef.current[fieldName];
+
     setFormFields(formFields => {
       const newFormFields = { ...formFields };
       //

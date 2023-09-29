@@ -216,6 +216,7 @@ export type HoneyFormFieldConfig<
    */
   required?: boolean;
   /**
+   * @deprecated Please, use `defaultValue` field property or `defaults` form property
    * @default undefined
    */
   value?: FieldValue;
@@ -448,6 +449,10 @@ export type HoneyFormField<
    */
   removeValue: (formIndex: number) => void;
   /**
+   * Reset field value to default value and clear all errors
+   */
+  resetValue: () => void;
+  /**
    * A function to schedule validation for this field. Can only be used inside field's validator.
    */
   scheduleValidation: () => void;
@@ -490,6 +495,8 @@ export type HoneyFormServerErrors<Form extends HoneyFormBaseForm> = {
 export type HoneyFormDefaults<Form extends HoneyFormBaseForm> =
   | Partial<Form>
   | (() => Promise<Partial<Form>>);
+
+export type HoneyFormDefaultsRef<Form extends HoneyFormBaseForm> = MutableRefObject<Partial<Form>>;
 
 export type HoneyFormOnSubmit<Form extends HoneyFormBaseForm> = (
   data: Form,
