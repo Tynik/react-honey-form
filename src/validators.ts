@@ -8,7 +8,7 @@ import type { CustomDateRangeForm } from './form.types';
 
 export const FIELD_TYPE_VALIDATORS_MAP: Record<
   HoneyFormFieldType,
-  HoneyFormFieldValidator<any, any>
+  HoneyFormFieldValidator<any, any, any>
 > = {
   string: () => true,
   numeric: (value: string | undefined, { fieldConfig: { errorMessages = {} } }) => {

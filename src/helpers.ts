@@ -18,12 +18,12 @@ export const genericMemo: <T>(component: T) => T = React.memo;
 
 export const warningMessage = (message: string) => {
   // eslint-disable-next-line no-console
-  console.warn(`[use-honey-form]: ${message}`);
+  console.warn(`[honey-form]: ${message}`);
 };
 
 export const errorMessage = (message: string) => {
   // eslint-disable-next-line no-console
-  console.error(`[use-honey-form]: ${message}`);
+  console.error(`[honey-form]: ${message}`);
 };
 
 export const getHoneyFormUniqueId = () => {
@@ -35,10 +35,15 @@ export const getHoneyFormUniqueId = () => {
   return `${timestamp}${randomNum}`;
 };
 
-export const isSkipField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+export const isSkipField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  context: FormContext,
   fieldName: FieldName,
-  formFields: HoneyFormFields<Form>,
-) => formFields[fieldName].config.skip?.(formFields) === true;
+  formFields: HoneyFormFields<Form, FormContext>,
+) => formFields[fieldName].config.skip?.({ context, formFields }) === true;
 
 export const getFormValues = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
@@ -47,12 +52,13 @@ export const getFormValues = <Form extends HoneyFormBaseForm>(formFields: HoneyF
     return formData;
   }, {} as Form);
 
-export const getSubmitFormValues = <Form extends HoneyFormBaseForm>(
+export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>(
+  context: FormContext,
   formFields: HoneyFormFields<Form>,
 ) =>
-  Object.keys(formFields).reduce((cleanFormFields, fieldName: keyof Form) => {
-    if (isSkipField(fieldName, formFields)) {
-      return cleanFormFields;
+  Object.keys(formFields).reduce((submitFormValues, fieldName: keyof Form) => {
+    if (isSkipField(context, fieldName, formFields)) {
+      return submitFormValues;
     }
 
     const formField = formFields[fieldName];
@@ -66,17 +72,17 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm>(
           throw new Error('The child `formFieldsRef` value is null');
         }
 
-        childFormsCleanValues.push(getSubmitFormValues(childFormFields));
+        childFormsCleanValues.push(getSubmitFormValues(context, childFormFields));
       });
 
-      cleanFormFields[fieldName] = childFormsCleanValues as Form[keyof Form];
+      submitFormValues[fieldName] = childFormsCleanValues as Form[keyof Form];
     } else {
-      cleanFormFields[fieldName] = formField.config.submitFormattedValue
+      submitFormValues[fieldName] = formField.config.submitFormattedValue
         ? formField.value
         : formField.cleanValue;
     }
 
-    return cleanFormFields;
+    return submitFormValues;
   }, {} as Form);
 
 export const getFormErrors = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>

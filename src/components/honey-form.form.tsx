@@ -6,22 +6,22 @@ import type { HoneyFormBaseForm, HoneyFormApi } from '../types';
 import { useHoneyFormProvider } from './honey-form.provider';
 import { errorMessage } from '../helpers';
 
-export type UseHoneyFormFormContent<Form extends HoneyFormBaseForm> =
+export type UseHoneyFormFormContent<Form extends HoneyFormBaseForm, FormContext = undefined> =
   | ReactNode
-  | ((honeyFormApi: HoneyFormApi<Form>) => ReactNode);
+  | ((honeyFormApi: HoneyFormApi<Form, FormContext>) => ReactNode);
 
-export type HoneyFormFormProps<Form extends HoneyFormBaseForm> = Omit<
+export type HoneyFormFormProps<Form extends HoneyFormBaseForm, FormContext = undefined> = Omit<
   FormHTMLAttributes<HTMLFormElement>,
   'onSubmit' | 'children'
 > & {
-  children?: UseHoneyFormFormContent<Form>;
+  children?: UseHoneyFormFormContent<Form, FormContext>;
 };
 
-const HoneyFormComponent = <Form extends HoneyFormBaseForm>(
-  { children, ...props }: HoneyFormFormProps<Form>,
+const HoneyFormComponent = <Form extends HoneyFormBaseForm, FormContext = undefined>(
+  { children, ...props }: HoneyFormFormProps<Form, FormContext>,
   ref: Ref<HTMLFormElement>,
 ) => {
-  const honeyFormApi = useHoneyFormProvider();
+  const honeyFormApi = useHoneyFormProvider<Form, FormContext>();
 
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
@@ -30,13 +30,26 @@ const HoneyFormComponent = <Form extends HoneyFormBaseForm>(
   };
 
   return (
-    <form ref={ref} onSubmit={onSubmit} data-testid="honey-form" noValidate {...props}>
-      {/* @ts-expect-error */}
+    <form
+      ref={ref}
+      onSubmit={onSubmit}
+      aria-busy={
+        honeyFormApi.isFormValidating ||
+        honeyFormApi.isFormSubmitting ||
+        honeyFormApi.isFormDefaultsFetching
+      }
+      data-testid="honey-form"
+      noValidate
+      {...props}
+    >
       {typeof children === 'function' ? children(honeyFormApi) : children}
     </form>
   );
 };
 
-export const HoneyFormForm = forwardRef(HoneyFormComponent) as <Form extends HoneyFormBaseForm>(
-  props: HoneyFormFormProps<Form> & React.RefAttributes<HTMLFormElement>,
+export const HoneyFormForm = forwardRef(HoneyFormComponent) as <
+  Form extends HoneyFormBaseForm,
+  FormContext = undefined,
+>(
+  props: HoneyFormFormProps<Form, FormContext> & React.RefAttributes<HTMLFormElement>,
 ) => React.ReactElement;

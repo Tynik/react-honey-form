@@ -9,9 +9,9 @@ type HoneyFormDynamicFieldProps<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName],
-> = HoneyFormFieldConfig<Form, FieldName, FieldValue> & {
+> = HoneyFormFieldConfig<Form, FieldName, undefined, FieldValue> & {
   name: FieldName;
-  children: (field: HoneyFormField<Form, FieldName, FieldValue>) => ReactNode;
+  children: (field: HoneyFormField<Form, FieldName, undefined, FieldValue>) => ReactNode;
 };
 
 export const HoneyFormDynamicField = <

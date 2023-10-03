@@ -9,13 +9,16 @@ import { HoneyFormProvider } from './honey-form.provider';
 import { HoneyFormForm } from './honey-form.form';
 import { genericMemo } from '../helpers';
 
-type HoneyFormProps<Form extends HoneyFormBaseForm> = HoneyFormProviderProps<Form> & {
-  children?: UseHoneyFormFormContent<Form>;
-  formProps?: HoneyFormFormProps<Form>;
+type HoneyFormProps<
+  Form extends HoneyFormBaseForm,
+  FormContext = undefined,
+> = HoneyFormProviderProps<Form, FormContext> & {
+  children?: UseHoneyFormFormContent<Form, FormContext>;
+  formProps?: HoneyFormFormProps<Form, FormContext>;
 };
 
-const HoneyFormComponent = <Form extends HoneyFormBaseForm>(
-  { children, formProps, ...props }: HoneyFormProps<Form>,
+const HoneyFormComponent = <Form extends HoneyFormBaseForm, FormContext = undefined>(
+  { children, formProps, ...props }: HoneyFormProps<Form, FormContext>,
   ref: Ref<HTMLFormElement>,
 ) => {
   return (
@@ -28,7 +31,7 @@ const HoneyFormComponent = <Form extends HoneyFormBaseForm>(
 };
 
 export const HoneyForm = genericMemo(
-  forwardRef(HoneyFormComponent) as <Form extends HoneyFormBaseForm>(
-    props: HoneyFormProps<Form> & React.RefAttributes<HTMLFormElement>,
+  forwardRef(HoneyFormComponent) as <Form extends HoneyFormBaseForm, FormContext = undefined>(
+    props: HoneyFormProps<Form, FormContext> & React.RefAttributes<HTMLFormElement>,
   ) => React.ReactElement,
 );

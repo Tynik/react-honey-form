@@ -261,3 +261,28 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.formFields.kind.props.value).toBe(undefined);
   });
 });
+
+describe('Hook [use-honey-form]: Context', () => {
+  it('should use passed form context in validator', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          name: {
+            value: '',
+            validator: (value, { context }) => context.allowedNames.includes(value),
+          },
+        },
+        context: {
+          allowedNames: ['Apple'],
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+    });
+
+    expect(result.current.formFields.name.value).toBe('Apple');
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+});

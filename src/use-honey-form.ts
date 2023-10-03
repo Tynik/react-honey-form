@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   HoneyFormBaseForm,
   HoneyFormAddFormField,
-  HoneyFormFieldConfig,
   HoneyFormFields,
   HoneyFormSetFieldValueInternal,
   HoneyFormOptions,
@@ -22,7 +21,6 @@ import type {
   HoneyFormChildFormId,
   HoneyFormClearFieldErrors,
   HoneyFormValidateField,
-  HoneyFormField,
   HoneyFormFormState,
   HoneyFormSetFormErrors,
   HoneyFormErrors,
@@ -31,15 +29,13 @@ import type {
 } from './types';
 
 import {
-  clearDependentFields,
   createField,
   executeFieldValidator,
-  triggerScheduledFieldsValidations,
   clearAllFields,
   getNextFreeErrorsField,
   executeFieldValidatorAsync,
-  checkSkippableFields,
   getNextErredField,
+  getNextFieldsState,
 } from './field';
 import {
   getFormErrors,
@@ -114,68 +110,16 @@ const createInitialFormFieldsGetter =
       return initialFormFields;
     }, {} as HoneyFormFields<Form>);
 
-const getNextHoneyFormFieldsState = <
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FieldValue extends Form[FieldName],
->(
-  fieldName: FieldName,
-  fieldValue: FieldValue | undefined,
-  {
-    formFields,
-    isValidate,
-    isFormat,
-  }: {
-    formFields: HoneyFormFields<Form>;
-    isValidate: boolean;
-    isFormat: boolean;
-  },
-) => {
-  const nextFormFields = { ...formFields };
-
-  const formField = formFields[fieldName];
-  let nextFormField: HoneyFormField<Form, FieldName> = formField;
-
-  const fieldConfig = formField.config as HoneyFormFieldConfig<Form, FieldName, FieldValue>;
-
-  const filteredValue = fieldConfig.filter ? fieldConfig.filter(fieldValue) : fieldValue;
-
-  if (isValidate) {
-    clearDependentFields(nextFormFields, fieldName);
-
-    nextFormField = executeFieldValidator(nextFormFields, fieldName, filteredValue);
-  }
-
-  const formattedValue =
-    isFormat && fieldConfig.format ? fieldConfig.format(filteredValue) : filteredValue;
-
-  nextFormField = {
-    ...nextFormField,
-    rawValue: filteredValue,
-    value: formattedValue,
-    props: {
-      ...nextFormField.props,
-      value: formattedValue,
-    },
-  };
-
-  nextFormFields[fieldName] = nextFormField;
-
-  checkSkippableFields(nextFormFields, fieldName);
-  triggerScheduledFieldsValidations(nextFormFields, fieldName);
-
-  return nextFormFields;
-};
-
-export const useHoneyForm = <Form extends HoneyFormBaseForm>({
+export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   formIndex,
   parentField,
   fields: fieldsConfigs = {} as never,
   defaults = {},
+  context,
   onSubmit,
   onChange,
   onChangeDebounce,
-}: HoneyFormOptions<Form>): HoneyFormApi<Form> => {
+}: HoneyFormOptions<Form, FormContext>): HoneyFormApi<Form, FormContext> => {
   const [formState, setFormState] = useState<HoneyFormFormState>({
     isValidating: false,
     isSubmitting: false,
@@ -219,11 +163,12 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
 
       const formField = formFields[fieldName];
 
-      const nextFormFields = getNextHoneyFormFieldsState(
+      const nextFormFields = getNextFieldsState(
         fieldName,
         // @ts-expect-error
         isPushValue ? [...formField.value, fieldValue] : fieldValue,
         {
+          context,
           formFields,
           isFormat,
           // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
@@ -246,7 +191,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getSubmitFormValues(nextFormFields), {
+          onChange(getSubmitFormValues(context, nextFormFields), {
             formErrors: getFormErrors(nextFormFields),
           });
         }, onChangeDebounce ?? 0);
@@ -297,7 +242,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
 
       return {
         ...formFields,
-        [fieldName]: executeFieldValidator(formFields, fieldName, filteredValue),
+        [fieldName]: executeFieldValidator(context, formFields, fieldName, filteredValue),
       };
     });
   };
@@ -349,7 +294,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
             ? fieldConfig.filter(values[fieldName])
             : values[fieldName];
 
-          let nextFormField: HoneyFormField<Form, keyof Form> = executeFieldValidator(
+          let nextFormField = executeFieldValidator(
+            context,
             nextFormFields,
             fieldName,
             filteredValue,
@@ -403,11 +349,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
     );
   }, []);
 
-  const addFormField = useCallback<HoneyFormAddFormField<Form>>(
-    <FieldName extends keyof Form, FieldValue extends Form[FieldName]>(
-      fieldName: FieldName,
-      config: HoneyFormFieldConfig<Form, FieldName, FieldValue>,
-    ) => {
+  const addFormField = useCallback<HoneyFormAddFormField<Form, FormContext>>(
+    (fieldName, config) => {
       setFormFields(formFields => {
         if (formFields[fieldName]) {
           warningMessage(`Form field "${fieldName.toString()}" is already present`);
@@ -458,7 +401,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
 
         const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
-        if (isSkipFieldValidation || isSkipField(fieldName, formFields)) {
+        if (isSkipFieldValidation || isSkipField(context, fieldName, formFields)) {
           nextFormFields[fieldName] = getNextFreeErrorsField(formField);
           return;
         }
@@ -466,7 +409,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
         const hasChildFormsErrors = await runChildFormsValidation(formField);
         hasErrors ||= hasChildFormsErrors;
 
-        const nextField = await executeFieldValidatorAsync(formFields, fieldName);
+        const nextField = await executeFieldValidatorAsync(context, formFields, fieldName);
 
         // We skip errors of type 'server' to avoid blocking the form submission trigger
         const fieldErrors = nextField.errors.filter(error => error.type !== 'server');
@@ -520,7 +463,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm>({
             isSubmitting: true,
           });
 
-          const submitData = getSubmitFormValues(formFieldsRef.current);
+          const submitData = getSubmitFormValues(context, formFieldsRef.current);
 
           const serverErrors = await (submitHandler || onSubmit)?.(submitData);
 

@@ -721,7 +721,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
           name: {},
           price: {
             type: 'number',
-            skip: formFields => formFields.name.value === 'Pear',
+            skip: ({ formFields }) => formFields.name.value === 'Pear',
           },
         },
         onSubmit,

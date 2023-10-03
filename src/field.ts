@@ -29,13 +29,22 @@ const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   number: value => (value ? Number(value) : undefined),
 };
 
+type CreateFieldOptions<Form extends HoneyFormBaseForm> = {
+  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  pushFieldValue: HoneyFormPushFieldValue<Form>;
+  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
+  addFormFieldError: HoneyFormAddFieldError<Form>;
+};
+
 export const createField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
-  FieldValue extends Form[FieldName] = Form[FieldName],
+  FormContext,
 >(
   fieldName: FieldName,
-  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FieldValue>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   {
     formDefaultValuesRef,
     setFieldValue,
@@ -43,16 +52,9 @@ export const createField = <
     pushFieldValue,
     removeFieldValue,
     addFormFieldError,
-  }: {
-    formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
-    setFieldValue: HoneyFormSetFieldValueInternal<Form>;
-    clearFieldErrors: HoneyFormClearFieldErrors<Form>;
-    pushFieldValue: HoneyFormPushFieldValue<Form>;
-    removeFieldValue: HoneyFormRemoveFieldValue<Form>;
-    addFormFieldError: HoneyFormAddFieldError<Form>;
-  },
-): HoneyFormField<Form, FieldName, FieldValue> => {
-  const config: HoneyFormFieldConfig<Form, FieldName, FieldValue> = {
+  }: CreateFieldOptions<Form>,
+): HoneyFormField<Form, FieldName, FormContext> => {
+  const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
     type: DEFAULT_FIELD_TYPE,
     mode: 'change',
     required: false,
@@ -69,7 +71,7 @@ export const createField = <
   const filteredValue = config.filter ? config.filter(fieldValue) : fieldValue;
   const formattedValue = config.format ? config.format(filteredValue) : filteredValue;
 
-  const fieldProps: HoneyFormFieldProps<Form, FieldName, FieldValue> = {
+  const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
     ref: formFieldRef,
     value: formattedValue,
     //
@@ -99,7 +101,7 @@ export const createField = <
     childForms: undefined,
   };
 
-  const newFormField: HoneyFormField<Form, FieldName, FieldValue> = {
+  const newFormField: HoneyFormField<Form, FieldName, FormContext> = {
     config,
     errors: [],
     defaultValue: config.defaultValue,
@@ -241,17 +243,20 @@ const getNextValidatedField = <Form extends HoneyFormBaseForm, FieldName extends
 const executeFieldTypeValidator = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName],
 >(
-  formFields: HoneyFormFields<Form>,
-  formField: HoneyFormField<Form, FieldName>,
+  context: FormContext,
+  formFields: HoneyFormFields<Form, FormContext>,
+  formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldValue: FieldValue | undefined,
 ): HoneyFormFieldValidationResult | null => {
   const validator = FIELD_TYPE_VALIDATORS_MAP[formField.config.type ?? DEFAULT_FIELD_TYPE];
 
   const validationResponse = validator(fieldValue, {
-    fieldConfig: formField.config,
+    context,
     formFields,
+    fieldConfig: formField.config,
   });
 
   if (!(validationResponse instanceof Promise)) {
@@ -331,9 +336,11 @@ const sanitizeFieldValue = <
 export const executeFieldValidator = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName],
 >(
-  formFields: HoneyFormFields<Form>,
+  context: FormContext,
+  formFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
   fieldValue: FieldValue | undefined,
 ) => {
@@ -342,7 +349,7 @@ export const executeFieldValidator = <
 
   const cleanValue = sanitizeFieldValue(formField.config.type, fieldValue);
 
-  let validationResult = executeFieldTypeValidator(formFields, formField, cleanValue);
+  let validationResult = executeFieldTypeValidator(context, formFields, formField, cleanValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
@@ -351,8 +358,9 @@ export const executeFieldValidator = <
     // Execute custom validator. Can be run only when the default validator returns true
     if (formField.config.validator) {
       const validationResponse = formField.config.validator(cleanValue, {
-        fieldConfig: formField.config,
+        context,
         formFields,
+        fieldConfig: formField.config,
       });
 
       if (validationResponse instanceof Promise) {
@@ -369,8 +377,10 @@ export const executeFieldValidator = <
 export const executeFieldValidatorAsync = async <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
 >(
-  formFields: HoneyFormFields<Form>,
+  context: FormContext,
+  formFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
   const fieldErrors: HoneyFormFieldError[] = [];
@@ -382,7 +392,7 @@ export const executeFieldValidatorAsync = async <
 
   const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
 
-  let validationResult = executeFieldTypeValidator(formFields, formField, sanitizedValue);
+  let validationResult = executeFieldTypeValidator(context, formFields, formField, sanitizedValue);
 
   // do not run additional validators if default field type validator is failed
   if (validationResult === null || validationResult === true) {
@@ -391,8 +401,9 @@ export const executeFieldValidatorAsync = async <
     // execute custom validator. Can be run only when default validator return true
     if (formField.config.validator) {
       const validationResponse = formField.config.validator(sanitizedValue, {
-        fieldConfig: formField.config,
+        context,
         formFields,
+        fieldConfig: formField.config,
       });
 
       if (validationResponse instanceof Promise) {
@@ -412,26 +423,13 @@ export const executeFieldValidatorAsync = async <
   return getNextValidatedField(fieldErrors, validationResult, formField, sanitizedValue);
 };
 
-export const checkSkippableFields = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
-  nextFormFields: HoneyFormFields<Form>,
-  fieldName: FieldName,
-) => {
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
-    if (fieldName === otherFieldName) {
-      return;
-    }
-
-    if (isSkipField(otherFieldName, nextFormFields)) {
-      nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
-    }
-  });
-};
-
-export const triggerScheduledFieldsValidations = <
+const checkSkippableFields = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
 >(
-  nextFormFields: HoneyFormFields<Form>,
+  context: FormContext,
+  nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
   Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
@@ -439,22 +437,8 @@ export const triggerScheduledFieldsValidations = <
       return;
     }
 
-    const nextFormField = nextFormFields[otherFieldName];
-
-    if (nextFormField.__meta__.isValidationScheduled) {
-      if (!isSkipField(otherFieldName, nextFormFields)) {
-        const filteredValue = nextFormField.config.filter
-          ? nextFormField.config.filter(nextFormField.rawValue)
-          : nextFormField.rawValue;
-
-        nextFormFields[otherFieldName] = executeFieldValidator(
-          nextFormFields,
-          otherFieldName,
-          filteredValue,
-        );
-      }
-
-      nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;
+    if (isSkipField(context, otherFieldName, nextFormFields)) {
+      nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
     }
   });
 };
@@ -467,7 +451,7 @@ export const clearAllFields = <Form extends HoneyFormBaseForm>(
   });
 };
 
-export const clearDependentFields = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+const clearDependentFields = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
   nextFormFields: HoneyFormFields<Form>,
   fieldName: FieldName,
   initiatorFieldName: FieldName | null = null,
@@ -495,4 +479,90 @@ export const clearDependentFields = <Form extends HoneyFormBaseForm, FieldName e
       }
     }
   });
+};
+
+const triggerScheduledFieldsValidations = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  context: FormContext,
+  nextFormFields: HoneyFormFields<Form, FormContext>,
+  fieldName: FieldName,
+) => {
+  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
+    if (fieldName === otherFieldName) {
+      return;
+    }
+
+    const nextFormField = nextFormFields[otherFieldName];
+
+    if (nextFormField.__meta__.isValidationScheduled) {
+      if (!isSkipField(context, otherFieldName, nextFormFields)) {
+        const filteredValue = nextFormField.config.filter
+          ? nextFormField.config.filter(nextFormField.rawValue)
+          : nextFormField.rawValue;
+
+        nextFormFields[otherFieldName] = executeFieldValidator(
+          context,
+          nextFormFields,
+          otherFieldName,
+          filteredValue,
+        );
+      }
+
+      nextFormFields[otherFieldName].__meta__.isValidationScheduled = false;
+    }
+  });
+};
+
+type NextFieldsStateOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  context: FormContext;
+  formFields: HoneyFormFields<Form, FormContext>;
+  isValidate: boolean;
+  isFormat: boolean;
+};
+
+export const getNextFieldsState = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName],
+  FormContext,
+>(
+  fieldName: FieldName,
+  fieldValue: FieldValue | undefined,
+  { context, formFields, isValidate, isFormat }: NextFieldsStateOptions<Form, FormContext>,
+) => {
+  const nextFormFields = { ...formFields };
+
+  const formField = formFields[fieldName];
+  let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formField;
+
+  const filteredValue = formField.config.filter ? formField.config.filter(fieldValue) : fieldValue;
+
+  if (isValidate) {
+    clearDependentFields(nextFormFields, fieldName);
+
+    nextFormField = executeFieldValidator(context, nextFormFields, fieldName, filteredValue);
+  }
+
+  const formattedValue =
+    isFormat && formField.config.format ? formField.config.format(filteredValue) : filteredValue;
+
+  nextFormField = {
+    ...nextFormField,
+    rawValue: filteredValue,
+    value: formattedValue,
+    props: {
+      ...nextFormField.props,
+      value: formattedValue,
+    },
+  };
+
+  nextFormFields[fieldName] = nextFormField;
+
+  checkSkippableFields(context, nextFormFields, fieldName);
+  triggerScheduledFieldsValidations(context, nextFormFields, fieldName);
+
+  return nextFormFields;
 };
