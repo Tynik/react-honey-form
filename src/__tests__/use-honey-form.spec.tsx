@@ -263,7 +263,7 @@ describe('Hook [use-honey-form]: General', () => {
 });
 
 describe('Hook [use-honey-form]: Context', () => {
-  it('should use passed form context in validator', () => {
+  it('should use `allowedNames` configuration from the context in validator function', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -283,6 +283,52 @@ describe('Hook [use-honey-form]: Context', () => {
     });
 
     expect(result.current.formFields.name.value).toBe('Apple');
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+
+  it('should use `maxStrLength` configuration from the context in filter function', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          name: {
+            value: '',
+            filter: (value, { context }) => value.slice(0, context.maxStrLength),
+          },
+        },
+        context: {
+          maxStrLength: 5,
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple123');
+    });
+
+    expect(result.current.formFields.name.value).toBe('Apple');
+    expect(result.current.formErrors).toStrictEqual({});
+  });
+
+  it('should use `currencySign` configuration from the context in format function', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          price: {
+            value: '',
+            format: (value, { context }) => `${context.currencySign}${value}`,
+          },
+        },
+        context: {
+          currencySign: '$',
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.price.setValue('15');
+    });
+
+    expect(result.current.formFields.price.value).toBe('$15');
     expect(result.current.formErrors).toStrictEqual({});
   });
 });

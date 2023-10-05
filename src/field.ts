@@ -29,7 +29,8 @@ const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   number: value => (value ? Number(value) : undefined),
 };
 
-type CreateFieldOptions<Form extends HoneyFormBaseForm> = {
+type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  context: FormContext;
   formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
@@ -46,13 +47,14 @@ export const createField = <
   fieldName: FieldName,
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   {
+    context,
     formDefaultValuesRef,
     setFieldValue,
     clearFieldErrors,
     pushFieldValue,
     removeFieldValue,
     addFormFieldError,
-  }: CreateFieldOptions<Form>,
+  }: CreateFieldOptions<Form, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
     type: DEFAULT_FIELD_TYPE,
@@ -68,8 +70,8 @@ export const createField = <
   // Set initial field value as the default value
   formDefaultValuesRef.current[fieldName] = fieldValue;
 
-  const filteredValue = config.filter ? config.filter(fieldValue) : fieldValue;
-  const formattedValue = config.format ? config.format(filteredValue) : filteredValue;
+  const filteredValue = config.filter ? config.filter(fieldValue, { context }) : fieldValue;
+  const formattedValue = config.format ? config.format(filteredValue, { context }) : filteredValue;
 
   const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
     ref: formFieldRef,
@@ -151,9 +153,10 @@ export const createField = <
 export const getNextFreeErrorsField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
 >(
-  formField: HoneyFormField<Form, FieldName>,
-): HoneyFormField<Form, FieldName> => {
+  formField: HoneyFormField<Form, FieldName, FormContext>,
+): HoneyFormField<Form, FieldName, FormContext> => {
   return {
     ...formField,
     cleanValue: undefined,
@@ -165,10 +168,14 @@ export const getNextFreeErrorsField = <
   };
 };
 
-export const getNextErredField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
-  formField: HoneyFormField<Form, FieldName>,
+export const getNextErredField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldErrors: HoneyFormFieldError[],
-): HoneyFormField<Form, FieldName> => {
+): HoneyFormField<Form, FieldName, FormContext> => {
   return {
     ...formField,
     errors: fieldErrors,
@@ -181,9 +188,13 @@ export const getNextErredField = <Form extends HoneyFormBaseForm, FieldName exte
   };
 };
 
-export const getNextClearedField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
-  formField: HoneyFormField<Form, FieldName>,
-): HoneyFormField<Form, FieldName> => {
+export const getNextClearedField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  formField: HoneyFormField<Form, FieldName, FormContext>,
+): HoneyFormField<Form, FieldName, FormContext> => {
   const freeErrorsField = getNextFreeErrorsField(formField);
 
   return {
@@ -220,12 +231,16 @@ const handleFieldValidationResult = <Form extends HoneyFormBaseForm, FieldName e
   }
 };
 
-const getNextValidatedField = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+const getNextValidatedField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
   fieldErrors: HoneyFormFieldError[],
   validationResult: HoneyFormFieldValidationResult | null,
-  formField: HoneyFormField<Form, FieldName>,
+  formField: HoneyFormField<Form, FieldName, FormContext>,
   cleanValue: Form[FieldName] | undefined,
-): HoneyFormField<Form, FieldName> => {
+): HoneyFormField<Form, FieldName, FormContext> => {
   handleFieldValidationResult(fieldErrors, formField.config, validationResult);
 
   if (fieldErrors.length) {
@@ -387,7 +402,7 @@ export const executeFieldValidatorAsync = async <
   const formField = formFields[fieldName];
 
   const filteredValue = formField.config.filter
-    ? formField.config.filter(formField.rawValue)
+    ? formField.config.filter(formField.rawValue, { context })
     : formField.rawValue;
 
   const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
@@ -500,7 +515,7 @@ const triggerScheduledFieldsValidations = <
     if (nextFormField.__meta__.isValidationScheduled) {
       if (!isSkipField(context, otherFieldName, nextFormFields)) {
         const filteredValue = nextFormField.config.filter
-          ? nextFormField.config.filter(nextFormField.rawValue)
+          ? nextFormField.config.filter(nextFormField.rawValue, { context })
           : nextFormField.rawValue;
 
         nextFormFields[otherFieldName] = executeFieldValidator(
@@ -538,7 +553,9 @@ export const getNextFieldsState = <
   const formField = formFields[fieldName];
   let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formField;
 
-  const filteredValue = formField.config.filter ? formField.config.filter(fieldValue) : fieldValue;
+  const filteredValue = formField.config.filter
+    ? formField.config.filter(fieldValue, { context })
+    : fieldValue;
 
   if (isValidate) {
     clearDependentFields(nextFormFields, fieldName);
@@ -547,7 +564,9 @@ export const getNextFieldsState = <
   }
 
   const formattedValue =
-    isFormat && formField.config.format ? formField.config.format(filteredValue) : filteredValue;
+    isFormat && formField.config.format
+      ? formField.config.format(filteredValue, { context })
+      : filteredValue;
 
   nextFormField = {
     ...nextFormField,

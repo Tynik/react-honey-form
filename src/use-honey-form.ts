@@ -50,7 +50,8 @@ import {
 } from './helpers';
 import { USE_HONEY_FORM_ERRORS } from './constants';
 
-type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm> = {
+type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  context: FormContext;
   formIndex: number | undefined;
   parentField: HoneyFormParentField<Form> | undefined;
   fieldsConfigs: HoneyFormFieldsConfigs<Form>;
@@ -63,7 +64,8 @@ type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm> = {
 };
 
 const createInitialFormFieldsGetter =
-  <Form extends HoneyFormBaseForm>({
+  <Form extends HoneyFormBaseForm, FormContext>({
+    context,
     formIndex,
     parentField,
     fieldsConfigs,
@@ -73,7 +75,7 @@ const createInitialFormFieldsGetter =
     pushFieldValue,
     removeFieldValue,
     addFormFieldError,
-  }: CreateInitialFormFieldsGetterOptions<Form>) =>
+  }: CreateInitialFormFieldsGetterOptions<Form, FormContext>) =>
   () =>
     Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
       const fieldConfig = fieldsConfigs[fieldName];
@@ -98,6 +100,7 @@ const createInitialFormFieldsGetter =
             formDefaultValuesRef.current[fieldName],
         },
         {
+          context,
           formDefaultValuesRef,
           setFieldValue,
           clearFieldErrors,
@@ -237,7 +240,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
       const formField = formFields[fieldName];
 
       const filteredValue = formField.config.filter
-        ? formField.config.filter(formField.rawValue)
+        ? formField.config.filter(formField.rawValue, { context })
         : formField.rawValue;
 
       return {
@@ -264,6 +267,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
   }, []);
 
   const initialFormFieldsGetter = createInitialFormFieldsGetter({
+    context,
     formIndex,
     parentField,
     fieldsConfigs,
@@ -275,7 +279,9 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     addFormFieldError,
   });
 
-  const [formFields, setFormFields] = useState<HoneyFormFields<Form>>(initialFormFieldsGetter);
+  const [formFields, setFormFields] =
+    useState<HoneyFormFields<Form, FormContext>>(initialFormFieldsGetter);
+
   formFieldsRef.current = formFields;
 
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
@@ -291,7 +297,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
           const fieldConfig = nextFormFields[fieldName].config;
 
           const filteredValue = fieldConfig.filter
-            ? fieldConfig.filter(values[fieldName])
+            ? fieldConfig.filter(values[fieldName], { context })
             : values[fieldName];
 
           let nextFormField = executeFieldValidator(
@@ -302,7 +308,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
           );
 
           const formattedValue = nextFormField.config.format
-            ? nextFormField.config.format(filteredValue)
+            ? nextFormField.config.format(filteredValue, { context })
             : filteredValue;
 
           nextFormField = {
@@ -359,6 +365,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
         return {
           ...formFields,
           [fieldName]: createField(fieldName, config, {
+            context,
             formDefaultValuesRef,
             setFieldValue,
             clearFieldErrors,

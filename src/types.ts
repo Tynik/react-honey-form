@@ -164,7 +164,7 @@ export type HoneyFormFieldOnChange<
 export type HoneyFormFieldValidatorContext<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
-  FormContext = undefined,
+  FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = {
   context: FormContext;
@@ -194,12 +194,22 @@ export type HoneyFormFieldValidator<
   context: HoneyFormFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
-export type HoneyFormFieldFilter<FieldValue> = (
+type HoneyFormFieldFilterContext<FormContext> = {
+  context: FormContext;
+};
+
+export type HoneyFormFieldFilter<FieldValue, FormContext = undefined> = (
   value: FieldValue | undefined,
+  context: HoneyFormFieldFilterContext<FormContext>,
 ) => FieldValue | undefined;
 
-export type HoneyFormFieldFormatter<FieldValue> = (
+type HoneyFormFieldFormatterContext<FormContext> = {
+  context: FormContext;
+};
+
+export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
   value: FieldValue | undefined,
+  context: HoneyFormFieldFormatterContext<FormContext>,
 ) => FieldValue | undefined;
 
 type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
@@ -293,11 +303,11 @@ export type HoneyFormFieldConfig<
   /**
    * A function to filter characters from the value.
    */
-  filter?: HoneyFormFieldFilter<FieldValue>;
+  filter?: HoneyFormFieldFilter<FieldValue, FormContext>;
   /**
    * A function to modify the field's value.
    */
-  format?: HoneyFormFieldFormatter<FieldValue>;
+  format?: HoneyFormFieldFormatter<FieldValue, FormContext>;
   /**
    * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur).
    *
