@@ -41,7 +41,7 @@ describe('Component [HoneyForm]: Basic usage', () => {
       name: string;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
@@ -71,7 +71,7 @@ describe('Component [HoneyForm]: Field mode usage', () => {
       name: string;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
@@ -106,9 +106,12 @@ describe('Component [HoneyForm]: Field mode usage', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        name: 'Apple',
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          name: 'Apple',
+        },
+        { context: undefined },
+      ),
     );
   });
 });
@@ -141,7 +144,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
   });
 
   it('should submit form with correct item values after dynamic addition', async () => {
-    const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
+    const onSubmit = jest.fn<Promise<void>, [ItemsForm]>();
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
@@ -219,9 +222,12 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [],
+        },
+        { context: undefined },
+      ),
     );
     onSubmit.mockClear();
 
@@ -239,15 +245,18 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [
-          {
-            id: '1',
-            name: 'Apple',
-            price: 10,
-          },
-        ],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [
+            {
+              id: '1',
+              name: 'Apple',
+              price: 10,
+            },
+          ],
+        },
+        { context: undefined },
+      ),
     );
     onSubmit.mockClear();
 
@@ -263,20 +272,23 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [
-          {
-            id: '1',
-            name: 'Apple',
-            price: 10,
-          },
-          {
-            id: '2',
-            name: 'Pear',
-            price: 30,
-          },
-        ],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [
+            {
+              id: '1',
+              name: 'Apple',
+              price: 10,
+            },
+            {
+              id: '2',
+              name: 'Pear',
+              price: 30,
+            },
+          ],
+        },
+        { context: undefined },
+      ),
     );
     onSubmit.mockClear();
 
@@ -288,20 +300,23 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [
-          {
-            id: '2',
-            name: 'Pear',
-            price: 30,
-          },
-        ],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [
+            {
+              id: '2',
+              name: 'Pear',
+              price: 30,
+            },
+          ],
+        },
+        { context: undefined },
+      ),
     );
   });
 
   it('should remove an item from the list when remove button is clicked', () => {
-    const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
+    const onSubmit = jest.fn<Promise<void>, [ItemsForm]>();
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
@@ -380,7 +395,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
   });
 
   it('should remove items from the form and exclude them in the submitted data', async () => {
-    const onSubmit = jest.fn<Promise<void>, ItemsForm[]>();
+    const onSubmit = jest.fn<Promise<void>, [ItemsForm]>();
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
@@ -475,9 +490,12 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [],
+        },
+        { context: undefined },
+      ),
     );
 
     expect(queryByTestId('item[0].price')).toBeNull();
@@ -495,15 +513,18 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        items: [
-          {
-            id: '3',
-            name: 'Apple',
-            price: 30,
-          },
-        ],
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          items: [
+            {
+              id: '3',
+              name: 'Apple',
+              price: 30,
+            },
+          ],
+        },
+        { context: undefined },
+      ),
     );
   });
 });

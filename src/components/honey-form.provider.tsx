@@ -10,7 +10,7 @@ type HoneyFormContextValue<Form extends HoneyFormBaseForm, FormContext = undefin
   FormContext
 >;
 
-const HoneyFormContext = createContext<HoneyFormContextValue<any> | undefined>(undefined);
+const HoneyFormContext = createContext<HoneyFormContextValue<any, any> | undefined>(undefined);
 
 export type HoneyFormProviderProps<
   Form extends HoneyFormBaseForm,

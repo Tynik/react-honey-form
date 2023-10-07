@@ -63,7 +63,7 @@ describe('Hook [use-honey-form]: Filter function', () => {
     expect(result.current.formFields.name.value).toBe('Apple');
     expect(result.current.formFields.name.cleanValue).toBe('Apple');
 
-    expect(onSubmit).toBeCalledWith({ name: 'Apple' });
+    expect(onSubmit).toBeCalledWith({ name: 'Apple' }, { context: undefined });
   });
 });
 

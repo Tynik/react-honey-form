@@ -453,7 +453,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     }
   }, []);
 
-  const submitForm = useCallback<HoneyFormSubmit<Form>>(
+  const submitForm = useCallback<HoneyFormSubmit<Form, FormContext>>(
     async submitHandler => {
       if (!formFieldsRef.current) {
         throw new Error('The `formFieldsRef` value is null');
@@ -472,7 +472,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
 
           const submitData = getSubmitFormValues(context, formFieldsRef.current);
 
-          const serverErrors = await (submitHandler || onSubmit)?.(submitData);
+          const serverErrors = await (submitHandler || onSubmit)?.(submitData, { context });
 
           if (serverErrors && Object.keys(serverErrors).length) {
             setFormErrors(
@@ -516,7 +516,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
 
       childFormIdRef.current = getHoneyFormUniqueId();
 
-      registerChildForm<Form>(parentField, {
+      registerChildForm(parentField, {
         id: childFormIdRef.current,
         formFieldsRef,
         submitForm,

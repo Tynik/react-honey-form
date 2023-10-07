@@ -23,7 +23,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 });
+    expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 }, { context: undefined });
   });
 
   it('should call custom submit function passed to submitForm()', async () => {
@@ -48,7 +48,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm(onSubmit));
 
-    expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined });
+    expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined }, { context: undefined });
   });
 
   it('should show an error related to allow only numerics because its high priority error than min/max', async () => {

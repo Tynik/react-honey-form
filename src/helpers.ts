@@ -96,9 +96,9 @@ export const getFormErrors = <Form extends HoneyFormBaseForm>(formFields: HoneyF
     return result;
   }, {} as HoneyFormErrors<Form>);
 
-export const registerChildForm = <Form extends HoneyFormBaseForm>(
+export const registerChildForm = <Form extends HoneyFormBaseForm, FormContext>(
   parentFormField: HoneyFormParentField<Form>,
-  childFormContext: HoneyFormChildFormContext<Form>,
+  childFormContext: HoneyFormChildFormContext<Form, FormContext>,
 ) => {
   parentFormField.__meta__.childForms ||= [];
   // @ts-expect-error

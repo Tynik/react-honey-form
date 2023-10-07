@@ -10,7 +10,7 @@ describe('Component [HoneyFormDynamicField]', () => {
       product: string;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
@@ -26,7 +26,9 @@ describe('Component [HoneyFormDynamicField]', () => {
 
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).toBeCalledWith({ product: 'apple' }));
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({ product: 'apple' }, { context: undefined }),
+    );
   });
 
   it('should submit form with correct gender value for unselected and selected radio inputs', async () => {
@@ -34,7 +36,7 @@ describe('Component [HoneyFormDynamicField]', () => {
       gender: string;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
@@ -75,12 +77,14 @@ describe('Component [HoneyFormDynamicField]', () => {
     // case 1
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).toBeCalledWith({ gender: null }));
+    await waitFor(() => expect(onSubmit).toBeCalledWith({ gender: null }, { context: undefined }));
 
     // case 2
     fireEvent.click(getByTestId('female'));
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).toBeCalledWith({ gender: 'female' }));
+    await waitFor(() =>
+      expect(onSubmit).toBeCalledWith({ gender: 'female' }, { context: undefined }),
+    );
   });
 });

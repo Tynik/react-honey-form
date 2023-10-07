@@ -387,7 +387,7 @@ export type HoneyFormFieldProps<
 /**
  * Contextual information for child forms within a parent form.
  */
-export type HoneyFormChildFormContext<Form extends HoneyFormChildForm> = {
+export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, FormContext = undefined> = {
   /**
    * The unique identifier for the child form.
    */
@@ -399,7 +399,7 @@ export type HoneyFormChildFormContext<Form extends HoneyFormChildForm> = {
   /**
    * A function to submit the child form.
    */
-  submitForm: HoneyFormSubmit<Form>;
+  submitForm: HoneyFormSubmit<Form, FormContext>;
   /**
    * A function to validate the child form.
    */
@@ -527,8 +527,13 @@ export type HoneyFormDefaults<Form extends HoneyFormBaseForm> =
 
 export type HoneyFormDefaultsRef<Form extends HoneyFormBaseForm> = MutableRefObject<Partial<Form>>;
 
-export type HoneyFormOnSubmit<Form extends HoneyFormBaseForm> = (
+type HoneyFormOnSubmitContext<FormContext> = {
+  context: FormContext;
+};
+
+export type HoneyFormOnSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
   data: Form,
+  context: HoneyFormOnSubmitContext<FormContext>,
 ) => Promise<HoneyFormServerErrors<Form> | void>;
 
 /**
@@ -582,7 +587,7 @@ export type HoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = undef
   /**
    * A callback function triggered when the form is submitted.
    */
-  onSubmit?: HoneyFormOnSubmit<Form>;
+  onSubmit?: HoneyFormOnSubmit<Form, FormContext>;
   /**
    * A callback function triggered whenever the value of any form field changes.
    */
@@ -633,12 +638,22 @@ export type HoneyFormAddFieldError<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormClearErrors = () => void;
 
+/**
+ * @param fieldNames - Optional list of field names for validation
+ */
 export type HoneyFormValidate<Form extends HoneyFormBaseForm> = (
   fieldNames?: (keyof Form)[],
 ) => Promise<boolean>;
 
-export type HoneyFormSubmit<Form extends HoneyFormBaseForm> = (
-  submitHandler?: (data: Form) => Promise<HoneyFormServerErrors<Form> | void>,
+type HoneyFormSubmitHandlerContext<FormContext> = {
+  context: FormContext;
+};
+
+export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
+  submitHandler?: (
+    data: Form,
+    context: HoneyFormSubmitHandlerContext<FormContext>,
+  ) => Promise<HoneyFormServerErrors<Form> | void>,
 ) => Promise<void>;
 
 export type HoneyFormReset = () => void;
@@ -723,14 +738,17 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
   isFormSubmitted: boolean;
   setFormValues: HoneyFormSetFormValues<Form>;
   setFormErrors: HoneyFormSetFormErrors<Form>;
+  /**
+   * Add a new field to the form.
+   */
   addFormField: HoneyFormAddFormField<Form, FormContext>;
   removeFormField: HoneyFormRemoveFormField<Form>;
   addFormFieldError: HoneyFormAddFieldError<Form>;
   clearFormErrors: HoneyFormClearErrors;
   validateForm: HoneyFormValidate<Form>;
-  submitForm: HoneyFormSubmit<Form>;
+  submitForm: HoneyFormSubmit<Form, FormContext>;
   /**
-   * Reset the form to the initial state
+   * Reset the form to the initial state.
    */
   resetForm: HoneyFormReset;
 };

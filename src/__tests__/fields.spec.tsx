@@ -537,7 +537,10 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ city: 'New Jersey', address: undefined });
+    expect(onSubmit).toBeCalledWith(
+      { city: 'New Jersey', address: undefined },
+      { context: undefined },
+    );
   });
 
   it('cross dependent fields should clear each other', () => {
@@ -646,7 +649,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' });
+    expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' }, { context: undefined });
   });
 
   it('remove dynamically added the form field', () => {
@@ -676,7 +679,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
       price: number;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const { result } = renderHook(() =>
       useHoneyForm<Form>({
@@ -701,9 +704,12 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     await act(() => result.current.submitForm());
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        name: 'Apple',
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          name: 'Apple',
+        },
+        { context: undefined },
+      ),
     );
   });
 
@@ -713,7 +719,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
       price: number;
     };
 
-    const onSubmit = jest.fn<Promise<void>, Form[]>();
+    const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const { result } = renderHook(() =>
       useHoneyForm<Form>({
@@ -736,10 +742,13 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     await act(() => result.current.submitForm());
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        name: 'Orange',
-        price: 15,
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          name: 'Orange',
+          price: 15,
+        },
+        { context: undefined },
+      ),
     );
 
     act(() => {
@@ -751,9 +760,12 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     expect(result.current.formFields.price.value).toBe(15);
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({
-        name: 'Pear',
-      }),
+      expect(onSubmit).toBeCalledWith(
+        {
+          name: 'Pear',
+        },
+        { context: undefined },
+      ),
     );
   });
 });

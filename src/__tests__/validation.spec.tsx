@@ -267,7 +267,7 @@ describe('Hook [use-honey-form]: Validation', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 });
+    expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 }, { context: undefined });
   });
 
   it('check required field when submitting', async () => {
