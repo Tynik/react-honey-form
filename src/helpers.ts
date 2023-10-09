@@ -8,6 +8,7 @@ import type {
   HoneyFormChildFormId,
   HoneyFormParentField,
   HoneyFormChildForm,
+  HoneyFormValues,
 } from './types';
 
 export const noop = () => {
@@ -45,16 +46,18 @@ export const isSkipField = <
   formFields: HoneyFormFields<Form, FormContext>,
 ) => formFields[fieldName].config.skip?.({ context, formFields }) === true;
 
-export const getFormValues = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>
+export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
+  formFields: HoneyFormFields<Form, FormContext>,
+) =>
   Object.keys(formFields).reduce((formData, fieldName: keyof Form) => {
     formData[fieldName] = formFields[fieldName].value;
 
     return formData;
-  }, {} as Form);
+  }, {} as HoneyFormValues<Form>);
 
 export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>(
   context: FormContext,
-  formFields: HoneyFormFields<Form>,
+  formFields: HoneyFormFields<Form, FormContext>,
 ) =>
   Object.keys(formFields).reduce((submitFormValues, fieldName: keyof Form) => {
     if (isSkipField(context, fieldName, formFields)) {
@@ -85,7 +88,9 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
     return submitFormValues;
   }, {} as Form);
 
-export const getFormErrors = <Form extends HoneyFormBaseForm>(formFields: HoneyFormFields<Form>) =>
+export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
+  formFields: HoneyFormFields<Form, FormContext>,
+) =>
   Object.keys(formFields).reduce((result, fieldName: keyof Form) => {
     const formField = formFields[fieldName];
 
@@ -117,8 +122,9 @@ export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
 export const runChildFormsValidation = async <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
 >(
-  formField: HoneyFormField<Form, FieldName>,
+  formField: HoneyFormField<Form, FieldName, FormContext>,
 ) => {
   const { childForms } = formField.__meta__;
   if (!childForms?.length) {

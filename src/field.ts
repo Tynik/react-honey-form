@@ -98,7 +98,7 @@ export const createField = <
     'aria-invalid': false,
   };
 
-  const fieldMeta: HoneyFormFieldMeta<Form, FieldName> = {
+  const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {
     isValidationScheduled: false,
     childForms: undefined,
   };
@@ -208,9 +208,13 @@ export const getNextClearedField = <
   };
 };
 
-const handleFieldValidationResult = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+const handleFieldValidationResult = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
   fieldErrors: HoneyFormFieldError[],
-  fieldConfig: HoneyFormFieldConfig<Form, FieldName>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   validationResult: HoneyFormFieldValidationResult | null,
 ) => {
   if (validationResult) {
@@ -284,10 +288,11 @@ const executeFieldTypeValidator = <
 const executeInternalFieldValidators = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName],
 >(
   fieldValue: FieldValue | undefined,
-  fieldConfig: HoneyFormFieldConfig<Form, FieldName>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   fieldErrors: HoneyFormFieldError[],
 ) => {
   INTERNAL_FIELD_VALIDATORS.forEach(validator => validator(fieldValue, fieldConfig, fieldErrors));
@@ -296,8 +301,9 @@ const executeInternalFieldValidators = <
 const handleFieldPromiseValidationResult = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
 >(
-  formField: HoneyFormField<Form, FieldName>,
+  formField: HoneyFormField<Form, FieldName, FormContext>,
   validationResponse: Promise<HoneyFormFieldValidationResult>,
 ) => {
   validationResponse
@@ -458,16 +464,20 @@ const checkSkippableFields = <
   });
 };
 
-export const clearAllFields = <Form extends HoneyFormBaseForm>(
-  nextFormFields: HoneyFormFields<Form>,
+export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
+  nextFormFields: HoneyFormFields<Form, FormContext>,
 ) => {
   Object.keys(nextFormFields).forEach((fieldName: keyof Form) => {
     nextFormFields[fieldName] = getNextClearedField(nextFormFields[fieldName]);
   });
 };
 
-const clearDependentFields = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
-  nextFormFields: HoneyFormFields<Form>,
+const clearDependentFields = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
   initiatorFieldName: FieldName | null = null,
 ) => {

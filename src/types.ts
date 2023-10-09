@@ -151,15 +151,19 @@ export type HoneyFormRemoveFieldValue<Form extends HoneyFormBaseForm> = <
   formIndex: number,
 ) => void;
 
-type HoneyFormFieldOnChangeContext<Form extends HoneyFormBaseForm> = {
-  formFields: HoneyFormFields<Form>;
+type HoneyFormFieldOnChangeContext<Form extends HoneyFormBaseForm, FormContext> = {
+  formFields: HoneyFormFields<Form, FormContext>;
 };
 
 export type HoneyFormFieldOnChange<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = (cleanValue: FieldValue | undefined, context: HoneyFormFieldOnChangeContext<Form>) => void;
+> = (
+  cleanValue: FieldValue | undefined,
+  context: HoneyFormFieldOnChangeContext<Form, FormContext>,
+) => void;
 
 export type HoneyFormFieldValidatorContext<
   Form extends HoneyFormBaseForm,
@@ -214,7 +218,7 @@ export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
 
 type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
   context: FormContext;
-  formFields: HoneyFormFields<Form>;
+  formFields: HoneyFormFields<Form, FormContext>;
 };
 
 type HoneyFormSkipField<Form extends HoneyFormBaseForm, FormContext> = (
@@ -336,7 +340,7 @@ export type HoneyFormFieldConfig<
   /**
    * Callback function triggered when the field value changes.
    */
-  onChange?: HoneyFormFieldOnChange<Form, FieldName, FieldValue>;
+  onChange?: HoneyFormFieldOnChange<Form, FieldName, FormContext, FieldValue>;
 }>;
 
 export type HoneyFormFieldInternalValidator = <
@@ -345,7 +349,7 @@ export type HoneyFormFieldInternalValidator = <
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
   fieldValue: FieldValue | undefined,
-  fieldConfig: HoneyFormFieldConfig<Form, FieldName, undefined, FieldValue>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, any, FieldValue>,
   fieldErrors: HoneyFormFieldError[],
 ) => void;
 
@@ -387,7 +391,7 @@ export type HoneyFormFieldProps<
 /**
  * Contextual information for child forms within a parent form.
  */
-export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, FormContext = undefined> = {
+export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, FormContext> = {
   /**
    * The unique identifier for the child form.
    */
@@ -395,7 +399,7 @@ export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, FormConte
   /**
    * A reference to the form fields of the child form.
    */
-  formFieldsRef: MutableRefObject<HoneyFormFields<Form> | null>;
+  formFieldsRef: MutableRefObject<HoneyFormFields<Form, FormContext> | null>;
   /**
    * A function to submit the child form.
    */
@@ -409,7 +413,11 @@ export type HoneyFormChildFormContext<Form extends HoneyFormChildForm, FormConte
 /**
  * Metadata associated with a form field.
  */
-export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends keyof Form> = {
+export type HoneyFormFieldMeta<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
   /**
    * Indicates if field validation is scheduled.
    */
@@ -418,7 +426,7 @@ export type HoneyFormFieldMeta<Form extends HoneyFormBaseForm, FieldName extends
    * An array of child form contexts when applicable, or `undefined` initially.
    */
   childForms: Form[FieldName] extends (infer ChildForm extends HoneyFormChildForm)[]
-    ? HoneyFormChildFormContext<ChildForm>[] | undefined
+    ? HoneyFormChildFormContext<ChildForm, FormContext>[] | undefined
     : never;
 };
 
@@ -495,7 +503,7 @@ export type HoneyFormField<
   /**
    * Internal metadata used by the library.
    */
-  __meta__: HoneyFormFieldMeta<Form, FieldName>;
+  __meta__: HoneyFormFieldMeta<Form, FieldName, FormContext>;
 }>;
 
 export type HoneyFormParentField<Form extends HoneyFormBaseForm> = HoneyFormField<
@@ -509,23 +517,31 @@ export type HoneyFormFields<Form extends HoneyFormBaseForm, FormContext = undefi
   [FieldName in keyof Form]: HoneyFormField<Form, FieldName, FormContext>;
 };
 
+export type HoneyFormValues<Form extends HoneyFormBaseForm> = {
+  [FieldName in keyof Form]: Form[FieldName] | undefined;
+};
+
 export type HoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext = undefined> = {
   [FieldName in keyof Form]: HoneyFormFieldConfig<Form, FieldName, FormContext, Form[FieldName]>;
 };
 
 export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
-  [K in keyof Form]: HoneyFormFieldError[];
+  [FieldName in keyof Form]: HoneyFormFieldError[];
 };
 
 export type HoneyFormServerErrors<Form extends HoneyFormBaseForm> = {
-  [K in keyof Form]: HoneyFormFieldErrorMessage[];
+  [FieldName in keyof Form]: HoneyFormFieldErrorMessage[];
 };
 
-export type HoneyFormDefaults<Form extends HoneyFormBaseForm> =
-  | Partial<Form>
-  | (() => Promise<Partial<Form>>);
+export type HoneyFormDefaultValues<Form extends HoneyFormBaseForm> = Partial<Form>;
 
-export type HoneyFormDefaultsRef<Form extends HoneyFormBaseForm> = MutableRefObject<Partial<Form>>;
+export type HoneyFormDefaultsRef<Form extends HoneyFormBaseForm> = MutableRefObject<
+  HoneyFormDefaultValues<Form>
+>;
+
+export type HoneyFormDefaults<Form extends HoneyFormBaseForm> =
+  | HoneyFormDefaultValues<Form>
+  | (() => Promise<HoneyFormDefaultValues<Form>>);
 
 type HoneyFormOnSubmitContext<FormContext> = {
   context: FormContext;
@@ -675,13 +691,13 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
    *
    * @default {}
    */
-  formValues: Form;
+  formValues: HoneyFormValues<Form>;
   /**
    * Provides quick access to the default values of all form fields.
    *
    * @default {}
    */
-  formDefaultValues: Partial<Form>;
+  formDefaultValues: HoneyFormDefaultValues<Form>;
   /**
    * @default {}
    */

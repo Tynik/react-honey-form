@@ -26,6 +26,7 @@ import type {
   HoneyFormErrors,
   HoneyFormFieldError,
   HoneyFormDefaultsRef,
+  HoneyFormDefaultValues,
 } from './types';
 
 import {
@@ -54,7 +55,7 @@ type CreateInitialFormFieldsGetterOptions<Form extends HoneyFormBaseForm, FormCo
   context: FormContext;
   formIndex: number | undefined;
   parentField: HoneyFormParentField<Form> | undefined;
-  fieldsConfigs: HoneyFormFieldsConfigs<Form>;
+  fieldsConfigs: HoneyFormFieldsConfigs<Form, FormContext>;
   formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
@@ -77,41 +78,44 @@ const createInitialFormFieldsGetter =
     addFormFieldError,
   }: CreateInitialFormFieldsGetterOptions<Form, FormContext>) =>
   () =>
-    Object.keys(fieldsConfigs).reduce((initialFormFields, fieldName: keyof Form) => {
-      const fieldConfig = fieldsConfigs[fieldName];
+    Object.keys(fieldsConfigs).reduce(
+      (initialFormFields, fieldName: keyof Form) => {
+        const fieldConfig = fieldsConfigs[fieldName];
 
-      let childFormFieldValue: Form[keyof Form] | null | undefined = null;
+        let childFormFieldValue: Form[keyof Form] | null | undefined = null;
 
-      if (formIndex !== undefined && parentField) {
-        const childForm = Array.isArray(parentField.value)
-          ? parentField.value[formIndex]
-          : parentField.value;
+        if (formIndex !== undefined && parentField) {
+          const childForm = Array.isArray(parentField.value)
+            ? parentField.value[formIndex]
+            : parentField.value;
 
-        childFormFieldValue = childForm?.[fieldName];
-      }
+          childFormFieldValue = childForm?.[fieldName];
+        }
 
-      initialFormFields[fieldName] = createField(
-        fieldName,
-        {
-          ...fieldConfig,
-          defaultValue:
-            childFormFieldValue ??
-            fieldConfig.defaultValue ??
-            formDefaultValuesRef.current[fieldName],
-        },
-        {
-          context,
-          formDefaultValuesRef,
-          setFieldValue,
-          clearFieldErrors,
-          pushFieldValue,
-          removeFieldValue,
-          addFormFieldError,
-        },
-      );
+        initialFormFields[fieldName] = createField(
+          fieldName,
+          {
+            ...fieldConfig,
+            defaultValue:
+              childFormFieldValue ??
+              fieldConfig.defaultValue ??
+              formDefaultValuesRef.current[fieldName],
+          },
+          {
+            context,
+            formDefaultValuesRef,
+            setFieldValue,
+            clearFieldErrors,
+            pushFieldValue,
+            removeFieldValue,
+            addFormFieldError,
+          },
+        );
 
-      return initialFormFields;
-    }, {} as HoneyFormFields<Form>);
+        return initialFormFields;
+      },
+      {} as HoneyFormFields<Form, FormContext>,
+    );
 
 export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   formIndex,
@@ -131,10 +135,10 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
-  const formDefaultValuesRef = useRef<Partial<Form>>(
+  const formDefaultValuesRef = useRef<HoneyFormDefaultValues<Form>>(
     typeof defaults === 'function' ? {} : defaults,
   );
-  const formFieldsRef = useRef<HoneyFormFields<Form> | null>(null);
+  const formFieldsRef = useRef<HoneyFormFields<Form, FormContext> | null>(null);
   const childFormIdRef = useRef<HoneyFormChildFormId | null>(null);
   const isFormDirtyRef = useRef(false);
   const isFormValidRef = useRef(false);
@@ -279,9 +283,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     addFormFieldError,
   });
 
-  const [formFields, setFormFields] =
-    useState<HoneyFormFields<Form, FormContext>>(initialFormFieldsGetter);
-
+  const [formFields, setFormFields] = useState(initialFormFieldsGetter);
   formFieldsRef.current = formFields;
 
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
@@ -347,11 +349,14 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
 
   const clearFormErrors = useCallback<HoneyFormClearErrors>(() => {
     setFormFields(formFields =>
-      Object.keys(formFields).reduce((nextFormFields, fieldName: keyof Form) => {
-        nextFormFields[fieldName] = getNextFreeErrorsField(formFields[fieldName]);
+      Object.keys(formFields).reduce(
+        (nextFormFields, fieldName: keyof Form) => {
+          nextFormFields[fieldName] = getNextFreeErrorsField(formFields[fieldName]);
 
-        return nextFormFields;
-      }, {} as HoneyFormFields<Form>),
+          return nextFormFields;
+        },
+        {} as HoneyFormFields<Form, FormContext>,
+      ),
     );
   }, []);
 
@@ -400,7 +405,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
 
     let hasErrors = false;
 
-    const nextFormFields = {} as HoneyFormFields<Form>;
+    const nextFormFields = {} as HoneyFormFields<Form, FormContext>;
 
     await Promise.all(
       Object.keys(formFields).map(async (fieldName: keyof Form) => {
