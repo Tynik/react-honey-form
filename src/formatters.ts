@@ -9,7 +9,7 @@ import type { HoneyFormFieldFormatter } from './types';
  * @returns {function(string): string} - The string formatter function.
  */
 export const createHoneyFormSplitStringFormatter =
-  <FieldValue extends string>(
+  <FieldValue extends string | undefined>(
     segmentLength: number,
     delimiter: string = ' ',
   ): HoneyFormFieldFormatter<FieldValue> =>
@@ -47,7 +47,7 @@ export type HoneyFormNumberFormatterOptions = {
  * @returns {string} - The formatted numeric string.
  */
 export const createHoneyFormNumberFormatter =
-  <FieldValue extends string>({
+  <FieldValue extends string | undefined>({
     decimal = true,
     maxLengthAfterDecimal = 2,
   }: HoneyFormNumberFormatterOptions = {}): HoneyFormFieldFormatter<FieldValue> =>

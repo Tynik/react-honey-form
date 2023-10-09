@@ -10,7 +10,7 @@ type NumericFilterOptions = {
  * @returns {function(string): string} - The filter function.
  */
 export const createHoneyFormNumericFilter =
-  <FieldValue extends string>({
+  <FieldValue extends string | undefined>({
     maxLength,
   }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
   value =>
@@ -43,7 +43,7 @@ export type HoneyFormNumberFilterOptions = {
  * @returns {string} - The filtered and formatted numeric string.
  */
 export const createHoneyFormNumberFilter =
-  <FieldValue extends string>({
+  <FieldValue extends string | undefined>({
     maxLength,
     maxLengthBeforeDecimal = maxLength,
     maxLengthAfterDecimal = 2,
