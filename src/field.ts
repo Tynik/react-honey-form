@@ -17,6 +17,7 @@ import type {
   HoneyFormFieldMeta,
   HoneyFormAddFieldError,
   HoneyFormDefaultsRef,
+  HoneyFormFieldsRef,
 } from './types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
 import { getFormValues, isSkipField } from './helpers';
@@ -31,6 +32,7 @@ const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
 
 type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   context: FormContext;
+  formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
   formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
@@ -48,6 +50,7 @@ export const createField = <
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   {
     context,
+    formFieldsRef,
     formDefaultValuesRef,
     setFieldValue,
     clearFieldErrors,
@@ -99,6 +102,7 @@ export const createField = <
   };
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {
+    formFieldsRef,
     isValidationScheduled: false,
     childForms: undefined,
   };
@@ -458,7 +462,7 @@ const checkSkippableFields = <
       return;
     }
 
-    if (isSkipField(context, otherFieldName, nextFormFields)) {
+    if (isSkipField(context, otherFieldName, { formFields: nextFormFields })) {
       nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
     }
   });
@@ -523,7 +527,7 @@ const triggerScheduledFieldsValidations = <
     const nextFormField = nextFormFields[otherFieldName];
 
     if (nextFormField.__meta__.isValidationScheduled) {
-      if (!isSkipField(context, otherFieldName, nextFormFields)) {
+      if (!isSkipField(context, otherFieldName, { formFields: nextFormFields })) {
         const filteredValue = nextFormField.config.filter
           ? nextFormField.config.filter(nextFormField.rawValue, { context })
           : nextFormField.rawValue;

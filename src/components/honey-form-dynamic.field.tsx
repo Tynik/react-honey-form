@@ -8,22 +8,24 @@ import { useHoneyFormProvider } from './honey-form.provider';
 type HoneyFormDynamicFieldProps<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName],
-> = HoneyFormFieldConfig<Form, FieldName, undefined, FieldValue> & {
+> = HoneyFormFieldConfig<Form, FieldName, FormContext, FieldValue> & {
   name: FieldName;
-  children: (field: HoneyFormField<Form, FieldName, undefined, FieldValue>) => ReactNode;
+  children: (field: HoneyFormField<Form, FieldName, FormContext, FieldValue>) => ReactNode;
 };
 
 export const HoneyFormDynamicField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
+  FormContext,
   FieldValue extends Form[FieldName],
 >({
   children,
   name,
   ...props
-}: HoneyFormDynamicFieldProps<Form, FieldName, FieldValue>) => {
-  const { formFields, addFormField, removeFormField } = useHoneyFormProvider<Form>();
+}: HoneyFormDynamicFieldProps<Form, FieldName, FormContext, FieldValue>) => {
+  const { formFields, addFormField, removeFormField } = useHoneyFormProvider<Form, FormContext>();
 
   useEffect(() => {
     addFormField(name, props);
@@ -38,6 +40,6 @@ export const HoneyFormDynamicField = <
     return null;
   }
 
-  // @ts-ignore
+  // @ts-expect-error
   return <>{children(field)}</>;
 };

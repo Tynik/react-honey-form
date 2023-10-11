@@ -4,8 +4,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import type { HoneyFormFieldsConfigs } from '../../types';
 
 import { HoneyForm } from '../honey-form';
-import { useHoneyForm } from '../../use-honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
+import { useChildHoneyForm } from '../../use-child-honey-form';
 
 describe('Component [HoneyForm]: Basic usage', () => {
   it('the form should be mounted', () => {
@@ -149,7 +149,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useHoneyForm<ItemForm>({
+      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
         formIndex,
         parentField: itemsFormFields.items,
         fields: {
@@ -321,7 +321,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useHoneyForm<ItemForm>({
+      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
         formIndex,
         parentField: itemsFormFields.items,
         fields: {
@@ -400,7 +400,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useHoneyForm<ItemForm>({
+      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
         formIndex,
         parentField: itemsFormFields.items,
         fields: {

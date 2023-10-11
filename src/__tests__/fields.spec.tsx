@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { act, render, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
+import { useChildHoneyForm } from '../use-child-honey-form';
 
 describe('Hook [use-honey-form]: Fields', () => {
   it('set a new value via onChange() function', () => {
@@ -254,8 +255,12 @@ describe('Hook [use-honey-form]: Array fields', () => {
       weight: number;
     };
 
+    type Products = {
+      items: Item[];
+    };
+
     const { result } = renderHook(() =>
-      useHoneyForm<{ items: Item[] }>({
+      useHoneyForm<Products>({
         fields: {
           items: {},
         },
@@ -275,18 +280,24 @@ describe('Hook [use-honey-form]: Array fields', () => {
       weight: number;
     };
 
+    type Products = {
+      items: Item[];
+      name: string;
+    };
+
     const { result: itemsResult } = renderHook(() =>
-      useHoneyForm<{ items: Item[] }>({
+      useHoneyForm<Products>({
         fields: {
           items: {
             value: [],
           },
+          name: {},
         },
       }),
     );
 
     const { unmount } = renderHook(() =>
-      useHoneyForm<Item>({
+      useChildHoneyForm<Products, Item>({
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -320,8 +331,12 @@ describe('Hook [use-honey-form]: Array fields', () => {
       weight: number;
     };
 
+    type Products = {
+      items: Item[];
+    };
+
     const { result: itemsResult } = renderHook(() =>
-      useHoneyForm<{ items: Item[] }>({
+      useHoneyForm<Products>({
         fields: {
           items: {
             value: [],
@@ -331,7 +346,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
     );
 
     const { result: itemResult1, unmount: unmountItem1 } = renderHook(() =>
-      useHoneyForm<Item>({
+      useChildHoneyForm<Products, Item>({
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -344,7 +359,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
     );
 
     const { result: itemResult2, unmount: unmountItem2 } = renderHook(() =>
-      useHoneyForm<Item>({
+      useChildHoneyForm<Products, Item>({
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -396,7 +411,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
     ]);
 
     const { result: itemResult3 } = renderHook(() =>
-      useHoneyForm<Item>({
+      useChildHoneyForm<Products, Item>({
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {

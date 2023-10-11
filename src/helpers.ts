@@ -7,7 +7,7 @@ import type {
   HoneyFormChildFormContext,
   HoneyFormChildFormId,
   HoneyFormParentField,
-  HoneyFormChildForm,
+  ChildHoneyFormBaseForm,
   HoneyFormValues,
 } from './types';
 
@@ -36,6 +36,10 @@ export const getHoneyFormUniqueId = () => {
   return `${timestamp}${randomNum}`;
 };
 
+type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  formFields: HoneyFormFields<Form, FormContext>;
+};
+
 export const isSkipField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -43,7 +47,7 @@ export const isSkipField = <
 >(
   context: FormContext,
   fieldName: FieldName,
-  formFields: HoneyFormFields<Form, FormContext>,
+  { formFields }: IsSkipFieldOptions<Form, FormContext>,
 ) => formFields[fieldName].config.skip?.({ context, formFields }) === true;
 
 export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
@@ -60,14 +64,14 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
   formFields: HoneyFormFields<Form, FormContext>,
 ) =>
   Object.keys(formFields).reduce((submitFormValues, fieldName: keyof Form) => {
-    if (isSkipField(context, fieldName, formFields)) {
+    if (isSkipField(context, fieldName, { formFields })) {
       return submitFormValues;
     }
 
     const formField = formFields[fieldName];
 
     if (formField.__meta__.childForms) {
-      const childFormsCleanValues: HoneyFormChildForm[] = [];
+      const childFormsCleanValues: ChildHoneyFormBaseForm[] = [];
 
       formField.__meta__.childForms.forEach(childForm => {
         const childFormFields = childForm.formFieldsRef.current;
@@ -101,19 +105,28 @@ export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
     return result;
   }, {} as HoneyFormErrors<Form>);
 
-export const registerChildForm = <Form extends HoneyFormBaseForm, FormContext>(
-  parentFormField: HoneyFormParentField<Form>,
-  childFormContext: HoneyFormChildFormContext<Form, FormContext>,
+export const registerChildForm = <
+  ParentForm extends HoneyFormBaseForm,
+  ChildForm extends ChildHoneyFormBaseForm,
+  FormContext,
+>(
+  parentFormField: HoneyFormParentField<ParentForm, ChildForm>,
+  childFormContext: HoneyFormChildFormContext<ChildForm, FormContext>,
 ) => {
+  // @ts-expect-error
   parentFormField.__meta__.childForms ||= [];
   // @ts-expect-error
   parentFormField.__meta__.childForms.push(childFormContext);
 };
 
-export const unregisterChildForm = <Form extends HoneyFormBaseForm>(
-  parentFormField: HoneyFormParentField<Form>,
+export const unregisterChildForm = <
+  ParentForm extends HoneyFormBaseForm,
+  ChildForm extends ChildHoneyFormBaseForm,
+>(
+  parentFormField: HoneyFormParentField<ParentForm, ChildForm>,
   childFormId: HoneyFormChildFormId,
 ) => {
+  // @ts-expect-error
   parentFormField.__meta__.childForms = parentFormField.__meta__.childForms?.filter(
     childForm => childForm.id !== childFormId,
   );
