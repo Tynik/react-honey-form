@@ -8,10 +8,6 @@ import type {
   InputHTMLAttributes,
 } from 'react';
 
-type ArrayKeys<T> = {
-  [K in keyof T]: T[K] extends any[] ? K : never;
-}[keyof T];
-
 type HoneyFormFieldName = string;
 
 export type HoneyFormChildFormId = string;
@@ -546,14 +542,8 @@ export type HoneyFormField<
 
 export type HoneyFormParentField<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
-  ParentFieldName extends ArrayKeys<ParentForm> = ArrayKeys<ParentForm>,
-> = HoneyFormField<
-  ParentForm,
-  ParentFieldName,
-  undefined,
-  ParentForm[ParentFieldName] extends ChildForm[] ? ParentForm[ParentFieldName] : never
->;
+  ParentFieldName extends keyof ParentForm = keyof ParentForm,
+> = HoneyFormField<ParentForm, ParentFieldName>;
 
 export type HoneyFormFields<Form extends HoneyFormBaseForm, FormContext = undefined> = {
   [FieldName in keyof Form]: HoneyFormField<Form, FieldName, FormContext>;
@@ -692,14 +682,14 @@ export type ChildHoneyFormOptions<
 > = BaseHoneyFormOptions<
   {
     /**
-     * The index of a child form within a parent form, if applicable.
-     */
-    formIndex?: number;
-    /**
      * A reference to a parent form field.
      * Use this to create nested forms where the parent field can have child forms.
      */
-    parentField: HoneyFormParentField<ParentForm, ChildForm>;
+    parentField: HoneyFormParentField<ParentForm>;
+    /**
+     * The index of a child form within a parent form, if applicable.
+     */
+    formIndex?: number;
   },
   ChildForm,
   FormContext

@@ -22,7 +22,7 @@ type CreateInitialFormFieldsOptions<
   FormContext,
 > = InitialFormFieldsStateResolverOptions<ChildForm, FormContext> & {
   formIndex: number | undefined;
-  parentField: HoneyFormParentField<ParentForm, ChildForm> | undefined;
+  parentField: HoneyFormParentField<ParentForm> | undefined;
   fieldsConfigs: HoneyFormFieldsConfigs<ChildForm, FormContext>;
 };
 
@@ -98,13 +98,13 @@ export const useChildHoneyForm = <
 > => {
   const childFormIdRef = useRef<HoneyFormChildFormId | null>(null);
 
-  const { formFieldsRef, ...formApi } = useForm({
+  const { formFieldsRef, ...childFormApi } = useForm({
     initialFormFieldsStateResolver: config =>
       createInitialFormFields({ formIndex, parentField, fieldsConfigs, ...config }),
     ...options,
   });
 
-  const { submitForm, validateForm } = formApi;
+  const { submitForm, validateForm } = childFormApi;
 
   useEffect(() => {
     if (parentField) {
@@ -133,5 +133,5 @@ export const useChildHoneyForm = <
     };
   }, []);
 
-  return formApi;
+  return childFormApi;
 };

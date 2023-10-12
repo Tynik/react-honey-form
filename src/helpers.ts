@@ -110,7 +110,7 @@ export const registerChildForm = <
   ChildForm extends ChildHoneyFormBaseForm,
   FormContext,
 >(
-  parentFormField: HoneyFormParentField<ParentForm, ChildForm>,
+  parentFormField: HoneyFormParentField<ParentForm>,
   childFormContext: HoneyFormChildFormContext<ChildForm, FormContext>,
 ) => {
   // @ts-expect-error
@@ -119,11 +119,8 @@ export const registerChildForm = <
   parentFormField.__meta__.childForms.push(childFormContext);
 };
 
-export const unregisterChildForm = <
-  ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
->(
-  parentFormField: HoneyFormParentField<ParentForm, ChildForm>,
+export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
+  parentFormField: HoneyFormParentField<ParentForm>,
   childFormId: HoneyFormChildFormId,
 ) => {
   // @ts-expect-error

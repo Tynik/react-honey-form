@@ -154,20 +154,22 @@ describe('Component [HoneyForm]: Nested forms', () => {
         <ChildHoneyForm
           formIndex={formIndex}
           parentField={itemsFormFields.items}
-          fields={{
-            id: {
-              required: true,
-            },
-            name: {
-              required: true,
-              value: '',
-            },
-            price: {
-              type: 'number',
-              required: true,
-              value: 0,
-            },
-          }}
+          fields={
+            {
+              id: {
+                required: true,
+              },
+              name: {
+                required: true,
+                value: '',
+              },
+              price: {
+                type: 'number',
+                required: true,
+                value: 0,
+              },
+            } as HoneyFormFieldsConfigs<ItemForm>
+          }
         >
           {({ formFields }) => (
             <>
