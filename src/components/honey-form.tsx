@@ -3,7 +3,7 @@ import React, { forwardRef } from 'react';
 
 import type { HoneyFormBaseForm } from '../types';
 import type { HoneyFormProviderProps } from './honey-form.provider';
-import type { HoneyFormFormProps, UseHoneyFormFormContent } from './honey-form.form';
+import type { HoneyFormFormProps, HoneyFormFormContent } from './honey-form.form';
 
 import { HoneyFormProvider } from './honey-form.provider';
 import { HoneyFormForm } from './honey-form.form';
@@ -13,7 +13,7 @@ type HoneyFormProps<
   Form extends HoneyFormBaseForm,
   FormContext = undefined,
 > = HoneyFormProviderProps<Form, FormContext> & {
-  children?: UseHoneyFormFormContent<Form, FormContext>;
+  children?: HoneyFormFormContent<Form, FormContext>;
   formProps?: HoneyFormFormProps<Form, FormContext>;
 };
 

@@ -59,10 +59,8 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
   fields: fieldsConfigs = {} as never,
   ...options
 }: HoneyFormOptions<Form, FormContext>): HoneyFormApi<Form, FormContext> => {
-  const formApi = useForm({
+  return useForm({
     initialFormFieldsStateResolver: config => createInitialFormFields({ fieldsConfigs, ...config }),
     ...options,
   });
-
-  return formApi;
 };

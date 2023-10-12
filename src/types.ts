@@ -235,6 +235,123 @@ type HoneyFormSkipField<Form extends HoneyFormBaseForm, FormContext> = (
 ) => boolean;
 
 /**
+ * Base form field configuration.
+ */
+type BaseHoneyFormFieldConfig<
+  T,
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext = undefined,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = Readonly<
+  {
+    /**
+     * @default string
+     */
+    type?: HoneyFormFieldType;
+    /**
+     * @default false
+     */
+    required?: boolean;
+    /**
+     * @deprecated Please, use `defaultValue` field property or `defaults` form property
+     * @default undefined
+     */
+    value?: FieldValue;
+    /**
+     * @default undefined
+     */
+    defaultValue?: FieldValue;
+    /**
+     * The minimum allowed value for numbers or minimum length for strings.
+     *
+     * @default undefined
+     */
+    min?: number;
+    /**
+     * The maximum allowed value for numbers or maximum length for strings.
+     *
+     * @default undefined
+     */
+    max?: number;
+    /**
+     * Indicates if decimal values are allowed.
+     *
+     * @default false
+     */
+    decimal?: boolean;
+    /**
+     * Indicates if negative values for number field type are allowed.
+     *
+     * @default true
+     */
+    negative?: boolean;
+    /**
+     * The maximum number of decimal places allowed for number field type.
+     *
+     * @default 2
+     */
+    maxFraction?: number;
+    /**
+     * Clears that field value when dependent field is changed.
+     */
+    dependsOn?: keyof Form | (keyof Form)[];
+    /**
+     * In depends on mode, the validation process is changed.
+     *
+     * @example
+     * - If `change` mode is set, each typed character triggers the validation process.
+     * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
+     *  but the re-validate the new field value even validation field mode is `blur` if there is any error.
+     *
+     * @default change
+     */
+    mode?: HoneyFormFieldMode;
+    /**
+     * Custom error messages for this field.
+     */
+    errorMessages?: HoneyFormFieldErrorMessages;
+    /**
+     * Custom validation function.
+     */
+    validator?: HoneyFormFieldValidator<Form, FieldName, FormContext, FieldValue>;
+    /**
+     * A function to filter characters from the value.
+     */
+    filter?: HoneyFormFieldFilter<FieldValue, FormContext>;
+    /**
+     * A function to modify the field's value.
+     */
+    format?: HoneyFormFieldFormatter<FieldValue, FormContext>;
+    /**
+     * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur).
+     *
+     * When set to `true`, the formatter is applied `onBlur`, allowing users to see the formatted value after they have finished editing.
+     * When set to `false` (or omitted), the formatter is applied as characters are typed.
+     *
+     * @example
+     * - If `true`, the formatter will be applied when focus leaves the input.
+     * - If `false` (or omitted), the formatter is applied with each typed character.
+     *
+     * @remarks
+     * Use this option to control the timing of applying the formatter function.
+     * Set to `true` to show a formatted value after the user has completed input.
+     *
+     * @default false
+     */
+    formatOnBlur?: boolean;
+    /**
+     * Set as `true` when formatted field value should be submitted instead of clean value.
+     */
+    submitFormattedValue?: boolean;
+    /**
+     * Callback function triggered when the field value changes.
+     */
+    onChange?: HoneyFormFieldOnChange<Form, FieldName, FormContext, FieldValue>;
+  } & T
+>;
+
+/**
  * Form field configuration.
  */
 export type HoneyFormFieldConfig<
@@ -242,115 +359,18 @@ export type HoneyFormFieldConfig<
   FieldName extends keyof Form,
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = Readonly<{
-  /**
-   * @default string
-   */
-  type?: HoneyFormFieldType;
-  /**
-   * @default false
-   */
-  required?: boolean;
-  /**
-   * @deprecated Please, use `defaultValue` field property or `defaults` form property
-   * @default undefined
-   */
-  value?: FieldValue;
-  /**
-   * @default undefined
-   */
-  defaultValue?: FieldValue;
-  /**
-   * The minimum allowed value for numbers or minimum length for strings.
-   *
-   * @default undefined
-   */
-  min?: number;
-  /**
-   * The maximum allowed value for numbers or maximum length for strings.
-   *
-   * @default undefined
-   */
-  max?: number;
-  /**
-   * Indicates if decimal values are allowed.
-   *
-   * @default false
-   */
-  decimal?: boolean;
-  /**
-   * Indicates if negative values for number field type are allowed.
-   *
-   * @default true
-   */
-  negative?: boolean;
-  /**
-   * The maximum number of decimal places allowed for number field type.
-   *
-   * @default 2
-   */
-  maxFraction?: number;
-  /**
-   * Clears that field value when dependent field is changed.
-   */
-  dependsOn?: keyof Form | (keyof Form)[];
-  /**
-   * In depends on mode, the validation process is changed.
-   *
-   * @example
-   * - If `change` mode is set, each typed character triggers the validation process.
-   * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
-   *  but the re-validate the new field value even validation field mode is `blur` if there is any error.
-   *
-   * @default change
-   */
-  mode?: HoneyFormFieldMode;
-  /**
-   * Custom error messages for this field.
-   */
-  errorMessages?: HoneyFormFieldErrorMessages;
-  /**
-   * Custom validation function.
-   */
-  validator?: HoneyFormFieldValidator<Form, FieldName, FormContext, FieldValue>;
-  /**
-   * A function to filter characters from the value.
-   */
-  filter?: HoneyFormFieldFilter<FieldValue, FormContext>;
-  /**
-   * A function to modify the field's value.
-   */
-  format?: HoneyFormFieldFormatter<FieldValue, FormContext>;
-  /**
-   * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur).
-   *
-   * When set to `true`, the formatter is applied `onBlur`, allowing users to see the formatted value after they have finished editing.
-   * When set to `false` (or omitted), the formatter is applied as characters are typed.
-   *
-   * @example
-   * - If `true`, the formatter will be applied when focus leaves the input.
-   * - If `false` (or omitted), the formatter is applied with each typed character.
-   *
-   * @remarks
-   * Use this option to control the timing of applying the formatter function.
-   * Set to `true` to show a formatted value after the user has completed input.
-   *
-   * @default false
-   */
-  formatOnBlur?: boolean;
-  /**
-   * Set as `true` when formatted field value should be submitted instead of clean value.
-   */
-  submitFormattedValue?: boolean;
-  /**
-   * A function to determine whether to skip validation and submission for this field.
-   */
-  skip?: HoneyFormSkipField<Form, FormContext>;
-  /**
-   * Callback function triggered when the field value changes.
-   */
-  onChange?: HoneyFormFieldOnChange<Form, FieldName, FormContext, FieldValue>;
-}>;
+> = BaseHoneyFormFieldConfig<
+  {
+    /**
+     * A function to determine whether to skip validation and submission for this field.
+     */
+    skip?: HoneyFormSkipField<Form, FormContext>;
+  },
+  Form,
+  FieldName,
+  FormContext,
+  FieldValue
+>;
 
 export type HoneyFormFieldInternalValidator = <
   Form extends HoneyFormBaseForm,
@@ -679,7 +699,7 @@ export type ChildHoneyFormOptions<
      * A reference to a parent form field.
      * Use this to create nested forms where the parent field can have child forms.
      */
-    parentField?: HoneyFormParentField<ParentForm, ChildForm>;
+    parentField: HoneyFormParentField<ParentForm, ChildForm>;
   },
   ChildForm,
   FormContext

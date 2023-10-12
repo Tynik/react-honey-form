@@ -6,7 +6,7 @@ import type { HoneyFormBaseForm, HoneyFormApi } from '../types';
 import { useHoneyFormProvider } from './honey-form.provider';
 import { errorMessage } from '../helpers';
 
-export type UseHoneyFormFormContent<Form extends HoneyFormBaseForm, FormContext = undefined> =
+export type HoneyFormFormContent<Form extends HoneyFormBaseForm, FormContext = undefined> =
   | ReactNode
   | ((honeyFormApi: HoneyFormApi<Form, FormContext>) => ReactNode);
 
@@ -14,7 +14,7 @@ export type HoneyFormFormProps<Form extends HoneyFormBaseForm, FormContext = und
   FormHTMLAttributes<HTMLFormElement>,
   'onSubmit' | 'children'
 > & {
-  children?: UseHoneyFormFormContent<Form, FormContext>;
+  children?: HoneyFormFormContent<Form, FormContext>;
 };
 
 const HoneyFormComponent = <Form extends HoneyFormBaseForm, FormContext = undefined>(

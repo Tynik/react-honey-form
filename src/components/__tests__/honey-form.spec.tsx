@@ -6,6 +6,7 @@ import type { HoneyFormFieldsConfigs } from '../../types';
 import { HoneyForm } from '../honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
 import { useChildHoneyForm } from '../../use-child-honey-form';
+import { ChildHoneyForm } from '../child-honey-form';
 
 describe('Component [HoneyForm]: Basic usage', () => {
   it('the form should be mounted', () => {
@@ -149,36 +150,37 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
-        formIndex,
-        parentField: itemsFormFields.items,
-        fields: {
-          id: {
-            required: true,
-          },
-          name: {
-            required: true,
-            value: '',
-          },
-          price: {
-            type: 'number',
-            required: true,
-            value: 0,
-          },
-        },
-      });
-
       return (
-        <>
-          <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
-          <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
-
-          <button
-            type="button"
-            data-testid={`item[${formIndex}].removeItem`}
-            onClick={() => itemsFormFields.items.removeValue(formIndex)}
-          />
-        </>
+        <ChildHoneyForm
+          formIndex={formIndex}
+          parentField={itemsFormFields.items}
+          fields={{
+            id: {
+              required: true,
+            },
+            name: {
+              required: true,
+              value: '',
+            },
+            price: {
+              type: 'number',
+              required: true,
+              value: 0,
+            },
+          }}
+        >
+          {({ formFields }) => (
+            <>
+              <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
+              <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+              <button
+                type="button"
+                data-testid={`item[${formIndex}].removeItem`}
+                onClick={() => itemsFormFields.items.removeValue(formIndex)}
+              />
+            </>
+          )}
+        </ChildHoneyForm>
       );
     };
 

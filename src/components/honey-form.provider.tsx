@@ -33,7 +33,7 @@ export const useHoneyFormProvider = <Form extends HoneyFormBaseForm, FormContext
 
   if (!formContext) {
     throw new Error(
-      '[honey-form]: The `useHoneyFormProvider()` can be used only inside <HoneyForm/> or <HoneyFormProvider/> component!',
+      '[honey-form]: The `useHoneyFormProvider()` can be used only inside <HoneyFormProvider/> component!',
     );
   }
 
