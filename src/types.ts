@@ -1,5 +1,3 @@
-// https://dev.to/pffigueiredo/typescript-utility-keyof-nested-object-2pa3
-
 import type {
   ReactElement,
   HTMLAttributes,
@@ -7,6 +5,10 @@ import type {
   RefObject,
   InputHTMLAttributes,
 } from 'react';
+
+type KeysWithArrayValues<T> = {
+  [K in keyof T]: T[K] extends unknown[] ? K : never;
+}[keyof T];
 
 type HoneyFormFieldName = string;
 
@@ -56,7 +58,7 @@ type ExtractHoneyFormChildForm<FieldValue> = FieldValue extends (infer ChildForm
   : never;
 
 /**
- * Defines two possible modes for form field interactions: `'change'` and `'blur'`.
+ * Defines two possible modes for form field interactions: `change` and `blur`.
  * This could be used to specify when field validation or other actions should occur.
  */
 type HoneyFormFieldMode = 'change' | 'blur';
@@ -407,7 +409,7 @@ export type HoneyFormFieldProps<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
   Pick<HTMLAttributes<any>, 'onFocus' | 'onBlur' | 'aria-required' | 'aria-invalid'> &
-    Pick<InputHTMLAttributes<any>, 'onChange'> & {
+    Pick<InputHTMLAttributes<any>, 'type' | 'name' | 'onChange'> & {
       ref: RefObject<any>;
       value: FieldValue | undefined;
     }
@@ -542,7 +544,7 @@ export type HoneyFormField<
 
 export type HoneyFormParentField<
   ParentForm extends HoneyFormBaseForm,
-  ParentFieldName extends keyof ParentForm = keyof ParentForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm> = KeysWithArrayValues<ParentForm>,
 > = HoneyFormField<ParentForm, ParentFieldName>;
 
 export type HoneyFormFields<Form extends HoneyFormBaseForm, FormContext = undefined> = {

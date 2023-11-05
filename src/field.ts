@@ -24,6 +24,10 @@ import { getFormValues, isSkipField } from './helpers';
 
 const DEFAULT_FIELD_TYPE = 'string';
 
+const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, string>> = {
+  email: 'email',
+};
+
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   Record<HoneyFormFieldType, HoneyFormFieldValueConvertor<any>>
 > = {
@@ -78,6 +82,8 @@ export const createField = <
 
   const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
     ref: formFieldRef,
+    type: FIELD_TYPE_MAP[config.type],
+    name: fieldName.toString(),
     value: formattedValue,
     //
     onFocus: e => {

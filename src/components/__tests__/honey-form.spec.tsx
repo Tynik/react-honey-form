@@ -125,6 +125,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
   };
 
   type ItemsForm = {
+    companyName: string;
     items: ItemForm[];
   };
 
@@ -187,8 +188,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
     };
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
+      companyName: {
+        defaultValue: 'test',
+      },
       items: {
-        value: [],
+        defaultValue: [],
       },
     };
 
@@ -228,6 +232,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [],
         },
         { context: undefined },
@@ -251,6 +256,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [
             {
               id: '1',
@@ -278,6 +284,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [
             {
               id: '1',
@@ -306,6 +313,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [
             {
               id: '2',
@@ -357,8 +365,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
     };
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
+      companyName: {
+        defaultValue: 'test',
+      },
       items: {
-        value: [
+        defaultValue: [
           {
             id: '1',
             name: 'Apple',
@@ -438,8 +449,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
     };
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
+      companyName: {
+        defaultValue: 'test',
+      },
       items: {
-        value: [],
+        defaultValue: [],
       },
     };
 
@@ -496,6 +510,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [],
         },
         { context: undefined },
@@ -519,6 +534,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     await waitFor(() =>
       expect(onSubmit).toBeCalledWith(
         {
+          companyName: 'test',
           items: [
             {
               id: '3',
