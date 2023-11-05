@@ -370,6 +370,28 @@ export type HoneyFormFieldConfig<
   FieldValue
 >;
 
+/**
+ * Child form field configuration.
+ */
+export type ChildHoneyFormFieldConfig<
+  ParentForm extends HoneyFormBaseForm,
+  ChildForm extends ChildHoneyFormBaseForm,
+  FieldName extends keyof ChildForm,
+  FormContext = undefined,
+  FieldValue extends ChildForm[FieldName] = ChildForm[FieldName],
+> = BaseHoneyFormFieldConfig<
+  {
+    /**
+     * A function to determine whether to skip validation and submission for this field.
+     */
+    skip?: HoneyFormSkipField<ChildForm, FormContext>;
+  },
+  ChildForm,
+  FieldName,
+  FormContext,
+  FieldValue
+>;
+
 export type HoneyFormFieldInternalValidator = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -565,6 +587,23 @@ export type HoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext =
   [FieldName in keyof Form]: HoneyFormFieldConfig<Form, FieldName, FormContext, Form[FieldName]>;
 };
 
+/**
+ * Child form fields configuration.
+ */
+export type ChildHoneyFormFieldsConfigs<
+  ParentForm extends HoneyFormBaseForm,
+  ChildForm extends ChildHoneyFormBaseForm,
+  FormContext = undefined,
+> = {
+  [FieldName in keyof ChildForm]: ChildHoneyFormFieldConfig<
+    ParentForm,
+    ChildForm,
+    FieldName,
+    FormContext,
+    ChildForm[FieldName]
+  >;
+};
+
 export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
   [FieldName in keyof Form]: HoneyFormFieldError[];
 };
@@ -659,19 +698,18 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
 type BaseHoneyFormOptions<T, Form extends HoneyFormBaseForm, FormContext = undefined> = Omit<
   FormOptions<Form, FormContext>,
   'initialFormFieldsStateResolver'
-> & {
-  /**
-   * Configuration for the form fields.
-   */
-  fields?: HoneyFormFieldsConfigs<Form, FormContext>;
-} & T;
+> &
+  T;
 
 export type HoneyFormOptions<
   Form extends HoneyFormBaseForm,
   FormContext = undefined,
 > = BaseHoneyFormOptions<
   {
-    //
+    /**
+     * Configuration for the form fields.
+     */
+    fields?: HoneyFormFieldsConfigs<Form, FormContext>;
   },
   Form,
   FormContext
@@ -692,6 +730,10 @@ export type ChildHoneyFormOptions<
      * The index of a child form within a parent form, if applicable.
      */
     formIndex?: number;
+    /**
+     * Configuration for the form fields.
+     */
+    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ChildForm, FormContext>;
   },
   ChildForm,
   FormContext
