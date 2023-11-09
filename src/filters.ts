@@ -10,9 +10,9 @@ type NumericFilterOptions = {
  * @returns {function(string): string} - The filter function.
  */
 export const createHoneyFormNumericFilter =
-  <FieldValue extends string | undefined>({
+  <FieldValue extends string | undefined, FormContext = undefined>({
     maxLength,
-  }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
+  }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue, FormContext> =>
   value =>
     // Remove non-numeric characters and limit the result to N characters
     value?.replace(/[^0-9]+/g, '').slice(0, maxLength) as FieldValue;
@@ -43,13 +43,13 @@ export type HoneyFormNumberFilterOptions = {
  * @returns {string} - The filtered and formatted numeric string.
  */
 export const createHoneyFormNumberFilter =
-  <FieldValue extends string | undefined>({
+  <FieldValue extends string | undefined, FormContext = undefined>({
     maxLength,
     maxLengthBeforeDecimal = maxLength,
     maxLengthAfterDecimal = 2,
     decimal = true,
     negative = true,
-  }: HoneyFormNumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue> =>
+  }: HoneyFormNumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue, FormContext> =>
   value => {
     if (!value) {
       return value;
