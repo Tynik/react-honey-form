@@ -68,6 +68,7 @@ export const createField = <
     mode: 'change',
     required: false,
     formatOnBlur: false,
+    submitFormattedValue: false,
     ...fieldConfig,
   };
 
@@ -78,8 +79,8 @@ export const createField = <
   formDefaultValuesRef.current[fieldName] = fieldValue;
 
   const filteredValue = config.filter ? config.filter(fieldValue, { formContext }) : fieldValue;
-  const formattedValue = config.format
-    ? config.format(filteredValue, { formContext })
+  const formattedValue = config.formatter
+    ? config.formatter(filteredValue, { formContext })
     : filteredValue;
 
   const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
@@ -466,7 +467,7 @@ const checkSkippableFields = <
   FieldName extends keyof Form,
   FormContext,
 >(
-  context: FormContext,
+  formContext: FormContext,
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
@@ -475,7 +476,7 @@ const checkSkippableFields = <
       return;
     }
 
-    if (isSkipField(context, otherFieldName, { formFields: nextFormFields })) {
+    if (isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
       nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
     }
   });
@@ -540,7 +541,7 @@ const triggerScheduledFieldsValidations = <
     const nextFormField = nextFormFields[otherFieldName];
 
     if (nextFormField.__meta__.isValidationScheduled) {
-      if (!isSkipField(formContext, otherFieldName, { formFields: nextFormFields })) {
+      if (!isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
         const filteredValue = nextFormField.config.filter
           ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
           : nextFormField.rawValue;
@@ -591,8 +592,8 @@ export const getNextFieldsState = <
   }
 
   const formattedValue =
-    isFormat && formField.config.format
-      ? formField.config.format(filteredValue, { formContext })
+    isFormat && formField.config.formatter
+      ? formField.config.formatter(filteredValue, { formContext })
       : filteredValue;
 
   nextFormField = {

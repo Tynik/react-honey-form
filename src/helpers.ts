@@ -37,6 +37,7 @@ export const getHoneyFormUniqueId = () => {
 };
 
 type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  formContext: FormContext;
   formFields: HoneyFormFields<Form, FormContext>;
 };
 
@@ -45,9 +46,8 @@ export const isSkipField = <
   FieldName extends keyof Form,
   FormContext,
 >(
-  formContext: FormContext,
   fieldName: FieldName,
-  { formFields }: IsSkipFieldOptions<Form, FormContext>,
+  { formContext, formFields }: IsSkipFieldOptions<Form, FormContext>,
 ) => formFields[fieldName].config.skip?.({ formContext, formFields }) === true;
 
 export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
@@ -64,7 +64,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
   formFields: HoneyFormFields<Form, FormContext>,
 ) =>
   Object.keys(formFields).reduce((submitFormValues, fieldName: keyof Form) => {
-    if (isSkipField(formContext, fieldName, { formFields })) {
+    if (isSkipField(fieldName, { formContext, formFields })) {
       return submitFormValues;
     }
 

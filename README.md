@@ -49,7 +49,7 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
    - `email`: Represents an email input field. 
    
    The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
-4. `required` - A boolean value indicating whether the form field is required or not. If set to true, the field must have a non-empty value for the form to be considered valid. Default is `false`.
+4. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.
 5. `min` - The minimum value allowed for numeric fields or minimum length of a string. Only applicable for fields of type `number` or `string`.
 6. `max` - The maximum value allowed for numeric fields or maximum length of a string. Only applicable for fields of type `number` or `string`.
 7. `decimal` - A boolean value indicating whether the numeric field can accept decimal values. Only applicable for fields of type `number`.
@@ -59,9 +59,11 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 11. `errorMessages` - An object that specifies custom error messages for different validation errors. The keys of the object correspond to validation error types, and the values are the corresponding error messages. This allows you to customize the error messages displayed for specific validation errors.
 12. `validator` - A custom validation function for the field. It should accept the field value as an argument and return either true (indicating the value is valid) or an error message (indicating the value is invalid). The validator function can also be asynchronous and return a Promise that resolves to the same response.
 13. `filter` - A function that can be used to remove or modify certain characters from the field value. The function takes the current value as input and should return the modified value.
-14. `format` - A function that can be used to transform the field value into a different format. The function takes the current value as input and should return the transformed value.
-15. `skip` - A function that determines whether the field should not be validated and skipped (not included) in the form submission. The function takes the complete form fields object as input and should return a boolean value indicating whether the field should be skipped.
-16. `onChange`: A callback function that will be called whenever the field value changes. This can be used to perform additional actions or side effects when the field value changes.
+14. `formatter` - A function that can be used to transform the field value into a different format. The function takes the current value as input and should return the transformed value.
+15. `formatOnBlur` - A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur). Default is `false`.
+16. `submitFormattedValue` - A boolean flag indicating when formatted field value should be submitted instead of clean value. Default is `false`.
+17. `skip` - A function that determines whether the field should not be validated and skipped (not included) in the form submission. The function takes the complete form fields object as input and should return a boolean value indicating whether the field should be skipped.
+18. `onChange`: A callback function that will be called whenever the field value changes. This can be used to perform additional actions or side effects when the field value changes.
 
 ## Return value
 
@@ -119,7 +121,7 @@ type ProfileForm = {
 }
 
 const Form = () => {
-  const { formFields, submit } = useHoneyForm<ProfileForm>({
+  const { formFields, submitForm } = useHoneyForm<ProfileForm>({
     fields: {
       name: {
         required: true
@@ -138,7 +140,7 @@ const Form = () => {
     
     <input {...formFields.age.props}/>
     
-    <button type="submit" onClick={submit}>Save</button>
+    <button type="submit" onClick={submitForm}>Save</button>
   </form>;
 }
 ```

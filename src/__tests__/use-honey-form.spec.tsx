@@ -315,7 +315,7 @@ describe('Hook [use-honey-form]: Context', () => {
         fields: {
           price: {
             value: '',
-            format: (value, { formContext }) => `${formContext.currencySign}${value}`,
+            formatter: (value, { formContext }) => `${formContext.currencySign}${value}`,
           },
         },
         context: {

@@ -3,13 +3,13 @@ import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormNumberFormatter, createHoneyFormSplitStringFormatter } from '../formatters';
 import { createHoneyFormNumericFilter } from '../filters';
 
-describe('Hook [use-honey-form]: Format function', () => {
+describe('Hook [use-honey-form]: Formatter function', () => {
   it('a value should have formatted value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ price: string }>({
         fields: {
           price: {
-            format: value => `$${value}`,
+            formatter: value => `$${value}`,
           },
         },
       }),
@@ -33,7 +33,7 @@ describe('Hook [use-honey-form]: Format function', () => {
           price: {
             value: '',
             filter: value => value.replace(/\$/, ''),
-            format: value => `$${value}`,
+            formatter: value => `$${value}`,
           },
         },
         onSubmit,
@@ -62,7 +62,7 @@ describe('Hook [use-honey-form]: Format function', () => {
           name: {},
           price: {
             type: 'number',
-            format: value => `$${value}`,
+            formatter: value => `$${value}`,
           },
         },
         onSubmit,
@@ -92,7 +92,7 @@ describe('Hook [use-honey-form]: Format function', () => {
           cardExpirationDate: {
             submitFormattedValue: true,
             filter: createHoneyFormNumericFilter({ maxLength: 4 }),
-            format: createHoneyFormSplitStringFormatter(2, '/'),
+            formatter: createHoneyFormSplitStringFormatter(2, '/'),
           },
         },
         onSubmit,
@@ -117,7 +117,7 @@ describe('Hook [use-honey-form]: Use predefined string formatter for segments', 
       useHoneyForm<{ cardNumber: string }>({
         fields: {
           cardNumber: {
-            format: createHoneyFormSplitStringFormatter(4),
+            formatter: createHoneyFormSplitStringFormatter(4),
           },
         },
       }),
@@ -161,7 +161,7 @@ describe('Hook [use-honey-form]: Use predefined number formatter', () => {
       useHoneyForm<{ amount: string }>({
         fields: {
           amount: {
-            format: createHoneyFormNumberFormatter(),
+            formatter: createHoneyFormNumberFormatter(),
           },
         },
       }),

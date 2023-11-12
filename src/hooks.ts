@@ -93,8 +93,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             filteredValue,
           );
 
-          const formattedValue = nextFormField.config.format
-            ? nextFormField.config.format(filteredValue, { formContext })
+          const formattedValue = nextFormField.config.formatter
+            ? nextFormField.config.formatter(filteredValue, { formContext })
             : filteredValue;
 
           nextFormField = {
@@ -324,7 +324,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
         const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
-        if (isSkipFieldValidation || isSkipField(formContext, fieldName, { formFields })) {
+        if (isSkipFieldValidation || isSkipField(fieldName, { formContext, formFields })) {
           nextFormFields[fieldName] = getNextFreeErrorsField(formField);
           return;
         }

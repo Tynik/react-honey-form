@@ -201,7 +201,7 @@ export type HoneyFormFieldValidator<
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = (
-  fieldValue: FieldValue | undefined,
+  value: FieldValue | undefined,
   context: HoneyFormFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
@@ -320,7 +320,7 @@ type BaseHoneyFormFieldConfig<
     /**
      * A function to modify the field's value.
      */
-    format?: HoneyFormFieldFormatter<FieldValue, FormContext>;
+    formatter?: HoneyFormFieldFormatter<FieldValue, FormContext>;
     /**
      * A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur).
      *
@@ -340,6 +340,8 @@ type BaseHoneyFormFieldConfig<
     formatOnBlur?: boolean;
     /**
      * Set as `true` when formatted field value should be submitted instead of clean value.
+     *
+     * @default false
      */
     submitFormattedValue?: boolean;
     /**
