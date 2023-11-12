@@ -31,7 +31,7 @@ const createInitialFormFields = <
   ChildForm extends ChildHoneyFormBaseForm,
   FormContext,
 >({
-  context,
+  formContext,
   formIndex,
   parentField,
   fieldsConfigs,
@@ -67,7 +67,7 @@ const createInitialFormFields = <
             formDefaultValuesRef.current[fieldName],
         },
         {
-          context,
+          formContext,
           formFieldsRef,
           formDefaultValuesRef,
           setFieldValue,

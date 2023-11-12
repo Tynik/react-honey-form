@@ -45,10 +45,10 @@ export const isSkipField = <
   FieldName extends keyof Form,
   FormContext,
 >(
-  context: FormContext,
+  formContext: FormContext,
   fieldName: FieldName,
   { formFields }: IsSkipFieldOptions<Form, FormContext>,
-) => formFields[fieldName].config.skip?.({ context, formFields }) === true;
+) => formFields[fieldName].config.skip?.({ formContext, formFields }) === true;
 
 export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
   formFields: HoneyFormFields<Form, FormContext>,
@@ -60,11 +60,11 @@ export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
   }, {} as HoneyFormValues<Form>);
 
 export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>(
-  context: FormContext,
+  formContext: FormContext,
   formFields: HoneyFormFields<Form, FormContext>,
 ) =>
   Object.keys(formFields).reduce((submitFormValues, fieldName: keyof Form) => {
-    if (isSkipField(context, fieldName, { formFields })) {
+    if (isSkipField(formContext, fieldName, { formFields })) {
       return submitFormValues;
     }
 
@@ -79,7 +79,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
           throw new Error('The child `formFieldsRef` value is null');
         }
 
-        childFormsCleanValues.push(getSubmitFormValues(context, childFormFields));
+        childFormsCleanValues.push(getSubmitFormValues(formContext, childFormFields));
       });
 
       submitFormValues[fieldName] = childFormsCleanValues as Form[keyof Form];

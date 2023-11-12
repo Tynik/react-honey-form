@@ -43,7 +43,7 @@ import {
 export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   initialFormFieldsStateResolver,
   defaults = {},
-  context,
+  context: formContext,
   onSubmit,
   onChange,
   onChangeDebounce,
@@ -83,18 +83,18 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           const fieldConfig = nextFormFields[fieldName].config;
 
           const filteredValue = fieldConfig.filter
-            ? fieldConfig.filter(values[fieldName], { context })
+            ? fieldConfig.filter(values[fieldName], { formContext })
             : values[fieldName];
 
           let nextFormField = executeFieldValidator(
-            context,
+            formContext,
             nextFormFields,
             fieldName,
             filteredValue,
           );
 
           const formattedValue = nextFormField.config.format
-            ? nextFormField.config.format(filteredValue, { context })
+            ? nextFormField.config.format(filteredValue, { formContext })
             : filteredValue;
 
           nextFormField = {
@@ -172,7 +172,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         // @ts-expect-error
         isPushValue ? [...formField.value, fieldValue] : fieldValue,
         {
-          context,
+          formContext,
           formFields,
           isFormat,
           // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
@@ -195,7 +195,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         onChangeTimeoutRef.current = window.setTimeout(() => {
           onChangeTimeoutRef.current = null;
 
-          onChange(getSubmitFormValues(context, nextFormFields), {
+          onChange(getSubmitFormValues(formContext, nextFormFields), {
             formErrors: getFormErrors(nextFormFields),
           });
         }, onChangeDebounce ?? 0);
@@ -242,12 +242,12 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       const formField = formFields[fieldName];
 
       const filteredValue = formField.config.filter
-        ? formField.config.filter(formField.rawValue, { context })
+        ? formField.config.filter(formField.rawValue, { formContext })
         : formField.rawValue;
 
       return {
         ...formFields,
-        [fieldName]: executeFieldValidator(context, formFields, fieldName, filteredValue),
+        [fieldName]: executeFieldValidator(formContext, formFields, fieldName, filteredValue),
       };
     });
   };
@@ -279,7 +279,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         return {
           ...formFields,
           [fieldName]: createField(fieldName, config, {
-            context,
+            formContext,
             formFieldsRef,
             formDefaultValuesRef,
             setFieldValue,
@@ -324,7 +324,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
         const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
-        if (isSkipFieldValidation || isSkipField(context, fieldName, { formFields })) {
+        if (isSkipFieldValidation || isSkipField(formContext, fieldName, { formFields })) {
           nextFormFields[fieldName] = getNextFreeErrorsField(formField);
           return;
         }
@@ -332,7 +332,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         const hasChildFormsErrors = await runChildFormsValidation(formField);
         hasErrors ||= hasChildFormsErrors;
 
-        const nextField = await executeFieldValidatorAsync(context, formFields, fieldName);
+        const nextField = await executeFieldValidatorAsync(formContext, formFields, fieldName);
 
         // We skip errors of type 'server' to avoid blocking the form submission trigger
         const fieldErrors = nextField.errors.filter(error => error.type !== 'server');
@@ -387,9 +387,9 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             isSubmitting: true,
           });
 
-          const submitData = getSubmitFormValues(context, formFieldsRef.current);
+          const submitData = getSubmitFormValues(formContext, formFieldsRef.current);
 
-          const serverErrors = await (submitHandler || onSubmit)?.(submitData, { context });
+          const serverErrors = await (submitHandler || onSubmit)?.(submitData, { formContext });
 
           if (serverErrors && Object.keys(serverErrors).length) {
             setFormErrors(
@@ -423,7 +423,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
   const getInitialFormFieldsState = () =>
     initialFormFieldsStateResolver({
-      context,
+      formContext,
       formFieldsRef,
       formDefaultValuesRef,
       setFieldValue,

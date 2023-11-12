@@ -269,7 +269,7 @@ describe('Hook [use-honey-form]: Context', () => {
         fields: {
           name: {
             value: '',
-            validator: (value, { context }) => context.allowedNames.includes(value),
+            validator: (value, { formContext }) => formContext.allowedNames.includes(value),
           },
         },
         context: {
@@ -292,7 +292,7 @@ describe('Hook [use-honey-form]: Context', () => {
         fields: {
           name: {
             value: '',
-            filter: (value, { context }) => value.slice(0, context.maxStrLength),
+            filter: (value, { formContext }) => value.slice(0, formContext.maxStrLength),
           },
         },
         context: {
@@ -315,7 +315,7 @@ describe('Hook [use-honey-form]: Context', () => {
         fields: {
           price: {
             value: '',
-            format: (value, { context }) => `${context.currencySign}${value}`,
+            format: (value, { formContext }) => `${formContext.currencySign}${value}`,
           },
         },
         context: {

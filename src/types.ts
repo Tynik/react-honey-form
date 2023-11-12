@@ -178,7 +178,7 @@ export type HoneyFormFieldValidatorContext<
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = {
-  context: FormContext;
+  formContext: FormContext;
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext, FieldValue>;
   formFields: HoneyFormFields<Form, FormContext>;
 };
@@ -206,7 +206,7 @@ export type HoneyFormFieldValidator<
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 type HoneyFormFieldFilterContext<FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
 };
 
 export type HoneyFormFieldFilter<FieldValue, FormContext = undefined> = (
@@ -215,7 +215,7 @@ export type HoneyFormFieldFilter<FieldValue, FormContext = undefined> = (
 ) => FieldValue | undefined;
 
 type HoneyFormFieldFormatterContext<FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
 };
 
 export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
@@ -224,7 +224,7 @@ export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
 ) => FieldValue | undefined;
 
 type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
   formFields: HoneyFormFields<Form, FormContext>;
 };
 
@@ -623,7 +623,7 @@ export type HoneyFormDefaults<Form extends HoneyFormBaseForm> =
   | (() => Promise<HoneyFormDefaultValues<Form>>);
 
 type HoneyFormOnSubmitContext<FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
 };
 
 export type HoneyFormOnSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
@@ -656,7 +656,7 @@ export type HoneyFormOnChange<Form extends HoneyFormBaseForm> = (
 ) => void;
 
 export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm, FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
   formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
@@ -781,7 +781,7 @@ export type HoneyFormValidate<Form extends HoneyFormBaseForm> = (
 ) => Promise<boolean>;
 
 type HoneyFormSubmitHandlerContext<FormContext> = {
-  context: FormContext;
+  formContext: FormContext;
 };
 
 export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
