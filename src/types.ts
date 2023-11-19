@@ -29,7 +29,7 @@ type HoneyFormFieldErrorType = 'required' | 'invalid' | 'server' | 'min' | 'max'
  * Represents an error message for a form field.
  * It can be a string or a React element.
  */
-type HoneyFormFieldErrorMessage = string | ReactElement;
+export type HoneyFormFieldErrorMessage = string | ReactElement;
 
 /**
  * Defines the structure of a basic form.

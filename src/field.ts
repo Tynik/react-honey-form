@@ -20,7 +20,7 @@ import type {
   HoneyFormFieldsRef,
 } from './types';
 import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
-import { getFormValues, isSkipField } from './helpers';
+import { forEachFormField, getFormValues, isSkipField } from './helpers';
 
 const DEFAULT_FIELD_TYPE = 'string';
 
@@ -165,7 +165,7 @@ export const createField = <
   return newFormField;
 };
 
-export const getNextFreeErrorsField = <
+export const getNextErrorsFreeField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -210,7 +210,7 @@ export const getNextClearedField = <
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
-  const freeErrorsField = getNextFreeErrorsField(formField);
+  const freeErrorsField = getNextErrorsFreeField(formField);
 
   return {
     ...freeErrorsField,
@@ -266,7 +266,7 @@ const getNextValidatedField = <
     return getNextErredField(formField, fieldErrors);
   }
 
-  const freeErrorsField = getNextFreeErrorsField(formField);
+  const freeErrorsField = getNextErrorsFreeField(formField);
 
   return {
     ...freeErrorsField,
@@ -473,13 +473,13 @@ const checkSkippableFields = <
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
+  forEachFormField(nextFormFields, otherFieldName => {
     if (fieldName === otherFieldName) {
       return;
     }
 
     if (isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
-      nextFormFields[otherFieldName] = getNextFreeErrorsField(nextFormFields[otherFieldName]);
+      nextFormFields[otherFieldName] = getNextErrorsFreeField(nextFormFields[otherFieldName]);
     }
   });
 };
@@ -487,7 +487,7 @@ const checkSkippableFields = <
 export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
   nextFormFields: HoneyFormFields<Form, FormContext>,
 ) => {
-  Object.keys(nextFormFields).forEach((fieldName: keyof Form) => {
+  forEachFormField(nextFormFields, fieldName => {
     nextFormFields[fieldName] = getNextClearedField(nextFormFields[fieldName]);
   });
 };
@@ -503,7 +503,7 @@ const clearDependentFields = <
 ) => {
   initiatorFieldName = initiatorFieldName || fieldName;
 
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
+  forEachFormField(nextFormFields, otherFieldName => {
     if (otherFieldName === fieldName) {
       return;
     }
@@ -535,8 +535,8 @@ const triggerScheduledFieldsValidations = <
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
-  Object.keys(nextFormFields).forEach((otherFieldName: keyof Form) => {
-    if (fieldName === otherFieldName) {
+  forEachFormField(nextFormFields, otherFieldName => {
+    if (otherFieldName === fieldName) {
       return;
     }
 
