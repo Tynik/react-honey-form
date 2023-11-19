@@ -140,6 +140,11 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     );
   }, []);
 
+  /**
+   * Set the value of a form field and update the form state accordingly.
+   *
+   * @template Form - The form type.
+   */
   const setFieldValue: HoneyFormSetFieldValueInternal<Form> = (
     fieldName,
     fieldValue,
