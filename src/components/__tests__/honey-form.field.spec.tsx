@@ -14,7 +14,7 @@ describe('Component [HoneyFormDynamicField]', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormDynamicField name="product" value="apple">
+        <HoneyFormDynamicField name="product" defaultValue="apple">
           {field => <input {...field.props} />}
         </HoneyFormDynamicField>
 
@@ -40,7 +40,7 @@ describe('Component [HoneyFormDynamicField]', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormDynamicField name="gender" value={null}>
+        <HoneyFormDynamicField name="gender" defaultValue={null}>
           {field => (
             <fieldset name="gender">
               <input

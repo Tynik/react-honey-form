@@ -236,18 +236,18 @@ describe('Hook [use-honey-form]: Validation', () => {
         fields: {
           age1: {
             type: 'number',
-            value: 1,
+            defaultValue: 1,
             validator: (value, { formFields }) => value < formFields.age2.value,
           },
           age2: {
             type: 'number',
-            value: 2,
+            defaultValue: 2,
             validator: (value, { formFields }) =>
               value > formFields.age1.value && value < formFields.age3.value,
           },
           age3: {
             type: 'number',
-            value: 3,
+            defaultValue: 3,
             validator: (value, { formFields }) => value > formFields.age2.value,
           },
         },
@@ -334,7 +334,7 @@ describe('Hook [use-honey-form]: Validation', () => {
         fields: {
           names: {
             required: true,
-            value: [],
+            defaultValue: [],
           },
         },
         onSubmit,

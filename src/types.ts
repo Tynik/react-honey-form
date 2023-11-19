@@ -252,11 +252,6 @@ type BaseHoneyFormFieldConfig<
      */
     required?: boolean;
     /**
-     * @deprecated Please, use `defaultValue` field property or `defaults` form property
-     * @default undefined
-     */
-    value?: FieldValue;
-    /**
      * @default undefined
      */
     defaultValue?: FieldValue;

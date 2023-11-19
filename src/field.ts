@@ -74,11 +74,13 @@ export const createField = <
 
   const formFieldRef = createRef<HTMLElement>();
 
-  const fieldValue = config.value === undefined ? config.defaultValue : config.value;
   // Set initial field value as the default value
-  formDefaultValuesRef.current[fieldName] = fieldValue;
+  formDefaultValuesRef.current[fieldName] = config.defaultValue;
 
-  const filteredValue = config.filter ? config.filter(fieldValue, { formContext }) : fieldValue;
+  const filteredValue = config.filter
+    ? config.filter(config.defaultValue, { formContext })
+    : config.defaultValue;
+
   const formattedValue = config.formatter
     ? config.formatter(filteredValue, { formContext })
     : filteredValue;

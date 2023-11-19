@@ -8,7 +8,7 @@ describe('Hook [use-honey-form]: Filter function', () => {
       useHoneyForm<{ age: string }>({
         fields: {
           age: {
-            value: '1abc3',
+            defaultValue: '1abc3',
             filter: value => value.replace(/[^0-9]/g, ''),
           },
         },
@@ -24,7 +24,7 @@ describe('Hook [use-honey-form]: Filter function', () => {
       useHoneyForm<{ age: string }>({
         fields: {
           age: {
-            value: '',
+            defaultValue: '',
             filter: value => value.replace(/[^0-9]/g, ''),
           },
         },
@@ -46,7 +46,7 @@ describe('Hook [use-honey-form]: Filter function', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
-            value: '',
+            defaultValue: '',
             filter: value => value.replace(/[0-9]/g, ''),
           },
         },
@@ -73,7 +73,7 @@ describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
       useHoneyForm<{ zip: string }>({
         fields: {
           zip: {
-            value: '',
+            defaultValue: '',
             filter: createHoneyFormNumericFilter({ maxLength: 5 }),
           },
         },
@@ -118,7 +118,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
       useHoneyForm<{ amount: string }>({
         fields: {
           amount: {
-            value: '',
+            defaultValue: '',
             filter: createHoneyFormNumberFilter({ maxLength: 5 }),
           },
         },
@@ -170,7 +170,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
           amount: {
             type: 'number',
             filter: createHoneyFormNumberFilter({ maxLength: 3 }),
-            value: '',
+            defaultValue: '',
           },
         },
       }),

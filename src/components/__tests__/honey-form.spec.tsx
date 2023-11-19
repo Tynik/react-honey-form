@@ -77,7 +77,7 @@ describe('Component [HoneyForm]: Field mode usage', () => {
     const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
         mode: 'blur',
-        value: '',
+        defaultValue: '',
         validator: value => value.length > 3,
       },
     };
@@ -162,12 +162,12 @@ describe('Component [HoneyForm]: Nested forms', () => {
               },
               name: {
                 required: true,
-                value: '',
+                defaultValue: '',
               },
               price: {
                 type: 'number',
                 required: true,
-                value: 0,
+                defaultValue: 0,
               },
             } as HoneyFormFieldsConfigs<ItemForm>
           }
@@ -424,12 +424,12 @@ describe('Component [HoneyForm]: Nested forms', () => {
           },
           name: {
             required: true,
-            value: '',
+            defaultValue: '',
           },
           price: {
             type: 'number',
             required: true,
-            value: 0,
+            defaultValue: 0,
           },
         },
       });

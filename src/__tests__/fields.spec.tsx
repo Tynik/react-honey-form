@@ -289,7 +289,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
-            value: [],
+            defaultValue: [],
           },
           name: {},
         },
@@ -339,7 +339,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
-            value: [],
+            defaultValue: [],
           },
         },
       }),
@@ -635,7 +635,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
 
     act(() => {
       result.current.addFormField('gender', {
-        value: 'female',
+        defaultValue: 'female',
       });
     });
 
@@ -649,7 +649,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
       useHoneyForm<{ age: number; gender?: 'male' | 'female' }>({
         fields: {
           age: {
-            value: 30,
+            defaultValue: 30,
           },
         },
         onSubmit,
@@ -658,7 +658,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
 
     act(() => {
       result.current.addFormField('gender', {
-        value: 'female',
+        defaultValue: 'female',
       });
     });
 
@@ -672,7 +672,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
       useHoneyForm<{ age?: number }>({
         fields: {
           age: {
-            value: 10,
+            defaultValue: 10,
           },
         },
       }),

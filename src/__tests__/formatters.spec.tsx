@@ -31,7 +31,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       useHoneyForm<{ price: string }>({
         fields: {
           price: {
-            value: '',
+            defaultValue: '',
             filter: value => value.replace(/\$/, ''),
             formatter: value => `$${value}`,
           },

@@ -10,10 +10,10 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
-            value: 'Peter',
+            defaultValue: 'Peter',
           },
           age: {
-            value: 23,
+            defaultValue: 23,
           },
         },
         onSubmit,

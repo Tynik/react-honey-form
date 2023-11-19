@@ -9,10 +9,10 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           name: {
-            value: 'Alex',
+            defaultValue: 'Alex',
           },
           age: {
-            value: 45,
+            defaultValue: 45,
           },
         },
       }),
@@ -32,10 +32,10 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           name: {
-            value: 'Alex',
+            defaultValue: 'Alex',
           },
           age: {
-            value: 45,
+            defaultValue: 45,
           },
         },
       }),
@@ -72,7 +72,7 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           age: {
-            value: 45,
+            defaultValue: 45,
           },
         },
       }),
@@ -91,7 +91,7 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           age: {
-            value: 45,
+            defaultValue: 45,
           },
         },
       }),
@@ -148,7 +148,7 @@ describe('Hook [use-honey-form]: General', () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
           name: {
-            value: '',
+            defaultValue: '',
           },
         },
       });
@@ -204,10 +204,10 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
           name: {
-            value: 'banana',
+            defaultValue: 'banana',
           },
           kind: {
-            value: 'fruit',
+            defaultValue: 'fruit',
           },
         },
       }),
@@ -239,10 +239,10 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
           name: {
-            value: 'banana',
+            defaultValue: 'banana',
           },
           kind: {
-            value: 'fruit',
+            defaultValue: 'fruit',
           },
         },
       }),
@@ -268,7 +268,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           name: {
-            value: '',
+            defaultValue: '',
             validator: (value, { formContext }) => formContext.allowedNames.includes(value),
           },
         },
@@ -291,7 +291,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           name: {
-            value: '',
+            defaultValue: '',
             filter: (value, { formContext }) => value.slice(0, formContext.maxStrLength),
           },
         },
@@ -314,7 +314,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           price: {
-            value: '',
+            defaultValue: '',
             formatter: (value, { formContext }) => `${formContext.currencySign}${value}`,
           },
         },

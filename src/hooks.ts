@@ -391,20 +391,24 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
           const serverErrors = await (submitHandler || onSubmit)?.(submitData, { formContext });
 
-          if (serverErrors && Object.keys(serverErrors).length) {
-            setFormErrors(
-              Object.keys(serverErrors).reduce((formErrorsResult, erredFieldName: keyof Form) => {
-                formErrorsResult[erredFieldName] = serverErrors[erredFieldName].map(
-                  errorMsg =>
-                    ({
-                      type: 'server',
-                      message: errorMsg,
-                    }) as HoneyFormFieldError,
-                );
+          if (serverErrors) {
+            const serverErrorsKeys = Object.keys(serverErrors);
 
-                return formErrorsResult;
-              }, {} as HoneyFormErrors<Form>),
-            );
+            if (serverErrorsKeys.length) {
+              setFormErrors(
+                serverErrorsKeys.reduce((formErrorsResult, erredFieldName: keyof Form) => {
+                  formErrorsResult[erredFieldName] = serverErrors[erredFieldName].map(
+                    errorMsg =>
+                      ({
+                        type: 'server',
+                        message: errorMsg,
+                      }) as HoneyFormFieldError,
+                  );
+
+                  return formErrorsResult;
+                }, {} as HoneyFormErrors<Form>),
+              );
+            }
           }
 
           // Only submitting the form can clear the dirty state
