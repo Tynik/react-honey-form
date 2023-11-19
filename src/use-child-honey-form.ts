@@ -4,14 +4,18 @@ import type {
   HoneyFormBaseForm,
   HoneyFormApi,
   ChildHoneyFormOptions,
-  HoneyFormFields,
   HoneyFormParentField,
   ChildHoneyFormBaseForm,
   InitialFormFieldsStateResolverOptions,
   HoneyFormFieldsConfigs,
 } from './types';
 import { USE_HONEY_FORM_ERRORS } from './constants';
-import { getHoneyFormUniqueId, registerChildForm, unregisterChildForm } from './helpers';
+import {
+  getHoneyFormUniqueId,
+  registerChildForm,
+  mapFieldsConfigs,
+  unregisterChildForm,
+} from './helpers';
 
 import { createField } from './field';
 import { useForm } from './hooks';
@@ -43,45 +47,38 @@ const createInitialFormFields = <
   removeFieldValue,
   addFormFieldError,
 }: CreateInitialFormFieldsOptions<ParentForm, ChildForm, FormContext>) =>
-  Object.keys(fieldsConfigs).reduce(
-    (initialFormFields, fieldName: keyof ChildForm) => {
-      const fieldConfig = fieldsConfigs[fieldName];
+  mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
+    let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
 
-      let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
+    if (formIndex !== undefined && parentField) {
+      const childForm = Array.isArray(parentField.value)
+        ? parentField.value[formIndex]
+        : parentField.value;
 
-      if (formIndex !== undefined && parentField) {
-        const childForm = Array.isArray(parentField.value)
-          ? parentField.value[formIndex]
-          : parentField.value;
+      childFormFieldValue = childForm?.[fieldName];
+    }
 
-        childFormFieldValue = childForm?.[fieldName];
-      }
-
-      initialFormFields[fieldName] = createField(
-        fieldName,
-        {
-          ...fieldConfig,
-          defaultValue:
-            childFormFieldValue ??
-            fieldConfig.defaultValue ??
-            formDefaultValuesRef.current[fieldName],
-        },
-        {
-          formContext,
-          formFieldsRef,
-          formDefaultValuesRef,
-          setFieldValue,
-          clearFieldErrors,
-          pushFieldValue,
-          removeFieldValue,
-          addFormFieldError,
-        },
-      );
-
-      return initialFormFields;
-    },
-    {} as HoneyFormFields<ChildForm, FormContext>,
-  );
+    return createField(
+      fieldName,
+      {
+        ...fieldConfig,
+        defaultValue:
+          childFormFieldValue ??
+          fieldConfig.defaultValue ??
+          formDefaultValuesRef.current[fieldName],
+      },
+      {
+        formContext,
+        formFieldsRef,
+        formDefaultValuesRef,
+        setFieldValue,
+        clearFieldErrors,
+        pushFieldValue,
+        removeFieldValue,
+        addFormFieldError,
+      },
+    );
+  });
 
 export const useChildHoneyForm = <
   ParentForm extends HoneyFormBaseForm,

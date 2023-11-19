@@ -9,6 +9,8 @@ import type {
   HoneyFormParentField,
   ChildHoneyFormBaseForm,
   HoneyFormValues,
+  HoneyFormFieldsConfigs,
+  HoneyFormFieldConfig,
 } from './types';
 
 export const noop = () => {
@@ -35,6 +37,24 @@ export const getHoneyFormUniqueId = () => {
 
   return `${timestamp}${randomNum}`;
 };
+
+export const mapFieldsConfigs = <Form extends HoneyFormBaseForm, FormContext>(
+  fieldsConfigs: HoneyFormFieldsConfigs<Form, FormContext>,
+  fieldCallback: (
+    fieldName: keyof Form,
+    fieldConfig: HoneyFormFieldConfig<Form, keyof Form, FormContext>,
+  ) => HoneyFormField<Form, keyof Form, FormContext>,
+) =>
+  Object.keys(fieldsConfigs).reduce(
+    (nextFormFields, fieldName: keyof Form) => {
+      const fieldConfig = fieldsConfigs[fieldName];
+
+      nextFormFields[fieldName] = fieldCallback(fieldName, fieldConfig);
+
+      return nextFormFields;
+    },
+    {} as HoneyFormFields<Form, FormContext>,
+  );
 
 type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;

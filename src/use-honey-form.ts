@@ -1,6 +1,5 @@
 import type {
   HoneyFormBaseForm,
-  HoneyFormFields,
   HoneyFormOptions,
   HoneyFormFieldsConfigs,
   HoneyFormApi,
@@ -9,6 +8,7 @@ import type {
 
 import { createField } from './field';
 import { useForm } from './hooks';
+import { mapFieldsConfigs } from './helpers';
 
 type CreateInitialFormFieldsOptions<
   Form extends HoneyFormBaseForm,
@@ -28,31 +28,24 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
   removeFieldValue,
   addFormFieldError,
 }: CreateInitialFormFieldsOptions<Form, FormContext>) =>
-  Object.keys(fieldsConfigs).reduce(
-    (initialFormFields, fieldName: keyof Form) => {
-      const fieldConfig = fieldsConfigs[fieldName];
-
-      initialFormFields[fieldName] = createField(
-        fieldName,
-        {
-          ...fieldConfig,
-          defaultValue: fieldConfig.defaultValue ?? formDefaultValuesRef.current[fieldName],
-        },
-        {
-          formContext,
-          formFieldsRef,
-          formDefaultValuesRef,
-          setFieldValue,
-          clearFieldErrors,
-          pushFieldValue,
-          removeFieldValue,
-          addFormFieldError,
-        },
-      );
-
-      return initialFormFields;
-    },
-    {} as HoneyFormFields<Form, FormContext>,
+  mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) =>
+    createField(
+      fieldName,
+      {
+        ...fieldConfig,
+        defaultValue: fieldConfig.defaultValue ?? formDefaultValuesRef.current[fieldName],
+      },
+      {
+        formContext,
+        formFieldsRef,
+        formDefaultValuesRef,
+        setFieldValue,
+        clearFieldErrors,
+        pushFieldValue,
+        removeFieldValue,
+        addFormFieldError,
+      },
+    ),
   );
 
 export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
