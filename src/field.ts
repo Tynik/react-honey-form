@@ -165,6 +165,15 @@ export const createField = <
   return newFormField;
 };
 
+/**
+ * Returns the next state of a form field with errors cleared.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field.
+ * @template FormContext - The context of the form.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state with errors cleared.
+ */
 export const getNextErrorsFreeField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -183,6 +192,16 @@ export const getNextErrorsFreeField = <
   };
 };
 
+/**
+ * Returns the next state of a form field with specified errors.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field.
+ * @template FormContext - The context of the form.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ * @param {HoneyFormFieldError[]} fieldErrors - The errors to be set on the form field.
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state with specified errors.
+ */
 export const getNextErredField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -203,6 +222,12 @@ export const getNextErredField = <
   };
 };
 
+/**
+ * Get the next cleared field state by resetting the values to `undefined`.
+ *
+ * @param {HoneyFormField} formField - The form field to clear.
+ * @returns {HoneyFormField} - The next form field state after clearing.
+ */
 export const getNextClearedField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -210,19 +235,26 @@ export const getNextClearedField = <
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
-  const freeErrorsField = getNextErrorsFreeField(formField);
+  const errorsFreeField = getNextErrorsFreeField(formField);
 
   return {
-    ...freeErrorsField,
+    ...errorsFreeField,
     value: undefined,
     rawValue: undefined,
     props: {
-      ...freeErrorsField.props,
+      ...errorsFreeField.props,
       value: undefined,
     },
   };
 };
 
+/**
+ * Handle the result of field validation and update the field errors array accordingly.
+ *
+ * @param {HoneyFormFieldError[]} fieldErrors - The array to collect validation errors for the field.
+ * @param {HoneyFormFieldConfig} fieldConfig - Configuration for the field being validated.
+ * @param {HoneyFormFieldValidationResult | null} validationResult - The result of the field validation.
+ */
 const handleFieldValidationResult = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -235,14 +267,17 @@ const handleFieldValidationResult = <
   if (validationResult) {
     if (Array.isArray(validationResult)) {
       fieldErrors.push(...validationResult);
-      //
-    } else if (typeof validationResult !== 'boolean') {
+    }
+    // If the result is not a boolean, treat it as an invalid value and add it to fieldErrors
+    else if (typeof validationResult !== 'boolean') {
       fieldErrors.push({
         type: 'invalid',
         message: validationResult,
       });
     }
-  } else if (validationResult === false) {
+  }
+  // If validationResult is explicitly false, add a default invalid value error
+  else if (validationResult === false) {
     fieldErrors.push({
       type: 'invalid',
       message: fieldConfig.errorMessages?.invalid ?? 'Invalid value',
@@ -250,6 +285,15 @@ const handleFieldValidationResult = <
   }
 };
 
+/**
+ * Get the next validated field based on validation results and field errors.
+ *
+ * @param {HoneyFormFieldError[]} fieldErrors - The array of validation errors for the field.
+ * @param {HoneyFormFieldValidationResult | null} validationResult - The result of the field validation.
+ * @param {HoneyFormField} formField - The form field being validated.
+ * @param {Form[FieldName] | undefined} cleanValue - The cleaned value of the field.
+ * @returns {HoneyFormField} - The next form field state after validation.
+ */
 const getNextValidatedField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -266,10 +310,10 @@ const getNextValidatedField = <
     return getNextErredField(formField, fieldErrors);
   }
 
-  const freeErrorsField = getNextErrorsFreeField(formField);
+  const errorsFreeField = getNextErrorsFreeField(formField);
 
   return {
-    ...freeErrorsField,
+    ...errorsFreeField,
     cleanValue,
   };
 };
@@ -329,6 +373,15 @@ const executeInternalFieldValidators = <
   INTERNAL_FIELD_VALIDATORS.forEach(validator => validator(fieldValue, fieldConfig, fieldErrors));
 };
 
+/**
+ * Handles the result of a promise-based field validation, adding errors to the form field.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field.
+ * @template FormContext - The context of the form.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field being validated.
+ * @param {Promise<HoneyFormFieldValidationResult>} validationResponse - The result of the promise-based validation.
+ */
 const handleFieldPromiseValidationResult = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -409,20 +462,26 @@ export const executeFieldValidator = <
   fieldName: FieldName,
   fieldValue: FieldValue | undefined,
 ): HoneyFormField<Form, FieldName, FormContext> => {
-  const fieldErrors: HoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
 
-  const cleanValue = sanitizeFieldValue(formField.config.type, fieldValue);
+  const fieldErrors: HoneyFormFieldError[] = [];
 
-  let validationResult = executeFieldTypeValidator(formContext, formFields, formField, cleanValue);
+  const sanitizedValue = sanitizeFieldValue(formField.config.type, fieldValue);
+
+  let validationResult = executeFieldTypeValidator(
+    formContext,
+    formFields,
+    formField,
+    sanitizedValue,
+  );
 
   // Do not run additional validators if the default field type validator failed
   if (validationResult === null || validationResult === true) {
-    executeInternalFieldValidators(cleanValue, formField.config, fieldErrors);
+    executeInternalFieldValidators(sanitizedValue, formField.config, fieldErrors);
 
     // Execute custom validator. Can only run when the default validator returns true
     if (formField.config.validator) {
-      const validationResponse = formField.config.validator(cleanValue, {
+      const validationResponse = formField.config.validator(sanitizedValue, {
         formContext,
         formFields,
         fieldConfig: formField.config,
@@ -436,7 +495,7 @@ export const executeFieldValidator = <
     }
   }
 
-  return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
+  return getNextValidatedField(fieldErrors, validationResult, formField, sanitizedValue);
 };
 
 /**
@@ -507,6 +566,16 @@ export const executeFieldValidatorAsync = async <
   return getNextValidatedField(fieldErrors, validationResult, formField, sanitizedValue);
 };
 
+/**
+ * Checks and clears errors for fields that should be skipped based on the current field's value.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field.
+ * @template FormContext - The context of the form.
+ * @param {FormContext} formContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
+ * @param {FieldName} fieldName - The name of the current field.
+ */
 const checkSkippableFields = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -527,6 +596,13 @@ const checkSkippableFields = <
   });
 };
 
+/**
+ * Clears all fields in the form, resetting their values and removing errors.
+ *
+ * @template Form - The form type.
+ * @template FormContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
+ */
 export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
   nextFormFields: HoneyFormFields<Form, FormContext>,
 ) => {
@@ -535,6 +611,15 @@ export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
   });
 };
 
+/**
+ * Clears fields that depend on the specified field, recursively clearing nested dependencies.
+ *
+ * @template Form - The form type.
+ * @template FormContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
+ * @param {keyof Form} fieldName - The name of the field triggering the clearing.
+ * @param {keyof Form | null} initiatorFieldName - The name of the field that initiated the clearing (optional).
+ */
 const clearDependentFields = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,

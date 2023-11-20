@@ -150,6 +150,9 @@ export const maxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
   }
 };
 
+/**
+ * Validator for enforcing a numeric field value within a specified range.
+ */
 export const minMaxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
   fieldValue,
   fieldConfig,
