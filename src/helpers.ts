@@ -151,7 +151,7 @@ export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>
 ): Record<keyof Form, Item> =>
   Object.keys(formFields).reduce(
     (result, fieldName: keyof Form) => {
-      if (filterFieldCallback?.(fieldName, formFields[fieldName])) {
+      if (filterFieldCallback?.(fieldName, formFields[fieldName]) === false) {
         return result;
       }
 
@@ -213,7 +213,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
 
       return formField.config.submitFormattedValue ? formField.value : formField.cleanValue;
     },
-    fieldName => isSkipField(fieldName, { formContext, formFields }),
+    fieldName => !isSkipField(fieldName, { formContext, formFields }),
   ) as Form;
 
 /**
@@ -230,7 +230,7 @@ export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
   mapFormFields(
     formFields,
     (_, formField) => formField.errors,
-    (_, formField) => !formField.errors.length,
+    (_, formField) => formField.errors.length > 0,
   );
 
 /**

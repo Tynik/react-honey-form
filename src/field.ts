@@ -274,6 +274,19 @@ const getNextValidatedField = <
   };
 };
 
+/**
+ * Execute the validator associated with the type of specific form field.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field to validate.
+ * @template FormContext - The context of the form.
+ * @template FieldValue - The type of the field's value.
+ * @param {FormContext} formContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ * @param {FieldValue | undefined} fieldValue - The current value of the form field.
+ * @returns {HoneyFormFieldValidationResult | null} - The result of the field type validation.
+ */
 const executeFieldTypeValidator = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -285,6 +298,7 @@ const executeFieldTypeValidator = <
   formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldValue: FieldValue | undefined,
 ): HoneyFormFieldValidationResult | null => {
+  // Get the validator function associated with the field type
   const validator = FIELD_TYPE_VALIDATORS_MAP[formField.config.type ?? DEFAULT_FIELD_TYPE];
 
   const validationResponse = validator(fieldValue, {
@@ -293,10 +307,12 @@ const executeFieldTypeValidator = <
     fieldConfig: formField.config,
   });
 
+  // If the validation response is not a Promise, return it
   if (!(validationResponse instanceof Promise)) {
     return validationResponse;
   }
 
+  // If the validation response is a Promise, return null
   return null;
 };
 
@@ -369,6 +385,19 @@ const sanitizeFieldValue = <
   return valueConvertor ? valueConvertor(rawFieldValue) : rawFieldValue;
 };
 
+/**
+ * Execute the validator for a specific form field.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field to validate.
+ * @template FormContext - The context of the form.
+ * @template FieldValue - The value of the field.
+ * @param {FormContext} formContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
+ * @param {FieldName} fieldName - The name of the field to validate.
+ * @param {FieldValue | undefined} fieldValue - The value of the field.
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state of the validated field.
+ */
 export const executeFieldValidator = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -379,7 +408,7 @@ export const executeFieldValidator = <
   formFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
   fieldValue: FieldValue | undefined,
-) => {
+): HoneyFormField<Form, FieldName, FormContext> => {
   const fieldErrors: HoneyFormFieldError[] = [];
   const formField = formFields[fieldName];
 
@@ -387,11 +416,11 @@ export const executeFieldValidator = <
 
   let validationResult = executeFieldTypeValidator(formContext, formFields, formField, cleanValue);
 
-  // do not run additional validators if default field type validator is failed
+  // Do not run additional validators if the default field type validator failed
   if (validationResult === null || validationResult === true) {
     executeInternalFieldValidators(cleanValue, formField.config, fieldErrors);
 
-    // Execute custom validator. Can be run only when the default validator returns true
+    // Execute custom validator. Can only run when the default validator returns true
     if (formField.config.validator) {
       const validationResponse = formField.config.validator(cleanValue, {
         formContext,
@@ -410,6 +439,17 @@ export const executeFieldValidator = <
   return getNextValidatedField(fieldErrors, validationResult, formField, cleanValue);
 };
 
+/**
+ * Asynchronously execute the validator for a specific form field.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field to validate.
+ * @template FormContext - The context of the form.
+ * @param {FormContext} formContext - The context of the form.
+ * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
+ * @param {FieldName} fieldName - The name of the field to validate.
+ * @returns {Promise<HoneyFormField<Form, FieldName, FormContext>>} - The next state of the validated field.
+ */
 export const executeFieldValidatorAsync = async <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -418,9 +458,10 @@ export const executeFieldValidatorAsync = async <
   formContext: FormContext,
   formFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
-) => {
-  const fieldErrors: HoneyFormFieldError[] = [];
+): Promise<HoneyFormField<Form, FieldName, FormContext>> => {
   const formField = formFields[fieldName];
+
+  const fieldErrors: HoneyFormFieldError[] = [];
 
   const filteredValue = formField.config.filter
     ? formField.config.filter(formField.rawValue, { formContext })
@@ -435,7 +476,7 @@ export const executeFieldValidatorAsync = async <
     sanitizedValue,
   );
 
-  // do not run additional validators if default field type validator is failed
+  // Do not run additional validators if the default field type validator failed
   if (validationResult === null || validationResult === true) {
     executeInternalFieldValidators(sanitizedValue, formField.config, fieldErrors);
 
@@ -447,10 +488,12 @@ export const executeFieldValidatorAsync = async <
         fieldConfig: formField.config,
       });
 
+      // If the validation response is a Promise, handle it asynchronously
       if (validationResponse instanceof Promise) {
         try {
           validationResult = await validationResponse;
         } catch (e) {
+          // If there's an error in the promise, set it as the validation result
           const error = e as Error;
 
           validationResult = error.message;

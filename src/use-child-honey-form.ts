@@ -46,8 +46,8 @@ const createInitialFormFields = <
   pushFieldValue,
   removeFieldValue,
   addFormFieldError,
-}: CreateInitialFormFieldsOptions<ParentForm, ChildForm, FormContext>) =>
-  mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
+}: CreateInitialFormFieldsOptions<ParentForm, ChildForm, FormContext>) => {
+  const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
     let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
 
     if (formIndex !== undefined && parentField) {
@@ -79,6 +79,9 @@ const createInitialFormFields = <
       },
     );
   });
+
+  return formFields;
+};
 
 export const useChildHoneyForm = <
   ParentForm extends HoneyFormBaseForm,

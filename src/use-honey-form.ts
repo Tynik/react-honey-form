@@ -27,8 +27,8 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
   pushFieldValue,
   removeFieldValue,
   addFormFieldError,
-}: CreateInitialFormFieldsOptions<Form, FormContext>) =>
-  mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) =>
+}: CreateInitialFormFieldsOptions<Form, FormContext>) => {
+  const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) =>
     createField(
       fieldName,
       {
@@ -47,6 +47,9 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
       },
     ),
   );
+
+  return formFields;
+};
 
 export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   fields: fieldsConfigs = {} as never,
