@@ -44,6 +44,7 @@ import {
 export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   initialFormFieldsStateResolver,
   defaults = {},
+  resetAfterSubmit = false,
   context: formContext,
   onSubmit,
   onChange,
@@ -383,6 +384,27 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     }
   }, []);
 
+  const getInitialFormFieldsState = () =>
+    initialFormFieldsStateResolver({
+      formContext,
+      formFieldsRef,
+      formDefaultValuesRef,
+      setFieldValue,
+      clearFieldErrors,
+      pushFieldValue,
+      removeFieldValue,
+      addFormFieldError,
+    });
+
+  const resetForm: HoneyFormReset = () => {
+    isFormDirtyRef.current = false;
+    isFormValidRef.current = false;
+    isFormSubmittedRef.current = false;
+
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setFormFields(getInitialFormFieldsState);
+  };
+
   /**
    * Submits the form by invoking the submit handler and handling server errors.
    */
@@ -419,14 +441,15 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
                 })),
               ),
             );
+          } else if (resetAfterSubmit) {
+            resetForm();
+            return;
           }
 
-          // Only submitting the form can clear the dirty state
           isFormDirtyRef.current = false;
           isFormSubmittedRef.current = true;
         }
       } finally {
-        // Only submitting the form can clear the dirty state
         updateFormState({
           isValidating: false,
           isSubmitting: false,
@@ -435,23 +458,6 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     },
     [validateForm, onSubmit],
   );
-
-  const getInitialFormFieldsState = () =>
-    initialFormFieldsStateResolver({
-      formContext,
-      formFieldsRef,
-      formDefaultValuesRef,
-      setFieldValue,
-      clearFieldErrors,
-      pushFieldValue,
-      removeFieldValue,
-      addFormFieldError,
-    });
-
-  const resetForm: HoneyFormReset = () => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(getInitialFormFieldsState);
-  };
 
   const [formFields, setFormFields] = useState(getInitialFormFieldsState);
   //

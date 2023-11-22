@@ -673,6 +673,13 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
    */
   defaults?: HoneyFormDefaults<Form>;
   /**
+   * Determines whether the form should be reset to its initial state after a successful submit.
+   * The form will be reset only when the `onSubmit` callback does not return any errors.
+   *
+   * @default false
+   */
+  resetAfterSubmit?: boolean;
+  /**
    * Any object that can be used to pass contextual data to field functions.
    * This provides a way to share additional information or context with field-specific logic.
    */
