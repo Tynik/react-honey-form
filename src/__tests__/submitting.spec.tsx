@@ -27,6 +27,68 @@ describe('Hook [use-honey-form]: Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 }, { context: undefined });
   });
 
+  it('should update form states after successful submission', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            required: true,
+          },
+        },
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+    });
+
+    expect(result.current.isFormDirty).toBeTruthy();
+    expect(result.current.isFormValid).toBeFalsy();
+    expect(result.current.isFormSubmitted).toBeFalsy();
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toBeCalled();
+
+    expect(result.current.isFormDirty).toBeFalsy();
+    expect(result.current.isFormValid).toBeTruthy();
+    expect(result.current.isFormSubmitted).toBeTruthy();
+  });
+
+  it('should not update form states after unsuccessful submission', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            required: true,
+          },
+        },
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('');
+    });
+
+    expect(result.current.isFormDirty).toBeTruthy();
+    expect(result.current.isFormValid).toBeFalsy();
+    expect(result.current.isFormSubmitted).toBeFalsy();
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).not.toBeCalled();
+
+    expect(result.current.isFormDirty).toBeTruthy();
+    expect(result.current.isFormValid).toBeFalsy();
+    expect(result.current.isFormSubmitted).toBeFalsy();
+  });
+
   it('should call custom submit handler function', async () => {
     const submitHandler = jest.fn();
 
@@ -85,7 +147,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     });
   });
 
-  it('should not submit the form when errors are present', async () => {
+  it('should not submit the form with errors', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
