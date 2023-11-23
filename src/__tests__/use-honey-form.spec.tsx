@@ -27,46 +27,6 @@ describe('Hook [use-honey-form]: General', () => {
     });
   });
 
-  it('should reset to initial field values', () => {
-    const { result } = renderHook(() =>
-      useHoneyForm({
-        fields: {
-          name: {
-            defaultValue: 'Alex',
-          },
-          age: {
-            defaultValue: 45,
-          },
-        },
-      }),
-    );
-
-    act(() => {
-      result.current.formFields.age.setValue(47);
-      result.current.formFields.name.setValue('Dima');
-    });
-
-    expect(result.current.formFields.age.value).toBe(47);
-    expect(result.current.formFields.name.value).toBe('Dima');
-
-    expect(result.current.formValues).toStrictEqual({
-      age: 47,
-      name: 'Dima',
-    });
-
-    act(() => {
-      result.current.resetForm();
-    });
-
-    expect(result.current.formFields.name.value).toBe('Alex');
-    expect(result.current.formFields.age.value).toBe(45);
-
-    expect(result.current.formValues).toStrictEqual({
-      age: 45,
-      name: 'Alex',
-    });
-  });
-
   it('a form should be dirty after setting value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
@@ -330,5 +290,69 @@ describe('Hook [use-honey-form]: Context', () => {
 
     expect(result.current.formFields.price.value).toBe('$15');
     expect(result.current.formErrors).toStrictEqual({});
+  });
+});
+
+describe('Hook [use-honey-form]: Reset form', () => {
+  it('should reset to initial field values', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          name: {
+            defaultValue: 'Alex',
+          },
+          age: {
+            defaultValue: 45,
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.age.setValue(47);
+      result.current.formFields.name.setValue('Dima');
+    });
+
+    expect(result.current.formValues).toStrictEqual({
+      age: 47,
+      name: 'Dima',
+    });
+
+    act(() => {
+      result.current.resetForm();
+    });
+
+    expect(result.current.formValues).toStrictEqual({
+      age: 45,
+      name: 'Alex',
+    });
+  });
+
+  it('should clear form and field errors after form reset', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm({
+        fields: {
+          name: {
+            required: true,
+            defaultValue: '',
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+    });
+
+    expect(result.current.formValues.name).toBe('Apple');
+
+    act(() => {
+      result.current.resetForm();
+    });
+
+    expect(result.current.formValues.name).toBe('');
+
+    expect(result.current.formErrors).toStrictEqual({});
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
   });
 });

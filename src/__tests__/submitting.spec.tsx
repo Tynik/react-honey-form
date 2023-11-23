@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Hook [use-honey-form]: Submitting', () => {
-  it('should submit', async () => {
+  it('should submit default fields values', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -19,6 +19,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
         onSubmit,
       }),
     );
+
     expect(onSubmit).not.toBeCalled();
 
     await act(() => result.current.submitForm());
@@ -26,8 +27,8 @@ describe('Hook [use-honey-form]: Submitting', () => {
     expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 }, { context: undefined });
   });
 
-  it('should call custom submit function passed to submitForm()', async () => {
-    const onSubmit = jest.fn();
+  it('should call custom submit handler function', async () => {
+    const submitHandler = jest.fn();
 
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
@@ -40,15 +41,15 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    expect(onSubmit).not.toBeCalled();
+    expect(submitHandler).not.toBeCalled();
 
     act(() => {
       result.current.formFields.name.setValue('Ken');
     });
 
-    await act(() => result.current.submitForm(onSubmit));
+    await act(() => result.current.submitForm(submitHandler));
 
-    expect(onSubmit).toBeCalledWith({ name: 'Ken', age: undefined }, { context: undefined });
+    expect(submitHandler).toBeCalledWith({ name: 'Ken', age: undefined }, { context: undefined });
   });
 
   it('should show an error related to allow only numerics because its high priority error than min/max', async () => {
@@ -84,7 +85,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     });
   });
 
-  it('should not submit when errors are present', async () => {
+  it('should not submit the form when errors are present', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -111,5 +112,36 @@ describe('Hook [use-honey-form]: Submitting', () => {
     await act(() => result.current.submitForm());
 
     expect(onSubmit).not.toBeCalled();
+  });
+
+  it('should reset form after submission using resetAfterSubmit=true option', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            required: true,
+            defaultValue: 'Banana',
+          },
+        },
+        resetAfterSubmit: true,
+        onSubmit,
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.name.setValue('Apple');
+    });
+
+    expect(result.current.formValues.name).toBe('Apple');
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toBeCalled();
+    expect(result.current.formValues.name).toBe('Banana');
+
+    expect(result.current.formErrors).toStrictEqual({});
+    expect(result.current.formFields.name.errors).toStrictEqual([]);
   });
 });
