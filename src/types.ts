@@ -682,6 +682,9 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
   /**
    * Any object that can be used to pass contextual data to field functions.
    * This provides a way to share additional information or context with field-specific logic.
+   *
+   * @remarks
+   * Context data should be wrapped in `useMemo` to prevent unnecessary recalculations.
    */
   context?: FormContext;
   /**

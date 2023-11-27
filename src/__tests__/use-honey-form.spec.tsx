@@ -37,6 +37,7 @@ describe('Hook [use-honey-form]: General', () => {
         },
       }),
     );
+
     expect(result.current.isFormDirty).toBeFalsy();
 
     act(() => {
@@ -63,9 +64,7 @@ describe('Hook [use-honey-form]: General', () => {
 
     expect(result.current.isFormDirty).toBeTruthy();
 
-    await act(async () => {
-      await result.current.submitForm();
-    });
+    await act(() => result.current.submitForm());
 
     expect(result.current.isFormDirty).toBeFalsy();
   });

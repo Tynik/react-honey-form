@@ -115,7 +115,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         return nextFormFields;
       });
     },
-    [],
+    [formContext],
   );
 
   const setFormErrors = useCallback<HoneyFormSetFormErrors<Form>>(formErrors => {
@@ -291,7 +291,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         };
       });
     },
-    [],
+    [formContext],
   );
 
   const removeFormField = useCallback<HoneyFormRemoveFormField<Form>>(fieldName => {
@@ -314,53 +314,56 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    * @param {Array<keyof Form>?} fieldNames - Optional array of field names to validate. If provided, only these fields will be validated.
    * @returns {Promise<boolean>} - A promise that resolves to `true` if there are no validation errors, otherwise `false`.
    */
-  const validateForm = useCallback<HoneyFormValidate<Form>>(async fieldNames => {
-    const formFields = formFieldsRef.current;
-    if (!formFields) {
-      throw new Error('The `formFields` value is null');
-    }
+  const validateForm = useCallback<HoneyFormValidate<Form>>(
+    async fieldNames => {
+      const formFields = formFieldsRef.current;
+      if (!formFields) {
+        throw new Error('The `formFields` value is null');
+      }
 
-    // Variable to track if any errors are found during validation
-    let hasErrors = false;
+      // Variable to track if any errors are found during validation
+      let hasErrors = false;
 
-    const nextFormFields = {} as HoneyFormFields<Form, FormContext>;
+      const nextFormFields = {} as HoneyFormFields<Form, FormContext>;
 
-    await Promise.all(
-      Object.keys(formFields).map(async (fieldName: keyof Form) => {
-        const formField = formFields[fieldName];
+      await Promise.all(
+        Object.keys(formFields).map(async (fieldName: keyof Form) => {
+          const formField = formFields[fieldName];
 
-        const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
+          const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
 
-        if (isSkipFieldValidation || isSkipField(fieldName, { formContext, formFields })) {
-          nextFormFields[fieldName] = getNextErrorsFreeField(formField);
-          return;
-        }
+          if (isSkipFieldValidation || isSkipField(fieldName, { formContext, formFields })) {
+            nextFormFields[fieldName] = getNextErrorsFreeField(formField);
+            return;
+          }
 
-        const hasChildFormsErrors = await runChildFormsValidation(formField);
-        hasErrors ||= hasChildFormsErrors;
+          const hasChildFormsErrors = await runChildFormsValidation(formField);
+          hasErrors ||= hasChildFormsErrors;
 
-        // Execute the field validator asynchronously
-        const nextField = await executeFieldValidatorAsync(formContext, formFields, fieldName);
+          // Execute the field validator asynchronously
+          const nextField = await executeFieldValidatorAsync(formContext, formFields, fieldName);
 
-        // Filter out errors of type 'server' to avoid blocking the form submission trigger
-        const fieldErrors = nextField.errors.filter(fieldError => fieldError.type !== 'server');
-        if (fieldErrors.length) {
-          hasErrors = true;
-        }
+          // Filter out errors of type 'server' to avoid blocking the form submission trigger
+          const fieldErrors = nextField.errors.filter(fieldError => fieldError.type !== 'server');
+          if (fieldErrors.length) {
+            hasErrors = true;
+          }
 
-        nextFormFields[fieldName] = nextField;
-      }),
-    );
+          nextFormFields[fieldName] = nextField;
+        }),
+      );
 
-    isFormValidRef.current = !hasErrors;
+      isFormValidRef.current = !hasErrors;
 
-    // Set the new `nextFormFields` value to the ref to access it at getting clean values at submitting
-    formFieldsRef.current = nextFormFields;
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(nextFormFields);
+      // Set the new `nextFormFields` value to the ref to access it at getting clean values at submitting
+      formFieldsRef.current = nextFormFields;
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      setFormFields(nextFormFields);
 
-    return !hasErrors;
-  }, []);
+      return !hasErrors;
+    },
+    [formContext],
+  );
 
   /**
    * Validates the form fields, updating the form state to indicate validation status.
@@ -368,21 +371,24 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    * @param {Array<keyof Form>?} fieldNames - Optional array of field names to validate. If provided, only these fields will be validated.
    * @returns {Promise<boolean>} - A promise that resolves to `true` if there are no validation errors, otherwise `false`.
    */
-  const outerValidateForm = useCallback<HoneyFormValidate<Form>>(async fieldNames => {
-    // Update the form state to indicate that validation is in progress
-    updateFormState({
-      isValidating: true,
-    });
-
-    try {
-      return await validateForm(fieldNames);
-    } finally {
-      // Update the form state to indicate that validation is complete
+  const outerValidateForm = useCallback<HoneyFormValidate<Form>>(
+    async fieldNames => {
+      // Update the form state to indicate that validation is in progress
       updateFormState({
-        isValidating: false,
+        isValidating: true,
       });
-    }
-  }, []);
+
+      try {
+        return await validateForm(fieldNames);
+      } finally {
+        // Update the form state to indicate that validation is complete
+        updateFormState({
+          isValidating: false,
+        });
+      }
+    },
+    [validateForm],
+  );
 
   const getInitialFormFieldsState = () =>
     initialFormFieldsStateResolver({
