@@ -315,7 +315,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    * @returns {Promise<boolean>} - A promise that resolves to `true` if there are no validation errors, otherwise `false`.
    */
   const validateForm = useCallback<HoneyFormValidate<Form>>(
-    async fieldNames => {
+    async ({ targetFields, excludeFields } = {}) => {
       const formFields = formFieldsRef.current;
       if (!formFields) {
         throw new Error('The `formFields` value is null');
@@ -330,9 +330,19 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         Object.keys(formFields).map(async (fieldName: keyof Form) => {
           const formField = formFields[fieldName];
 
-          const isSkipFieldValidation = fieldNames ? !fieldNames.includes(fieldName) : false;
+          const isTargetFieldValidation = targetFields?.length
+            ? targetFields.includes(fieldName)
+            : true;
 
-          if (isSkipFieldValidation || isSkipField(fieldName, { formContext, formFields })) {
+          const isExcludeFieldFromValidation = excludeFields
+            ? excludeFields.includes(fieldName)
+            : false;
+
+          if (
+            isExcludeFieldFromValidation ||
+            !isTargetFieldValidation ||
+            isSkipField(fieldName, { formContext, formFields })
+          ) {
             nextFormFields[fieldName] = getNextErrorsFreeField(formField);
             return;
           }
@@ -372,14 +382,14 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    * @returns {Promise<boolean>} - A promise that resolves to `true` if there are no validation errors, otherwise `false`.
    */
   const outerValidateForm = useCallback<HoneyFormValidate<Form>>(
-    async fieldNames => {
+    async validateOptions => {
       // Update the form state to indicate that validation is in progress
       updateFormState({
         isValidating: true,
       });
 
       try {
-        return await validateForm(fieldNames);
+        return await validateForm(validateOptions);
       } finally {
         // Update the form state to indicate that validation is complete
         updateFormState({

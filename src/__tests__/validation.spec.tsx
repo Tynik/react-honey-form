@@ -392,7 +392,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
     });
   });
 
-  it('should validate specific form fields', async () => {
+  it('should validate all fields when no specific target fields are provided', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
         fields: {
@@ -410,7 +410,31 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
     expect(result.current.formErrors).toStrictEqual({});
 
     await act(async () => {
-      await result.current.validateForm(['name']);
+      await result.current.validateForm({ targetFields: [] });
+    });
+
+    expect(Object.keys(result.current.formErrors).length).toBe(2);
+  });
+
+  it('should validate specified form fields', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {
+            type: 'number',
+            required: true,
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    await act(async () => {
+      await result.current.validateForm({ targetFields: ['name'] });
     });
 
     expect(result.current.formErrors).toStrictEqual({
@@ -421,6 +445,61 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
         },
       ],
     });
+  });
+
+  it('should not validate excluded form fields', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {
+            type: 'number',
+            required: true,
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    await act(async () => {
+      await result.current.validateForm({ excludeFields: ['name'] });
+    });
+
+    expect(result.current.formErrors).toStrictEqual({
+      age: [
+        {
+          type: 'required',
+          message: 'The value is required',
+        },
+      ],
+    });
+  });
+
+  it('should validate all fields when no fields are excluded', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string; age: number }>({
+        fields: {
+          name: {
+            required: true,
+          },
+          age: {
+            type: 'number',
+            required: true,
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formErrors).toStrictEqual({});
+
+    await act(async () => {
+      await result.current.validateForm({ excludeFields: [] });
+    });
+
+    expect(Object.keys(result.current.formErrors).length).toBe(2);
   });
 });
 

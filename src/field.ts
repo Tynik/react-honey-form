@@ -148,9 +148,6 @@ export const createField = <
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
     resetValue: () => setFieldValue(fieldName, formDefaultValuesRef.current[fieldName]),
     //
-    scheduleValidation: () => {
-      fieldMeta.isValidationScheduled = true;
-    },
     addError: error => addFormFieldError(fieldName, error),
     clearErrors: () => clearFieldErrors(fieldName),
     focus: () => {
@@ -159,6 +156,9 @@ export const createField = <
       }
 
       formFieldRef.current.focus();
+    },
+    scheduleValidation: () => {
+      fieldMeta.isValidationScheduled = true;
     },
   };
 

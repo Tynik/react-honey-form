@@ -781,10 +781,26 @@ export type HoneyFormRemoveFormField<Form extends HoneyFormBaseForm> = <
 export type HoneyFormClearErrors = () => void;
 
 /**
+ * Options for form validating
+ */
+type HoneyFormValidateOptions<Form extends HoneyFormBaseForm> = {
+  /**
+   * The names of the fields to be targeted for validation.
+   * If provided, only these fields will be validated.
+   */
+  targetFields?: (keyof Form)[];
+  /**
+   * The names of the fields to be excluded from validation.
+   * If provided, these fields will be skipped during validation.
+   */
+  excludeFields?: (keyof Form)[];
+};
+
+/**
  * @param fieldNames - Optional list of field names for validation
  */
 export type HoneyFormValidate<Form extends HoneyFormBaseForm> = (
-  fieldNames?: (keyof Form)[],
+  options?: HoneyFormValidateOptions<Form>,
 ) => Promise<boolean>;
 
 type HoneyFormSubmitHandlerContext<FormContext> = {
