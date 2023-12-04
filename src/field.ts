@@ -1,3 +1,4 @@
+import type { HTMLAttributes } from 'react';
 import { createRef } from 'react';
 
 import type {
@@ -45,6 +46,35 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   addFormFieldError: HoneyFormAddFieldError<Form>;
 };
 
+/**
+ * Gets the appropriate input mode for a given form field based on its configuration.
+ *
+ * @remarks
+ * This function is useful for setting the `inputMode` attribute of HTML input elements.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The field name.
+ * @param fieldConfig - The configuration of the form field.
+ * @returns The HTML input mode for the field, or `undefined` if not specified.
+ */
+const getFieldInputMode = <Form extends HoneyFormBaseForm>(
+  fieldConfig: HoneyFormFieldConfig<Form, keyof Form>,
+): HTMLAttributes<any>['inputMode'] | undefined => {
+  if (fieldConfig.type === 'number' && fieldConfig.decimal) {
+    return 'decimal';
+  }
+
+  const fieldTypeInputModeMap: Partial<
+    Record<HoneyFormFieldType, HTMLAttributes<any>['inputMode']>
+  > = {
+    email: 'email',
+    number: 'numeric',
+    numeric: 'numeric',
+  };
+
+  return fieldTypeInputModeMap[fieldConfig.type];
+};
+
 export const createField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -88,6 +118,7 @@ export const createField = <
   const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
     ref: formFieldRef,
     type: FIELD_TYPE_MAP[config.type],
+    inputMode: getFieldInputMode(config),
     name: fieldName.toString(),
     value: formattedValue,
     //

@@ -427,7 +427,7 @@ export type HoneyFormFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  Pick<HTMLAttributes<any>, 'onFocus' | 'onBlur' | 'aria-required' | 'aria-invalid'> &
+  Pick<HTMLAttributes<any>, 'inputMode' | 'onFocus' | 'onBlur' | 'aria-required' | 'aria-invalid'> &
     Pick<InputHTMLAttributes<any>, 'type' | 'name' | 'onChange'> & {
       ref: RefObject<any>;
       value: FieldValue | undefined;
