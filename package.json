@@ -1,6 +1,6 @@
 {
   "name": "@tynik/react-honey-form",
-  "version": "15.1.0",
+  "version": "15.2.0",
   "description": "The TS library to build the fully customized forms using React framework",
   "keywords": [
     "react",
@@ -34,8 +34,8 @@
   },
   "devDependencies": {
     "@testing-library/react": "14.1.2",
-    "@types/jest": "29.5.10",
-    "@types/react": "18.2.42",
+    "@types/jest": "29.5.11",
+    "@types/react": "18.2.43",
     "@typescript-eslint/eslint-plugin": "6.13.2",
     "@typescript-eslint/parser": "6.13.2",
     "eslint": "8.55.0",
@@ -52,7 +52,7 @@
     "prettier": "3.1.0",
     "ts-jest": "29.1.1",
     "ts-loader": "9.5.1",
-    "typescript": "5.3.2",
+    "typescript": "5.3.3",
     "webpack": "5.89.0",
     "webpack-cli": "5.1.4"
   },

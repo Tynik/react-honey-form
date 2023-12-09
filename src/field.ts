@@ -141,6 +141,8 @@ export const createField = <
     // ARIA
     'aria-required': config.required,
     'aria-invalid': false,
+    // Additional field properties from field configuration
+    ...config.props,
   };
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {

@@ -340,6 +340,23 @@ type BaseHoneyFormFieldConfig<
      */
     submitFormattedValue?: boolean;
     /**
+     * Additional properties for configuring the field's HTML input element.
+     *
+     * @remarks
+     * These properties can be used to customize the behavior of the HTML input element associated with the field.
+     * This includes properties like field name, type, and any other valid HTML input attributes.
+     */
+    props?: Omit<
+      /**
+       * Base input HTML attributes excluding 'value', 'aria-required', and 'aria-invalid'.
+       *
+       * @remarks
+       * These properties are excluded as they are handled internally by the form library.
+       */
+      InputHTMLAttributes<any>,
+      'value' | 'aria-required' | 'aria-invalid'
+    >;
+    /**
      * Callback function triggered when the field value changes.
      */
     onChange?: HoneyFormFieldOnChange<Form, FieldName, FormContext, FieldValue>;
@@ -427,11 +444,20 @@ export type HoneyFormFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  Pick<HTMLAttributes<any>, 'inputMode' | 'onFocus' | 'onBlur' | 'aria-required' | 'aria-invalid'> &
-    Pick<InputHTMLAttributes<any>, 'type' | 'name' | 'onChange'> & {
-      ref: RefObject<any>;
-      value: FieldValue | undefined;
-    }
+  Pick<
+    InputHTMLAttributes<any>,
+    | 'type'
+    | 'name'
+    | 'inputMode'
+    | 'onChange'
+    | 'onFocus'
+    | 'onBlur'
+    | 'aria-required'
+    | 'aria-invalid'
+  > & {
+    ref: RefObject<any>;
+    value: FieldValue | undefined;
+  }
 >;
 
 export type HoneyFormFieldsRef<

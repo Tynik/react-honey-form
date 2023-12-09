@@ -41,28 +41,28 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 
 ## Field Configuration
 
-1. `value` - The initial value of the form field.
-2. `defaultValue` - The default value of the form field.
-3. `type` - The type of the form field. It can be one of the following values:
+1. `defaultValue` - The default value of the form field.
+2. `type` - The type of the form field. It can be one of the following values:
    - `string`: Represents a general string input field.
    - `numeric`: Represents a field that accepts only numeric values without decimal places.
    - `number`: Represents a field that accepts numeric values, including decimals and optional negative numbers.
    - `email`: Represents an email input field. 
    
    The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
-4. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.
-5. `min` - The minimum value allowed for numeric fields or minimum length of a string. Only applicable for fields of type `number` or `string`.
-6. `max` - The maximum value allowed for numeric fields or maximum length of a string. Only applicable for fields of type `number` or `string`.
-7. `decimal` - A boolean value indicating whether the numeric field can accept decimal values. Only applicable for fields of type `number`.
-8. `negative` - A boolean value indicating whether the numeric field can accept negative values. Only applicable for fields of type `number`.
-9. `maxFraction` - The maximum number of decimal places allowed for numeric fields. Only applicable for fields of type `number` and when decimal is set to true.
-10. `dependsOn` - Specifies one or more fields that the current field depends on. When any of the dependent fields change, the current field's value will be cleared. This property can be a single field name (as a string) or an array of field names.
-11. `errorMessages` - An object that specifies custom error messages for different validation errors. The keys of the object correspond to validation error types, and the values are the corresponding error messages. This allows you to customize the error messages displayed for specific validation errors.
-12. `validator` - A custom validation function for the field. It should accept the field value as an argument and return either true (indicating the value is valid) or an error message (indicating the value is invalid). The validator function can also be asynchronous and return a Promise that resolves to the same response.
-13. `filter` - A function that can be used to remove or modify certain characters from the field value. The function takes the current value as input and should return the modified value.
-14. `formatter` - A function that can be used to transform the field value into a different format. The function takes the current value as input and should return the transformed value.
-15. `formatOnBlur` - A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur). Default is `false`.
-16. `submitFormattedValue` - A boolean flag indicating when formatted field value should be submitted instead of clean value. Default is `false`.
+3. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.
+4. `min` - The minimum value allowed for numeric fields or minimum length of a string. Only applicable for fields of type `number` or `string`.
+5. `max` - The maximum value allowed for numeric fields or maximum length of a string. Only applicable for fields of type `number` or `string`.
+6. `decimal` - A boolean value indicating whether the numeric field can accept decimal values. Only applicable for fields of type `number`.
+7. `negative` - A boolean value indicating whether the numeric field can accept negative values. Only applicable for fields of type `number`.
+8. `maxFraction` - The maximum number of decimal places allowed for numeric fields. Only applicable for fields of type `number` and when decimal is set to true.
+9. `dependsOn` - Specifies one or more fields that the current field depends on. When any of the dependent fields change, the current field's value will be cleared. This property can be a single field name (as a string) or an array of field names.
+10. `errorMessages` - An object that specifies custom error messages for different validation errors. The keys of the object correspond to validation error types, and the values are the corresponding error messages. This allows you to customize the error messages displayed for specific validation errors.
+11. `validator` - A custom validation function for the field. It should accept the field value as an argument and return either true (indicating the value is valid) or an error message (indicating the value is invalid). The validator function can also be asynchronous and return a Promise that resolves to the same response.
+12. `filter` - A function that can be used to remove or modify certain characters from the field value. The function takes the current value as input and should return the modified value.
+13. `formatter` - A function that can be used to transform the field value into a different format. The function takes the current value as input and should return the transformed value.
+14. `formatOnBlur` - A boolean flag indicating whether the formatter function should be applied to the field's value when the focus is removed from the input (on blur). Default is `false`.
+15. `submitFormattedValue` - A boolean flag indicating when formatted field value should be submitted instead of clean value. Default is `false`.
+16. `props` - Additional properties for configuring the field's HTML input element.
 17. `skip` - A function that determines whether the field should not be validated and skipped (not included) in the form submission. The function takes the complete form fields object as input and should return a boolean value indicating whether the field should be skipped.
 18. `onChange`: A callback function that will be called whenever the field value changes. This can be used to perform additional actions or side effects when the field value changes.
 
