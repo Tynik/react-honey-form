@@ -9,9 +9,11 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           name: {
+            type: 'string',
             defaultValue: 'Alex',
           },
           age: {
+            type: 'string',
             defaultValue: 45,
           },
         },
@@ -32,6 +34,7 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           age: {
+            type: 'string',
             defaultValue: 45,
           },
         },
@@ -52,6 +55,7 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm({
         fields: {
           age: {
+            type: 'string',
             defaultValue: 45,
           },
         },
@@ -73,8 +77,12 @@ describe('Hook [use-honey-form]: General', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
         fields: {
-          name: {},
-          age: {},
+          name: {
+            type: 'string',
+          },
+          age: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -107,6 +115,7 @@ describe('Hook [use-honey-form]: General', () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             defaultValue: '',
           },
         },
@@ -132,14 +141,18 @@ describe('Hook [use-honey-form]: General', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
-          name: {},
-          kind: {},
+          name: {
+            type: 'string',
+          },
+          kind: {
+            type: 'string',
+          },
         },
         onChange,
       }),
     );
 
-    expect(onChange).not.toBeCalled();
+    expect(onChange).not.toHaveBeenCalled();
 
     act(() => {
       result.current.formFields.name.setValue('a');
@@ -163,9 +176,11 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
           name: {
+            type: 'string',
             defaultValue: 'banana',
           },
           kind: {
+            type: 'string',
             defaultValue: 'fruit',
           },
         },
@@ -198,9 +213,11 @@ describe('Hook [use-honey-form]: General', () => {
       useHoneyForm<{ name: string; kind: string }>({
         fields: {
           name: {
+            type: 'string',
             defaultValue: 'banana',
           },
           kind: {
+            type: 'string',
             defaultValue: 'fruit',
           },
         },
@@ -227,6 +244,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           name: {
+            type: 'string',
             defaultValue: '',
             validator: (value, { formContext }) => formContext.allowedNames.includes(value),
           },
@@ -250,6 +268,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           name: {
+            type: 'string',
             defaultValue: '',
             filter: (value, { formContext }) => value.slice(0, formContext.maxStrLength),
           },
@@ -273,6 +292,7 @@ describe('Hook [use-honey-form]: Context', () => {
       useHoneyForm({
         fields: {
           price: {
+            type: 'string',
             defaultValue: '',
             formatter: (value, { formContext }) => `${formContext.currencySign}${value}`,
           },
@@ -298,9 +318,11 @@ describe('Hook [use-honey-form]: Reset form', () => {
       useHoneyForm({
         fields: {
           name: {
+            type: 'string',
             defaultValue: 'Alex',
           },
           age: {
+            type: 'string',
             defaultValue: 45,
           },
         },
@@ -332,6 +354,7 @@ describe('Hook [use-honey-form]: Reset form', () => {
       useHoneyForm({
         fields: {
           name: {
+            type: 'string',
             required: true,
             defaultValue: '',
           },

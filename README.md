@@ -47,6 +47,9 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
    - `numeric`: Represents a field that accepts only numeric values without decimal places.
    - `number`: Represents a field that accepts numeric values, including decimals and optional negative numbers.
    - `email`: Represents an email input field. 
+   - `checkbox`: Represents a checkbox input field. 
+   - `radio`: Represents a radio input field. The `value` property will not be destructured from field properties and must be set directly in the input field's `value` attribute.
+   - `file`: Represents a file input field. 
    
    The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
 3. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.

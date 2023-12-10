@@ -14,7 +14,7 @@ describe('Component [HoneyFormDynamicField]', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormDynamicField name="product" defaultValue="apple">
+        <HoneyFormDynamicField type="string" name="product" defaultValue="apple">
           {field => <input {...field.props} />}
         </HoneyFormDynamicField>
 
@@ -27,7 +27,7 @@ describe('Component [HoneyFormDynamicField]', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({ product: 'apple' }, { context: undefined }),
+      expect(onSubmit).toHaveBeenCalledWith({ product: 'apple' }, { context: undefined }),
     );
   });
 
@@ -40,30 +40,12 @@ describe('Component [HoneyFormDynamicField]', () => {
 
     const { getByTestId } = render(
       <HoneyForm onSubmit={onSubmit}>
-        <HoneyFormDynamicField name="gender" defaultValue={null}>
+        <HoneyFormDynamicField name="gender" type="radio" defaultValue={null}>
           {field => (
             <fieldset name="gender">
-              <input
-                type="radio"
-                name="gender"
-                value="male"
-                data-testid="male"
-                onChange={field.props.onChange}
-              />
-              <input
-                type="radio"
-                name="gender"
-                value="female"
-                data-testid="female"
-                onChange={field.props.onChange}
-              />
-              <input
-                type="radio"
-                name="gender"
-                value="other"
-                data-testid="other"
-                onChange={field.props.onChange}
-              />
+              <input value="male" data-testid="male" {...field.props} />
+              <input value="female" data-testid="female" {...field.props} />
+              <input value="other" data-testid="other" {...field.props} />
             </fieldset>
           )}
         </HoneyFormDynamicField>
@@ -77,14 +59,16 @@ describe('Component [HoneyFormDynamicField]', () => {
     // case 1
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).toBeCalledWith({ gender: null }, { context: undefined }));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({ gender: null }, { context: undefined }),
+    );
 
     // case 2
     fireEvent.click(getByTestId('female'));
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith({ gender: 'female' }, { context: undefined }),
+      expect(onSubmit).toHaveBeenCalledWith({ gender: 'female' }, { context: undefined }),
     );
   });
 });

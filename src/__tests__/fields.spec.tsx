@@ -10,7 +10,9 @@ describe('Hook [use-honey-form]: Fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -86,6 +88,7 @@ describe('Hook [use-honey-form]: Fields', () => {
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
+            type: 'string',
             validator: value => value === 45,
           },
         },
@@ -136,7 +139,9 @@ describe('Hook [use-honey-form]: Fields', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
       });
 
@@ -156,7 +161,9 @@ describe('Hook [use-honey-form]: Fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
         defaults: {
           name: 'banana',
@@ -175,7 +182,9 @@ describe('Hook [use-honey-form]: Fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
         defaults: () =>
           new Promise(resolve => {
@@ -204,7 +213,9 @@ describe('Hook [use-honey-form]: Fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
         defaults: () =>
           new Promise(resolve => {
@@ -232,19 +243,20 @@ describe('Hook [use-honey-form]: Fields', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             onChange: onNameChange,
           },
         },
       }),
     );
 
-    expect(onNameChange).not.toBeCalled();
+    expect(onNameChange).not.toHaveBeenCalled();
 
     act(() => {
       result.current.formFields.name.setValue('Dan');
     });
 
-    await waitFor(() => expect(onNameChange).toBeCalledWith('Dan', expect.any(Object)));
+    await waitFor(() => expect(onNameChange).toHaveBeenCalledWith('Dan', expect.any(Object)));
   });
 });
 
@@ -262,7 +274,9 @@ describe('Hook [use-honey-form]: Array fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<Products>({
         fields: {
-          items: {},
+          items: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -289,9 +303,12 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
+            type: 'string',
             defaultValue: [],
           },
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -301,7 +318,9 @@ describe('Hook [use-honey-form]: Array fields', () => {
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           weight: {
             type: 'number',
           },
@@ -339,6 +358,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
+            type: 'string',
             defaultValue: [],
           },
         },
@@ -350,7 +370,9 @@ describe('Hook [use-honey-form]: Array fields', () => {
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           weight: {
             type: 'number',
           },
@@ -363,7 +385,9 @@ describe('Hook [use-honey-form]: Array fields', () => {
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           weight: {
             type: 'number',
           },
@@ -415,7 +439,9 @@ describe('Hook [use-honey-form]: Array fields', () => {
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           weight: {
             type: 'number',
           },
@@ -465,8 +491,11 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
         fields: {
-          city: {},
+          city: {
+            type: 'string',
+          },
           address: {
+            type: 'string',
             dependsOn: 'city',
           },
         },
@@ -493,13 +522,17 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
 
   it('dependent field values should be cleared in chain when parent field value is changed', () => {
     const { result } = renderHook(() =>
-      useHoneyForm<{ city: string; address: string; ap: string }>({
+      useHoneyForm<{ city: string; address: string; apt: string }>({
         fields: {
-          city: {},
+          city: {
+            type: 'string',
+          },
           address: {
+            type: 'string',
             dependsOn: 'city',
           },
-          ap: {
+          apt: {
+            type: 'string',
             dependsOn: 'address',
           },
         },
@@ -509,12 +542,12 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     act(() => {
       result.current.formFields.city.setValue('New Jersey');
       result.current.formFields.address.setValue('53st Dockland');
-      result.current.formFields.ap.setValue('341a');
+      result.current.formFields.apt.setValue('341a');
     });
 
     expect(result.current.formFields.city.value).toBe('New Jersey');
     expect(result.current.formFields.address.value).toBe('53st Dockland');
-    expect(result.current.formFields.ap.value).toBe('341a');
+    expect(result.current.formFields.apt.value).toBe('341a');
 
     act(() => {
       result.current.formFields.city.setValue('New York');
@@ -525,8 +558,8 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address.value).toBeUndefined();
     expect(result.current.formFields.address.props.value).toBeUndefined();
 
-    expect(result.current.formFields.ap.value).toBeUndefined();
-    expect(result.current.formFields.ap.props.value).toBeUndefined();
+    expect(result.current.formFields.apt.value).toBeUndefined();
+    expect(result.current.formFields.apt.props.value).toBeUndefined();
   });
 
   it('cleared dependent field value should not be submitted', async () => {
@@ -535,8 +568,11 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ city: string; address: string }>({
         fields: {
-          city: {},
+          city: {
+            type: 'string',
+          },
           address: {
+            type: 'string',
             dependsOn: 'city',
           },
         },
@@ -552,7 +588,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith(
+    expect(onSubmit).toHaveBeenCalledWith(
       { city: 'New Jersey', address: undefined },
       { context: undefined },
     );
@@ -563,9 +599,11 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
       useHoneyForm<{ address1: string; address2: string }>({
         fields: {
           address1: {
+            type: 'string',
             dependsOn: 'address2',
           },
           address2: {
+            type: 'string',
             dependsOn: 'address1',
           },
         },
@@ -596,11 +634,15 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; category: string; customCategory: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           category: {
+            type: 'string',
             dependsOn: ['name', 'customCategory'],
           },
           customCategory: {
+            type: 'string',
             dependsOn: 'category',
           },
         },
@@ -635,6 +677,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
 
     act(() => {
       result.current.addFormField('gender', {
+        type: 'string',
         defaultValue: 'female',
       });
     });
@@ -649,6 +692,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
       useHoneyForm<{ age: number; gender?: 'male' | 'female' }>({
         fields: {
           age: {
+            type: 'string',
             defaultValue: 30,
           },
         },
@@ -658,13 +702,14 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
 
     act(() => {
       result.current.addFormField('gender', {
+        type: 'string',
         defaultValue: 'female',
       });
     });
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ age: 30, gender: 'female' }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ age: 30, gender: 'female' }, { context: undefined });
   });
 
   it('remove dynamically added the form field', () => {
@@ -672,6 +717,7 @@ describe('Hook [use-honey-form]: Work with dynamic fields', () => {
       useHoneyForm<{ age?: number }>({
         fields: {
           age: {
+            type: 'string',
             defaultValue: 10,
           },
         },
@@ -699,8 +745,11 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<Form>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           price: {
+            type: 'string',
             skip: () => true,
           },
         },
@@ -719,7 +768,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     await act(() => result.current.submitForm());
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           name: 'Apple',
         },
@@ -739,7 +788,9 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     const { result } = renderHook(() =>
       useHoneyForm<Form>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           price: {
             type: 'number',
             skip: ({ formFields }) => formFields.name.value === 'Pear',
@@ -757,7 +808,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     await act(() => result.current.submitForm());
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           name: 'Orange',
           price: 15,
@@ -775,7 +826,7 @@ describe('Hook [use-honey-form]: Skipping fields', () => {
     expect(result.current.formFields.price.value).toBe(15);
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           name: 'Pear',
         },

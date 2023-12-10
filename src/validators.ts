@@ -1,14 +1,17 @@
-import type {
-  HoneyFormFieldInternalValidator,
-  HoneyFormFieldType,
-  HoneyFormFieldValidator,
+import {
+  HoneyFormInteractiveFieldBuiltInValidator,
+  HoneyFormInteractiveFieldType,
+  HoneyFormInteractiveFieldValidator,
+  HoneyFormFieldBuiltInValidator,
+  HoneyFormStaticFieldType,
+  HoneyFormStaticFieldValidator,
 } from './types';
 
 import type { CustomDateRangeForm } from './form.types';
 
-export const FIELD_TYPE_VALIDATORS_MAP: Record<
-  HoneyFormFieldType,
-  HoneyFormFieldValidator<any, any, any>
+export const INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP: Record<
+  HoneyFormInteractiveFieldType,
+  HoneyFormInteractiveFieldValidator<any, any, any>
 > = {
   string: () => true,
   numeric: (value: string | undefined, { fieldConfig: { errorMessages = {} } }) => {
@@ -73,10 +76,19 @@ export const FIELD_TYPE_VALIDATORS_MAP: Record<
   },
 };
 
+export const STATIC_FIELD_TYPE_VALIDATORS_MAP: Record<
+  HoneyFormStaticFieldType,
+  HoneyFormStaticFieldValidator<any, any, any>
+> = {
+  checkbox: () => true,
+  radio: () => true,
+  file: () => true,
+};
+
 /**
- * Internal field validator for checking if a field is required.
+ * Built-in field validator for checking if a field is required.
  */
-export const requiredInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const requiredBuiltInFieldValidator: HoneyFormFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -99,9 +111,9 @@ export const requiredInternalFieldValidator: HoneyFormFieldInternalValidator = (
 };
 
 /**
- * Internal field validator for checking if a numeric field meets a minimum value requirement.
+ * Built-in field validator for checking if a numeric field meets a minimum value requirement.
  */
-export const minValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const minValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -125,9 +137,9 @@ export const minValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
 };
 
 /**
- * Internal field validator for checking if a numeric field meets a maximum value requirement.
+ * Built-in field validator for checking if a numeric field meets a maximum value requirement.
  */
-export const maxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const maxValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -153,7 +165,7 @@ export const maxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
 /**
  * Validator for enforcing a numeric field value within a specified range.
  */
-export const minMaxValueInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const minMaxValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -178,9 +190,9 @@ export const minMaxValueInternalFieldValidator: HoneyFormFieldInternalValidator 
 };
 
 /**
- * Internal field validator for checking if a string field meets minimum length requirements.
+ * Built-in field validator for checking if a string field meets minimum length requirements.
  */
-export const minLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const minLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -203,9 +215,9 @@ export const minLengthInternalFieldValidator: HoneyFormFieldInternalValidator = 
 };
 
 /**
- * Internal field validator for checking if a string field meets maximum length requirements.
+ * Built-in field validator for checking if a string field meets maximum length requirements.
  */
-export const maxLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const maxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -228,9 +240,9 @@ export const maxLengthInternalFieldValidator: HoneyFormFieldInternalValidator = 
 };
 
 /**
- * Internal field validator for checking if a string field meets minimum and maximum length requirements.
+ * Built-in field validator for checking if a string field meets minimum and maximum length requirements.
  */
-export const minMaxLengthInternalFieldValidator: HoneyFormFieldInternalValidator = (
+export const minMaxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInValidator = (
   fieldValue,
   fieldConfig,
   fieldErrors,
@@ -287,7 +299,7 @@ type CreateHoneyFormDateFromValidatorOptions<
  * Creates a validator function for ensuring a "Date From" field is valid in the context of a date range.
  *
  * @param {CreateHoneyFormDateFromValidatorOptions<Form, DateFromKey, DateToKey>} options - Options for creating the validator.
- * @returns {HoneyFormFieldValidator<Form, DateFromKey>} - The validator function.
+ * @returns {HoneyFormInteractiveFieldValidator<Form, DateFromKey>} - The validator function.
  */
 export const createHoneyFormDateFromValidator =
   <
@@ -305,7 +317,7 @@ export const createHoneyFormDateFromValidator =
     Form,
     DateFromKey,
     DateToKey
-  >): HoneyFormFieldValidator<Form, DateFromKey> =>
+  >): HoneyFormInteractiveFieldValidator<Form, DateFromKey> =>
   /**
    * Validator function for "Date From" field.
    *
@@ -364,7 +376,7 @@ type CreateHoneyFormDateToValidatorOptions<
  * Creates a validator function for ensuring a "Date To" field is valid in the context of a date range.
  *
  * @param {CreateHoneyFormDateToValidatorOptions<Form, DateFromKey, DateToKey>} options - Options for creating the validator.
- * @returns {HoneyFormFieldValidator<Form, DateToKey>} - The validator function.
+ * @returns {HoneyFormInteractiveFieldValidator<Form, DateToKey>} - The validator function.
  */
 export const createHoneyFormDateToValidator =
   <
@@ -378,10 +390,11 @@ export const createHoneyFormDateToValidator =
     errorMsg = '"Date To" should be equal or greater than "Date From"',
     ignoreTime = true,
     inclusiveRange = true,
-  }: CreateHoneyFormDateToValidatorOptions<Form, DateFromKey, DateToKey>): HoneyFormFieldValidator<
+  }: CreateHoneyFormDateToValidatorOptions<
     Form,
+    DateFromKey,
     DateToKey
-  > =>
+  >): HoneyFormInteractiveFieldValidator<Form, DateToKey> =>
   /**
    * Validator function for "Date To" field.
    *
@@ -423,15 +436,15 @@ export const createHoneyFormDateToValidator =
     return errorMsg;
   };
 
-export const INTERNAL_FIELD_VALIDATORS = [
-  // all
-  requiredInternalFieldValidator,
+export const BUILT_IN_FIELD_VALIDATORS = [requiredBuiltInFieldValidator];
+
+export const BUILT_IN_INTERACTIVE_FIELD_VALIDATORS = [
   // number
-  minValueInternalFieldValidator,
-  maxValueInternalFieldValidator,
-  minMaxValueInternalFieldValidator,
+  minValueBuiltInFieldValidator,
+  maxValueBuiltInFieldValidator,
+  minMaxValueBuiltInFieldValidator,
   // string
-  minLengthInternalFieldValidator,
-  maxLengthInternalFieldValidator,
-  minMaxLengthInternalFieldValidator,
+  minLengthBuiltInFieldValidator,
+  maxLengthBuiltInFieldValidator,
+  minMaxLengthBuiltInFieldValidator,
 ];

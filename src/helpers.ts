@@ -13,6 +13,7 @@ import type {
   HoneyFormFieldError,
   HoneyFormServerErrors,
   HoneyFormFieldErrorMessage,
+  HoneyFormInteractiveFieldConfig,
 } from './types';
 
 export const noop = () => {
@@ -167,6 +168,18 @@ type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formFields: HoneyFormFields<Form, FormContext>;
 };
 
+export const checkIfFieldInteractive = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
+): fieldConfig is HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext> =>
+  fieldConfig.type === 'string' ||
+  fieldConfig.type === 'numeric' ||
+  fieldConfig.type === 'number' ||
+  fieldConfig.type === 'email';
+
 export const isSkipField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -211,7 +224,9 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
         return childFormsCleanValues as Form[keyof Form];
       }
 
-      return formField.config.submitFormattedValue ? formField.value : formField.cleanValue;
+      return checkIfFieldInteractive(formField.config) && formField.config.submitFormattedValue
+        ? formField.value
+        : formField.cleanValue;
     },
     fieldName => !isSkipField(fieldName, { formContext, formFields }),
   ) as Form;

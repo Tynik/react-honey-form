@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, HTMLInputTypeAttribute } from 'react';
 import { createRef } from 'react';
 
 import type {
@@ -20,13 +20,19 @@ import type {
   HoneyFormDefaultsRef,
   HoneyFormFieldsRef,
 } from './types';
-import { FIELD_TYPE_VALIDATORS_MAP, INTERNAL_FIELD_VALIDATORS } from './validators';
-import { forEachFormField, getFormValues, isSkipField } from './helpers';
+import {
+  INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
+  BUILT_IN_FIELD_VALIDATORS,
+  BUILT_IN_INTERACTIVE_FIELD_VALIDATORS,
+  STATIC_FIELD_TYPE_VALIDATORS_MAP,
+} from './validators';
+import { checkIfFieldInteractive, forEachFormField, getFormValues, isSkipField } from './helpers';
 
-const DEFAULT_FIELD_TYPE = 'string';
-
-const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, string>> = {
+const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, HTMLInputTypeAttribute>> = {
   email: 'email',
+  checkbox: 'checkbox',
+  radio: 'radio',
+  file: 'file',
 };
 
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
@@ -94,11 +100,13 @@ export const createField = <
   }: CreateFieldOptions<Form, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
-    type: DEFAULT_FIELD_TYPE,
-    mode: 'change',
     required: false,
-    formatOnBlur: false,
-    submitFormattedValue: false,
+    ...(checkIfFieldInteractive(fieldConfig) && {
+      // Set default config values
+      mode: 'change',
+      formatOnBlur: false,
+      submitFormattedValue: false,
+    }),
     ...fieldConfig,
   };
 
@@ -107,37 +115,52 @@ export const createField = <
   // Set initial field value as the default value
   formDefaultValuesRef.current[fieldName] = config.defaultValue;
 
-  const filteredValue = config.filter
-    ? config.filter(config.defaultValue, { formContext })
-    : config.defaultValue;
+  const filteredValue =
+    checkIfFieldInteractive(config) && config.filter
+      ? config.filter(config.defaultValue, { formContext })
+      : config.defaultValue;
 
-  const formattedValue = config.formatter
-    ? config.formatter(filteredValue, { formContext })
-    : filteredValue;
+  const formattedValue =
+    checkIfFieldInteractive(config) && config.formatter
+      ? config.formatter(filteredValue, { formContext })
+      : filteredValue;
 
   const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
     ref: formFieldRef,
     type: FIELD_TYPE_MAP[config.type],
     inputMode: getFieldInputMode(config),
     name: fieldName.toString(),
-    value: formattedValue,
+    ...(config.type !== 'radio' && { value: formattedValue }),
     //
     onFocus: e => {
       //
     },
     onChange: e => {
-      setFieldValue(fieldName, e.target.value, {
-        isValidate: config.mode === 'change',
-        isFormat: !config.formatOnBlur,
+      let newFieldValue: Form[FieldName];
+
+      if (config.type === 'checkbox') {
+        newFieldValue = e.target.checked as Form[FieldName];
+        //
+      } else if (config.type === 'file') {
+        newFieldValue = e.target.files as Form[FieldName];
+        //
+      } else {
+        newFieldValue = e.target.value as Form[FieldName];
+      }
+
+      setFieldValue(fieldName, newFieldValue, {
+        isValidate: checkIfFieldInteractive(config) && config.mode === 'change',
+        isFormat: checkIfFieldInteractive(config) && !config.formatOnBlur,
       });
     },
-    ...((config.mode === 'blur' || config.formatOnBlur) && {
-      onBlur: e => {
-        if (!e.target.readOnly) {
-          setFieldValue(fieldName, e.target.value);
-        }
-      },
-    }),
+    ...(checkIfFieldInteractive(config) &&
+      (config.mode === 'blur' || config.formatOnBlur) && {
+        onBlur: e => {
+          if (!e.target.readOnly) {
+            setFieldValue(fieldName, e.target.value);
+          }
+        },
+      }),
     // ARIA
     'aria-required': config.required,
     'aria-invalid': false,
@@ -375,18 +398,30 @@ const executeFieldTypeValidator = <
   formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldValue: FieldValue | undefined,
 ): HoneyFormFieldValidationResult | null => {
-  // Get the validator function associated with the field type
-  const validator = FIELD_TYPE_VALIDATORS_MAP[formField.config.type ?? DEFAULT_FIELD_TYPE];
+  let validationResult: HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
-  const validationResponse = validator(fieldValue, {
-    formContext,
-    formFields,
-    fieldConfig: formField.config,
-  });
+  if (checkIfFieldInteractive(formField.config)) {
+    // Get the validator function associated with the field type
+    const validator = INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
+
+    validationResult = validator(fieldValue, {
+      formContext,
+      formFields,
+      fieldConfig: formField.config,
+    });
+  } else {
+    const validator = STATIC_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
+
+    validationResult = validator(fieldValue, {
+      formContext,
+      formFields,
+      fieldConfig: formField.config,
+    });
+  }
 
   // If the validation response is not a Promise, return it
-  if (!(validationResponse instanceof Promise)) {
-    return validationResponse;
+  if (!(validationResult instanceof Promise)) {
+    return validationResult;
   }
 
   // If the validation response is a Promise, return null
@@ -403,7 +438,15 @@ const executeInternalFieldValidators = <
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   fieldErrors: HoneyFormFieldError[],
 ) => {
-  INTERNAL_FIELD_VALIDATORS.forEach(validator => validator(fieldValue, fieldConfig, fieldErrors));
+  BUILT_IN_FIELD_VALIDATORS.forEach(validator => {
+    validator(fieldValue, fieldConfig, fieldErrors);
+  });
+
+  if (checkIfFieldInteractive(fieldConfig)) {
+    BUILT_IN_INTERACTIVE_FIELD_VALIDATORS.forEach(validator => {
+      validator(fieldValue, fieldConfig, fieldErrors);
+    });
+  }
 };
 
 /**
@@ -517,6 +560,7 @@ export const executeFieldValidator = <
       const validationResponse = formField.config.validator(sanitizedValue, {
         formContext,
         formFields,
+        // @ts-expect-error
         fieldConfig: formField.config,
       });
 
@@ -555,9 +599,10 @@ export const executeFieldValidatorAsync = async <
 
   const fieldErrors: HoneyFormFieldError[] = [];
 
-  const filteredValue = formField.config.filter
-    ? formField.config.filter(formField.rawValue, { formContext })
-    : formField.rawValue;
+  const filteredValue =
+    checkIfFieldInteractive(formField.config) && formField.config.filter
+      ? formField.config.filter(formField.rawValue, { formContext })
+      : formField.rawValue;
 
   const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
 
@@ -577,6 +622,7 @@ export const executeFieldValidatorAsync = async <
       const validationResponse = formField.config.validator(sanitizedValue, {
         formContext,
         formFields,
+        // @ts-expect-error
         fieldConfig: formField.config,
       });
 
@@ -717,9 +763,10 @@ const triggerScheduledFieldsValidations = <
     if (nextFormField.__meta__.isValidationScheduled) {
       // Skip validation if the field is marked to be skipped
       if (!isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
-        const filteredValue = nextFormField.config.filter
-          ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
-          : nextFormField.rawValue;
+        const filteredValue =
+          checkIfFieldInteractive(nextFormField.config) && nextFormField.config.filter
+            ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
+            : nextFormField.rawValue;
 
         nextFormFields[otherFieldName] = executeFieldValidator(
           formContext,
@@ -771,9 +818,10 @@ export const getNextFieldsState = <
   let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formField;
 
   // Apply filtering to the field value if a filter function is defined
-  const filteredValue = formField.config.filter
-    ? formField.config.filter(fieldValue, { formContext })
-    : fieldValue;
+  const filteredValue =
+    checkIfFieldInteractive(formField.config) && formField.config.filter
+      ? formField.config.filter(fieldValue, { formContext })
+      : fieldValue;
 
   // If validation is requested, clear dependent fields and execute the field validator
   if (isValidate) {
@@ -784,7 +832,7 @@ export const getNextFieldsState = <
 
   // If validation is requested, clear dependent fields and execute the field validator
   const formattedValue =
-    isFormat && formField.config.formatter
+    isFormat && checkIfFieldInteractive(formField.config) && formField.config.formatter
       ? formField.config.formatter(filteredValue, { formContext })
       : filteredValue;
 

@@ -30,6 +30,7 @@ import {
   getNextErrorsFreeField,
 } from './field';
 import {
+  checkIfFieldInteractive,
   forEachFormError,
   getFormErrors,
   getFormValues,
@@ -84,9 +85,10 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         Object.keys(values).forEach((fieldName: keyof Form) => {
           const fieldConfig = nextFormFields[fieldName].config;
 
-          const filteredValue = fieldConfig.filter
-            ? fieldConfig.filter(values[fieldName], { formContext })
-            : values[fieldName];
+          const filteredValue =
+            checkIfFieldInteractive(fieldConfig) && fieldConfig.filter
+              ? fieldConfig.filter(values[fieldName], { formContext })
+              : values[fieldName];
 
           let nextFormField = executeFieldValidator(
             formContext,
@@ -95,9 +97,10 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             filteredValue,
           );
 
-          const formattedValue = nextFormField.config.formatter
-            ? nextFormField.config.formatter(filteredValue, { formContext })
-            : filteredValue;
+          const formattedValue =
+            checkIfFieldInteractive(nextFormField.config) && nextFormField.config.formatter
+              ? nextFormField.config.formatter(filteredValue, { formContext })
+              : filteredValue;
 
           nextFormField = {
             ...nextFormField,
@@ -241,9 +244,10 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     setFormFields(formFields => {
       const formField = formFields[fieldName];
 
-      const filteredValue = formField.config.filter
-        ? formField.config.filter(formField.rawValue, { formContext })
-        : formField.rawValue;
+      const filteredValue =
+        checkIfFieldInteractive(formField.config) && formField.config.filter
+          ? formField.config.filter(formField.rawValue, { formContext })
+          : formField.rawValue;
 
       return {
         ...formFields,

@@ -10,9 +10,11 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             defaultValue: 'Peter',
           },
           age: {
+            type: 'string',
             defaultValue: 23,
           },
         },
@@ -20,11 +22,11 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ name: 'Peter', age: 23 }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Peter', age: 23 }, { context: undefined });
   });
 
   it('should update form states after successful submission', async () => {
@@ -34,6 +36,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
         },
@@ -51,7 +54,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalled();
+    expect(onSubmit).toHaveBeenCalled();
 
     expect(result.current.isFormDirty).toBeFalsy();
     expect(result.current.isFormValid).toBeTruthy();
@@ -65,6 +68,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
         },
@@ -82,7 +86,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
 
     expect(result.current.isFormDirty).toBeTruthy();
     expect(result.current.isFormValid).toBeFalsy();
@@ -96,14 +100,17 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
-          age: {},
+          age: {
+            type: 'string',
+          },
         },
       }),
     );
 
-    expect(submitHandler).not.toBeCalled();
+    expect(submitHandler).not.toHaveBeenCalled();
 
     act(() => {
       result.current.formFields.name.setValue('Ken');
@@ -111,7 +118,10 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm(submitHandler));
 
-    expect(submitHandler).toBeCalledWith({ name: 'Ken', age: undefined }, { context: undefined });
+    expect(submitHandler).toHaveBeenCalledWith(
+      { name: 'Ken', age: undefined },
+      { context: undefined },
+    );
   });
 
   it('should show an error related to allow only numerics because its high priority error than min/max', async () => {
@@ -136,7 +146,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
     expect(result.current.formErrors).toStrictEqual({
       age: [
         {
@@ -173,7 +183,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('should reset form after submission using resetAfterSubmit=true option', async () => {
@@ -183,6 +193,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
             defaultValue: 'Banana',
           },
@@ -200,7 +211,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalled();
+    expect(onSubmit).toHaveBeenCalled();
     expect(result.current.formValues.name).toBe('Banana');
 
     expect(result.current.formErrors).toStrictEqual({});

@@ -10,6 +10,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
+            type: 'string',
             min: 5,
           },
         },
@@ -40,6 +41,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
+            type: 'string',
             max: 65,
           },
         },
@@ -70,6 +72,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
+            type: 'string',
             min: 5,
             max: 65,
           },
@@ -123,6 +126,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             min: 1,
           },
         },
@@ -153,6 +157,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             max: 5,
           },
         },
@@ -183,6 +188,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             min: 1,
             max: 5,
           },
@@ -208,6 +214,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ code: string }>({
         fields: {
           code: {
+            type: 'string',
             min: 5,
             max: 5,
           },
@@ -267,7 +274,7 @@ describe('Hook [use-honey-form]: Validation', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ age1: 2, age2: 3, age3: 4 }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ age1: 2, age2: 3, age3: 4 }, { context: undefined });
   });
 
   it('check required field when submitting', async () => {
@@ -277,9 +284,12 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
-          age: {},
+          age: {
+            type: 'string',
+          },
         },
         onSubmit,
       }),
@@ -294,7 +304,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       },
     ]);
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('customized required field value message', async () => {
@@ -304,6 +314,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
             errorMessages: {
               required: 'This value must be filled',
@@ -323,7 +334,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       },
     ]);
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('check required field with empty array value', async () => {
@@ -333,6 +344,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       useHoneyForm<{ names: string[] }>({
         fields: {
           names: {
+            type: 'string',
             required: true,
             defaultValue: [],
           },
@@ -350,7 +362,7 @@ describe('Hook [use-honey-form]: Validation', () => {
       },
     ]);
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
 
@@ -360,6 +372,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
           age: {
@@ -397,6 +410,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
           age: {
@@ -421,6 +435,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
           age: {
@@ -452,6 +467,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
           age: {
@@ -483,6 +499,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
       useHoneyForm<{ name: string; age: number }>({
         fields: {
           name: {
+            type: 'string',
             required: true,
           },
           age: {
@@ -509,6 +526,7 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             validator: value => {
               return new Promise(resolve => {
                 setTimeout(() => {
@@ -544,6 +562,7 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             validator: () => {
               return new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -577,6 +596,7 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
       useHoneyForm<{ name: string }>({
         fields: {
           name: {
+            type: 'string',
             validator: value => {
               return new Promise(resolve => {
                 setTimeout(() => {
@@ -603,7 +623,7 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
       },
     ]);
 
-    expect(onSubmit).not.toBeCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
 
@@ -613,6 +633,7 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
       useHoneyForm<{ amountFrom: number; amountTo: number }>({
         fields: {
           amountFrom: {
+            type: 'string',
             validator: (value, { formFields }) => {
               formFields.amountTo.scheduleValidation();
 
@@ -624,6 +645,7 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
             },
           },
           amountTo: {
+            type: 'string',
             validator: (value, { formFields }) => {
               formFields.amountFrom.scheduleValidation();
 
@@ -873,12 +895,14 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
       useHoneyForm<DateRangeForm>({
         fields: {
           fromDate: {
+            type: 'string',
             // <DateRangeForm, 'fromDate', 'toDate'> as an example how it can be used with any additional properties like `name: string`
             validator: createHoneyFormDateFromValidator<DateRangeForm, 'fromDate', 'toDate'>({
               dateToKey: 'toDate',
             }),
           },
           toDate: {
+            type: 'string',
             validator: createHoneyFormDateToValidator({
               dateFromKey: 'fromDate',
             }),
@@ -933,12 +957,14 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
       useHoneyForm<DateRangeForm>({
         fields: {
           fromDate: {
+            type: 'string',
             validator: createHoneyFormDateFromValidator({
               dateToKey: 'toDate',
               minDate: MIN_DATE,
             }),
           },
           toDate: {
+            type: 'string',
             validator: createHoneyFormDateToValidator({
               dateFromKey: 'fromDate',
               maxDate: MAX_DATE,

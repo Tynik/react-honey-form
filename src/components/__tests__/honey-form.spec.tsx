@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 
-import type { HoneyFormFieldsConfigs } from '../../types';
+import type { ChildHoneyFormFieldsConfigs, HoneyFormFieldsConfigs } from '../../types';
 
 import { HoneyForm } from '../honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
@@ -22,7 +22,11 @@ describe('Component [HoneyForm]: Basic usage', () => {
       name: string;
     };
 
-    const fields: HoneyFormFieldsConfigs<Form> = { name: {} };
+    const fields: HoneyFormFieldsConfigs<Form> = {
+      name: {
+        type: 'string',
+      },
+    };
 
     const { getByTestId } = render(
       <HoneyForm fields={fields}>
@@ -46,7 +50,7 @@ describe('Component [HoneyForm]: Basic usage', () => {
 
     const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
-        //
+        type: 'string',
       },
     };
 
@@ -58,11 +62,11 @@ describe('Component [HoneyForm]: Basic usage', () => {
       </HoneyForm>,
     );
 
-    expect(onSubmit).not.toBeCalledWith();
+    expect(onSubmit).not.toHaveBeenCalledWith();
 
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).toBeCalled());
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
   });
 });
 
@@ -76,6 +80,7 @@ describe('Component [HoneyForm]: Field mode usage', () => {
 
     const fields: HoneyFormFieldsConfigs<Form> = {
       name: {
+        type: 'string',
         mode: 'blur',
         defaultValue: '',
         validator: value => value.length > 3,
@@ -107,7 +112,7 @@ describe('Component [HoneyForm]: Field mode usage', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           name: 'Apple',
         },
@@ -158,9 +163,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
           fields={
             {
               id: {
+                type: 'string',
                 required: true,
               },
               name: {
+                type: 'string',
                 required: true,
                 defaultValue: '',
               },
@@ -169,7 +176,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
                 required: true,
                 defaultValue: 0,
               },
-            } as HoneyFormFieldsConfigs<ItemForm>
+            } as ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm>
           }
         >
           {({ formFields }) => (
@@ -189,9 +196,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       companyName: {
+        type: 'string',
         defaultValue: 'test',
       },
       items: {
+        type: 'string',
         defaultValue: [],
       },
     };
@@ -230,7 +239,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [],
@@ -245,7 +254,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     // Submit the form
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).not.toBeCalled());
+    await waitFor(() => expect(onSubmit).not.toHaveBeenCalled());
 
     // Enter values for the new item
     fireEvent.change(getByTestId('item[0].name'), { target: { value: 'Apple' } });
@@ -254,7 +263,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [
@@ -273,7 +282,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('addItem'));
     fireEvent.click(getByTestId('save'));
 
-    await waitFor(() => expect(onSubmit).not.toBeCalled());
+    await waitFor(() => expect(onSubmit).not.toHaveBeenCalled());
     onSubmit.mockClear();
 
     fireEvent.change(getByTestId('item[1].name'), { target: { value: 'Pear' } });
@@ -282,7 +291,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [
@@ -311,7 +320,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [
@@ -338,9 +347,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
         parentField: itemsFormFields.items,
         fields: {
           id: {
+            type: 'string',
             required: true,
           },
           name: {
+            type: 'string',
             required: true,
           },
           price: {
@@ -366,9 +377,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       companyName: {
+        type: 'string',
         defaultValue: 'test',
       },
       items: {
+        type: 'string',
         defaultValue: [
           {
             id: '1',
@@ -420,9 +433,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
         parentField: itemsFormFields.items,
         fields: {
           id: {
+            type: 'string',
             required: true,
           },
           name: {
+            type: 'string',
             required: true,
             defaultValue: '',
           },
@@ -450,9 +465,11 @@ describe('Component [HoneyForm]: Nested forms', () => {
 
     const fields: HoneyFormFieldsConfigs<ItemsForm> = {
       companyName: {
+        type: 'string',
         defaultValue: 'test',
       },
       items: {
+        type: 'string',
         defaultValue: [],
       },
     };
@@ -508,7 +525,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [],
@@ -532,7 +549,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     fireEvent.click(getByTestId('save'));
 
     await waitFor(() =>
-      expect(onSubmit).toBeCalledWith(
+      expect(onSubmit).toHaveBeenCalledWith(
         {
           companyName: 'test',
           items: [

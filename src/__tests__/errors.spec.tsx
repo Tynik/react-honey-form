@@ -14,7 +14,9 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -85,6 +87,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
+            type: 'string',
             validator: value =>
               value > 45 || [
                 {
@@ -127,7 +130,9 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
-          age: {},
+          age: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -158,7 +163,9 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
-          age: {},
+          age: {
+            type: 'string',
+          },
         },
       }),
     );
@@ -187,7 +194,9 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
         onSubmit,
       }),
@@ -215,7 +224,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalled();
+    expect(onSubmit).toHaveBeenCalled();
     // The errors should be cleared because the submit handler does not return the new server errors
     expect(result.current.formErrors).toStrictEqual({});
   });
@@ -233,7 +242,9 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
         },
         onSubmit,
       }),
@@ -245,7 +256,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalled();
+    expect(onSubmit).toHaveBeenCalled();
     expect(result.current.formErrors).toStrictEqual({
       name: [
         {

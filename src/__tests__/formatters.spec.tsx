@@ -9,6 +9,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       useHoneyForm<{ price: string }>({
         fields: {
           price: {
+            type: 'string',
             formatter: value => `$${value}`,
           },
         },
@@ -31,6 +32,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       useHoneyForm<{ price: string }>({
         fields: {
           price: {
+            type: 'string',
             defaultValue: '',
             filter: value => value.replace(/\$/, ''),
             formatter: value => `$${value}`,
@@ -50,7 +52,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
     expect(result.current.formFields.price.value).toBe('$5');
     expect(result.current.formFields.price.cleanValue).toBe('5');
 
-    expect(onSubmit).toBeCalledWith({ price: '5' }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ price: '5' }, { context: undefined });
   });
 
   test('submit form with clean values, but not formatted', async () => {
@@ -59,7 +61,9 @@ describe('Hook [use-honey-form]: Formatter function', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; price: string }>({
         fields: {
-          name: {},
+          name: {
+            type: 'string',
+          },
           price: {
             type: 'number',
             formatter: value => `$${value}`,
@@ -80,7 +84,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ name: 'apple', price: 15 }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'apple', price: 15 }, { context: undefined });
   });
 
   test('submit formatted value when flag `submitFormattedValue: true`', async () => {
@@ -90,6 +94,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       useHoneyForm<{ cardExpirationDate: string }>({
         fields: {
           cardExpirationDate: {
+            type: 'string',
             submitFormattedValue: true,
             filter: createHoneyFormNumericFilter({ maxLength: 4 }),
             formatter: createHoneyFormSplitStringFormatter(2, '/'),
@@ -107,7 +112,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
 
     await act(() => result.current.submitForm());
 
-    expect(onSubmit).toBeCalledWith({ cardExpirationDate: '10/29' }, { context: undefined });
+    expect(onSubmit).toHaveBeenCalledWith({ cardExpirationDate: '10/29' }, { context: undefined });
   });
 });
 
@@ -117,6 +122,7 @@ describe('Hook [use-honey-form]: Use predefined string formatter for segments', 
       useHoneyForm<{ cardNumber: string }>({
         fields: {
           cardNumber: {
+            type: 'string',
             formatter: createHoneyFormSplitStringFormatter(4),
           },
         },
@@ -161,6 +167,7 @@ describe('Hook [use-honey-form]: Use predefined number formatter', () => {
       useHoneyForm<{ amount: string }>({
         fields: {
           amount: {
+            type: 'string',
             formatter: createHoneyFormNumberFormatter(),
           },
         },
