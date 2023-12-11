@@ -49,7 +49,8 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
    - `email`: Represents an email input field. 
    - `checkbox`: Represents a checkbox input field. 
    - `radio`: Represents a radio input field. The `value` property will not be destructured from field properties and must be set directly in the input field's `value` attribute.
-   - `file`: Represents a file input field. 
+   - `file`: Represents a file input field.
+   - `object`: Represents an object field, where `onChange` can directly accept any object instead of `e.target.value`.
    
    The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
 3. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.

@@ -9,7 +9,7 @@ import type {
   HoneyFormFieldValidationResult,
   HoneyFormFieldType,
   HoneyFormFieldValueConvertor,
-  HoneyFormFieldProps,
+  HoneyFormInteractiveFieldProps,
   HoneyFormSetFieldValueInternal,
   HoneyFormPushFieldValue,
   HoneyFormRemoveFieldValue,
@@ -127,16 +127,13 @@ export const createField = <
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
 
-  const fieldProps: HoneyFormFieldProps<Form, FieldName> = {
+  const fieldProps: HoneyFormInteractiveFieldProps<Form, FieldName> = {
     ref: formFieldRef,
     type: FIELD_TYPE_MAP[config.type],
     inputMode: getFieldInputMode(config),
     name: fieldName.toString(),
     ...(config.type !== 'radio' && config.type !== 'file' && { value: formattedValue }),
     //
-    onFocus: e => {
-      //
-    },
     onChange: e => {
       let newFieldValue: Form[FieldName];
 

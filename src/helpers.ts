@@ -46,9 +46,11 @@ export const getHoneyFormUniqueId = () => {
  *
  * @template Form - The type representing the form structure.
  * @template FormContext - The type representing the context associated with the form.
+ *
  * @param {HoneyFormFieldsConfigs<Form, FormContext>} fieldsConfigs - Object containing field configurations.
  * @param {(fieldName: keyof Form, fieldConfig: HoneyFormFieldConfig<Form, keyof Form, FormContext>) => HoneyFormField<Form, keyof Form, FormContext>} fieldCallback - Callback function
  *   invoked for each field configuration, providing the field name and the entire field configuration.
+ *
  * @returns {HoneyFormFields<Form, FormContext>} - Object containing mapped form fields.
  */
 export const mapFieldsConfigs = <Form extends HoneyFormBaseForm, FormContext>(
@@ -71,9 +73,11 @@ export const mapFieldsConfigs = <Form extends HoneyFormBaseForm, FormContext>(
  * Maps server errors to a new format using a callback for each field with server errors.
  *
  * @template Form - The form type.
+ *
  * @param {HoneyFormServerErrors<Form>} serverErrors - The server errors associated with form fields.
  * @param {(erredFieldName: keyof Form, fieldErrors: HoneyFormFieldErrorMessage[]) => HoneyFormFieldError[]} erredFieldCallback
  *   - The callback function to transform server errors for each field.
+ *
  * @returns {HoneyFormErrors<Form>} - The mapped server errors.
  */
 export const mapServerErrors = <Form extends HoneyFormBaseForm>(
@@ -97,6 +101,7 @@ export const mapServerErrors = <Form extends HoneyFormBaseForm>(
  *
  * @template Form - The type representing the form structure.
  * @template FormContext - The type representing the context associated with the form.
+ *
  * @param {HoneyFormFields<Form, FormContext>} formFields - Object containing form fields.
  * @param {(fieldName: keyof Form, formField: HoneyFormField<Form, keyof Form, FormContext>) => void} fieldCallback - Callback function
  *   invoked for each form field, providing the field name and the entire form field object.
@@ -117,6 +122,7 @@ export const forEachFormField = <Form extends HoneyFormBaseForm, FormContext>(
  * Iterates over each form field error and invokes the provided callback.
  *
  * @template Form - The type representing the form structure.
+ *
  * @param {HoneyFormErrors<Form>} formErrors - Object containing form field errors.
  * @param {(fieldName: keyof Form, fieldErrors: HoneyFormFieldError[]) => void} fieldCallback - Callback function
  *   invoked for each form field, providing the field name and its associated errors.
@@ -137,6 +143,7 @@ export const forEachFormError = <Form extends HoneyFormBaseForm>(
  * @param fieldCallback - A function that takes a field name and its configuration and returns a transformed item.
  * @param filterFieldCallback - (Optional) A function that takes a field name and its configuration and returns a boolean.
  *  If true, the field is excluded from the result.
+ *
  * @returns A new object where each field is transformed according to the callback.
  */
 export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>(
@@ -163,11 +170,17 @@ export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>
     {} as Record<keyof Form, Item>,
   );
 
-type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
-  formContext: FormContext;
-  formFields: HoneyFormFields<Form, FormContext>;
-};
-
+/**
+ * Checks if the given form field configuration is interactive.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {HoneyFormFieldConfig<Form, FieldName, FormContext>} fieldConfig - The configuration of the form field.
+ *
+ * @returns {fieldConfig is HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext>} - A boolean indicating whether the field is interactive.
+ */
 export const checkIfFieldInteractive = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -180,6 +193,35 @@ export const checkIfFieldInteractive = <
   fieldConfig.type === 'number' ||
   fieldConfig.type === 'email';
 
+/**
+ * Options object for determining whether to skip a form field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ */
+type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  /**
+   * The context object for the entire form.
+   */
+  formContext: FormContext;
+  /**
+   * An object containing all form fields and their properties.
+   */
+  formFields: HoneyFormFields<Form, FormContext>;
+};
+
+/**
+ * Checks if a specific form field should be skipped based on the skip function in its configuration.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {FieldName} fieldName - Name of the field to check for skipping.
+ * @param {IsSkipFieldOptions<Form, FormContext>} options - Options object containing form context and form fields.
+ *
+ * @returns {boolean} - A boolean indicating whether the field should be skipped.
+ */
 export const isSkipField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -187,7 +229,7 @@ export const isSkipField = <
 >(
   fieldName: FieldName,
   { formContext, formFields }: IsSkipFieldOptions<Form, FormContext>,
-) => formFields[fieldName].config.skip?.({ formContext, formFields }) === true;
+): boolean => formFields[fieldName].config.skip?.({ formContext, formFields }) === true;
 
 export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
   formFields: HoneyFormFields<Form, FormContext>,
@@ -198,8 +240,10 @@ export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
  *
  * @template Form - The type representing the form structure.
  * @template FormContext - The type representing the context associated with the form.
+ *
  * @param {FormContext} formContext - The context associated with the form.
  * @param {HoneyFormFields<Form, FormContext>} formFields - The form fields to extract values from.
+ *
  * @returns {Form} - Object containing values of the form fields suitable for submission.
  */
 export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>(
@@ -236,7 +280,9 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
  *
  * @template Form - The type representing the form structure.
  * @template FormContext - The type representing the context associated with the form.
+ *
  * @param {HoneyFormFields<Form, FormContext>} formFields - The form fields to extract errors from.
+ *
  * @returns {HoneyFormErrors<Form>} - Object containing errors for each form field.
  */
 export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
@@ -254,6 +300,7 @@ export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
  * @template ParentForm - The type representing the parent form structure.
  * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the forms.
+ *
  * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field where the child form is associated.
  * @param {HoneyFormChildFormContext<ChildForm, FormContext>} childFormContext - The context information for the child form.
  */
@@ -276,6 +323,7 @@ export const registerChildForm = <
  * Unregisters a child form from a parent form field's metadata using the child form's ID.
  *
  * @template ParentForm - The type representing the parent form structure.
+ *
  * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field from which to unregister the child form.
  * @param {HoneyFormChildFormId} childFormId - The ID of the child form to unregister.
  */
@@ -296,7 +344,9 @@ export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
  * @template Form - The type representing the entire form structure.
  * @template FieldName - The type representing the field name of the form.
  * @template FormContext - The type representing the context of the form.
+ *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field containing child forms to validate.
+ *
  * @returns {Promise<boolean>} - A promise resolving to `true` if any child form has validation errors, otherwise `false`.
  */
 export const runChildFormsValidation = async <
