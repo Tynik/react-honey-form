@@ -115,13 +115,15 @@ export const createField = <
   // Set initial field value as the default value
   formDefaultValuesRef.current[fieldName] = config.defaultValue;
 
+  const isFieldInteractive = checkIfFieldInteractive(config);
+
   const filteredValue =
-    checkIfFieldInteractive(config) && config.filter
+    isFieldInteractive && config.filter
       ? config.filter(config.defaultValue, { formContext })
       : config.defaultValue;
 
   const formattedValue =
-    checkIfFieldInteractive(config) && config.formatter
+    isFieldInteractive && config.formatter
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
 
@@ -130,7 +132,7 @@ export const createField = <
     type: FIELD_TYPE_MAP[config.type],
     inputMode: getFieldInputMode(config),
     name: fieldName.toString(),
-    ...(config.type !== 'radio' && { value: formattedValue }),
+    ...(config.type !== 'radio' && config.type !== 'file' && { value: formattedValue }),
     //
     onFocus: e => {
       //
@@ -149,11 +151,11 @@ export const createField = <
       }
 
       setFieldValue(fieldName, newFieldValue, {
-        isValidate: checkIfFieldInteractive(config) && config.mode === 'change',
-        isFormat: checkIfFieldInteractive(config) && !config.formatOnBlur,
+        isValidate: isFieldInteractive && config.mode === 'change',
+        isFormat: isFieldInteractive && !config.formatOnBlur,
       });
     },
-    ...(checkIfFieldInteractive(config) &&
+    ...(isFieldInteractive &&
       (config.mode === 'blur' || config.formatOnBlur) && {
         onBlur: e => {
           if (!e.target.readOnly) {

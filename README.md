@@ -113,21 +113,24 @@ The `useHoneyForm` hook returns an object with the following properties:
 
 ## Examples
 
-*Simple usage*
+*Hook based example*
 
 ```typescript jsx
 import React from 'react';
 import { useHoneyForm } from 'react-honey-form';
 
+// Define the form fields structure
 type ProfileForm = {
   name: string;
   age: number;
 }
 
 const Form = () => {
+   // Use the useHoneyForm hook to manage form state
   const { formFields, submitForm } = useHoneyForm<ProfileForm>({
     fields: {
       name: {
+        type: 'string',
         required: true
       },
       age: {
@@ -135,6 +138,7 @@ const Form = () => {
       },
     },
     onSubmit: (data) => {
+       // Handle form submission
       console.log(data);
     },
   });
@@ -144,9 +148,56 @@ const Form = () => {
     
     <input {...formFields.age.props}/>
     
-    <button type="submit" onClick={submitForm}>Save</button>
+    <button type="button" onClick={submitForm}>Submit</button>
   </form>;
 }
+```
+
+*Component based example*
+
+```typescript jsx
+import React from 'react';
+import { HoneyForm } from 'react-honey-form';
+
+// Define the form fields structure
+type ProfileForm = {
+   name: string;
+   age: number;
+}
+
+const Form = () => {
+   const handleSubmit = (data: ProfileForm) => {
+      // Process form data
+      console.log(data);
+   }
+
+   // Render the form using the HoneyForm component
+   return (
+      <HoneyForm
+        fields={{
+          name: {
+             type: 'string',
+             required: true,
+          },
+          age: {
+             type: 'number',
+          },
+        }}
+        onSubmit={handleSubmit} // Pass the submit handler
+      >
+        {/* Destructure the formFields and submitForm from the render prop function */}
+        {({ formFields }) => (
+          <>
+             <input {...formFields.name.props} />
+             <input {...formFields.age.props} />
+
+             <button type="submit">Submit</button>
+          </>
+        )}
+      </HoneyForm>
+   );
+};
+
 ```
 
 ## Conclusion
