@@ -260,7 +260,7 @@ describe('Hook [use-honey-form]: Fields', () => {
   });
 });
 
-describe('Hook [use-honey-form]: Array fields', () => {
+describe('Hook [use-honey-form]: Nested forms', () => {
   it('should correctly identify the value type of an array field', () => {
     type Item = {
       name: string;
@@ -275,7 +275,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
-            type: 'string',
+            type: 'nestedForms',
           },
         },
       }),
@@ -303,7 +303,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
-            type: 'string',
+            type: 'nestedForms',
             defaultValue: [],
           },
           name: {
@@ -358,7 +358,7 @@ describe('Hook [use-honey-form]: Array fields', () => {
       useHoneyForm<Products>({
         fields: {
           items: {
-            type: 'string',
+            type: 'nestedForms',
             defaultValue: [],
           },
         },

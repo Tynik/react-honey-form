@@ -86,7 +86,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
         defaultValue: 'test',
       },
       items: {
-        type: 'string',
+        type: 'nestedForms',
         defaultValue: [],
       },
     };
@@ -267,7 +267,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
         defaultValue: 'test',
       },
       items: {
-        type: 'string',
+        type: 'nestedForms',
         defaultValue: [
           {
             id: '1',
@@ -355,7 +355,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
         defaultValue: 'test',
       },
       items: {
-        type: 'string',
+        type: 'nestedForms',
         defaultValue: [],
       },
     };

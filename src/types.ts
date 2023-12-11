@@ -10,17 +10,23 @@ export type HoneyFormChildFormId = string;
 
 /**
  * Represents the types of interactive form fields that support dynamic user input.
- * Possible values include: 'string', 'numeric', 'number', 'email'.
  */
 export type HoneyFormInteractiveFieldType = 'string' | 'numeric' | 'number' | 'email';
 
 /**
  * Represents the types of static form fields that typically don't change based on user input.
- * Possible values include: 'checkbox', 'radio', 'file'.
  */
 export type HoneyFormStaticFieldType = 'checkbox' | 'radio' | 'file';
 
-export type HoneyFormFieldType = HoneyFormInteractiveFieldType | HoneyFormStaticFieldType;
+/**
+ * Represents the array type of field to work with nested forms
+ */
+export type HoneyFormNestedFormsFieldType = 'nestedForms';
+
+export type HoneyFormFieldType =
+  | HoneyFormInteractiveFieldType
+  | HoneyFormStaticFieldType
+  | HoneyFormNestedFormsFieldType;
 
 /**
  * Field error type.
@@ -193,6 +199,33 @@ export type HoneyFormInteractiveFieldValidatorContext<
 };
 
 /**
+ * A custom validation function for an interactive form field. It should return one of the following:
+ * - `true` (indicating the value is valid).
+ * - An error message (indicating the value is invalid).
+ * - An array of `HoneyFormFieldError` objects (for multiple errors).
+ * - A `Promise` that resolves to any of the above responses.
+ *
+ * @param value - The current value of the field.
+ * @param context - The validation context, containing the field configuration and other form fields.
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ */
+export type HoneyFormInteractiveFieldValidator<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext = undefined,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = (
+  value: FieldValue | undefined,
+  context: HoneyFormInteractiveFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
+) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
+
+/**
  * Context object for static field validators. This includes information about the form,
  * the specific field being validated, and the context of the form.
  */
@@ -208,28 +241,6 @@ export type HoneyFormStaticFieldValidatorContext<
 };
 
 /**
- * A custom validation function for an interactive form field. It should return one of the following:
- * - `true` (indicating the value is valid).
- * - An error message (indicating the value is invalid).
- * - An array of `HoneyFormFieldError` objects (for multiple errors).
- * - A `Promise` that resolves to any of the above responses.
- *
- * @param value - The current value of the field.
- * @param context - The validation context, containing the field configuration and other form fields.
- * @returns `true` if the value is valid, an error message if the value is invalid,
- *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
- */
-export type HoneyFormInteractiveFieldValidator<
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FormContext = undefined,
-  FieldValue extends Form[FieldName] = Form[FieldName],
-> = (
-  value: FieldValue | undefined,
-  context: HoneyFormInteractiveFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
-) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
-
-/**
  * A custom validation function for a static form field. It should return one of the following:
  * - `true` (indicating the value is valid).
  * - An error message (indicating the value is invalid).
@@ -240,6 +251,11 @@ export type HoneyFormInteractiveFieldValidator<
  * @param context - The validation context, containing the field configuration and other form fields.
  * @returns `true` if the value is valid, an error message if the value is invalid,
  *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
  */
 export type HoneyFormStaticFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -249,6 +265,48 @@ export type HoneyFormStaticFieldValidator<
 > = (
   value: FieldValue | undefined,
   context: HoneyFormStaticFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
+) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
+
+/**
+ * Context object passed to the validator function for a nested forms field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ */
+export type HoneyFormNestedFormsFieldValidatorContext<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = {
+  formContext: FormContext;
+  fieldConfig: HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  formFields: HoneyFormFields<Form, FormContext>;
+};
+
+/**
+ * Validator function for a nested forms field within a larger form.
+ *
+ * @param value - The current value of the field.
+ * @param context - The validation context, containing the field configuration and other form fields.
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ */
+export type HoneyFormNestedFormsFieldValidator<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext = undefined,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = (
+  value: FieldValue | undefined,
+  context: HoneyFormNestedFormsFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 type HoneyFormFieldFilterContext<FormContext> = {
@@ -344,16 +402,14 @@ type BaseHoneyFormFieldConfig<
 >;
 
 /**
- * Represents the configuration for an interactive form field, extending the base field configuration.
+ * Represents the configuration for an interactive form field within the context of a specific form.
  *
- * @template T - Additional properties specific to the field.
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
-type BaseHoneyFormInteractiveFieldConfig<
-  T,
+export type HoneyFormInteractiveFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext = undefined,
@@ -440,60 +496,6 @@ type BaseHoneyFormInteractiveFieldConfig<
      * @default false
      */
     submitFormattedValue?: boolean;
-  } & T,
-  Form,
-  FieldName,
-  FormContext,
-  FieldValue
->;
-
-/**
- * Represents the configuration for a static form field, extending the base field configuration.
- *
- * @template T - Additional properties specific to the field.
- * @template Form - Type representing the entire form.
- * @template FieldName - Name of the field in the form.
- * @template FormContext - Contextual information for the form.
- * @template FieldValue - Type representing the value of the field.
- */
-type BaseHoneyFormStaticFieldConfig<
-  T,
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FormContext = undefined,
-  FieldValue extends Form[FieldName] = Form[FieldName],
-> = BaseHoneyFormFieldConfig<
-  {
-    /**
-     * The type of the static form field.
-     */
-    type: HoneyFormStaticFieldType;
-    /**
-     * Custom validation function.
-     */
-    validator?: HoneyFormStaticFieldValidator<Form, FieldName, FormContext, FieldValue>;
-  } & T,
-  Form,
-  FieldName,
-  FormContext,
-  FieldValue
->;
-
-/**
- * Represents the configuration for an interactive form field within the context of a specific form.
- *
- * @template Form - Type representing the entire form.
- * @template FieldName - Name of the field in the form.
- * @template FormContext - Contextual information for the form.
- * @template FieldValue - Type representing the value of the field.
- */
-export type HoneyFormInteractiveFieldConfig<
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FormContext = undefined,
-  FieldValue extends Form[FieldName] = Form[FieldName],
-> = BaseHoneyFormInteractiveFieldConfig<
-  {
     /**
      * A function to determine whether to skip validation and submission for this field.
      */
@@ -518,8 +520,44 @@ type HoneyFormStaticFieldConfig<
   FieldName extends keyof Form,
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = BaseHoneyFormStaticFieldConfig<
+> = BaseHoneyFormFieldConfig<
   {
+    /**
+     * The type of the static form field.
+     */
+    type: HoneyFormStaticFieldType;
+    /**
+     * Custom validation function.
+     */
+    validator?: HoneyFormStaticFieldValidator<Form, FieldName, FormContext, FieldValue>;
+    /**
+     * A function to determine whether to skip validation and submission for this field.
+     */
+    skip?: HoneyFormSkipField<Form, FormContext>;
+  },
+  Form,
+  FieldName,
+  FormContext,
+  FieldValue
+>;
+
+/**
+ * Configuration for a nested forms field within a larger form.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ */
+type HoneyFormNestedFormsFieldConfig<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext = undefined,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = BaseHoneyFormFieldConfig<
+  {
+    type: HoneyFormNestedFormsFieldType;
+    validator?: HoneyFormNestedFormsFieldValidator<Form, FieldName, FormContext, FieldValue>;
     /**
      * A function to determine whether to skip validation and submission for this field.
      */
@@ -546,7 +584,8 @@ export type HoneyFormFieldConfig<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > =
   | HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>
-  | HoneyFormStaticFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  | HoneyFormStaticFieldConfig<Form, FieldName, FormContext, FieldValue>
+  | HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
 
 /**
  * Represents the configuration for a child form field within the context of a specific parent form.

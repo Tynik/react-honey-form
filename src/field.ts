@@ -400,6 +400,10 @@ const executeFieldTypeValidator = <
   formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldValue: FieldValue | undefined,
 ): HoneyFormFieldValidationResult | null => {
+  if (formField.config.type === 'nestedForms') {
+    return null;
+  }
+
   let validationResult: HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
   if (checkIfFieldInteractive(formField.config)) {
