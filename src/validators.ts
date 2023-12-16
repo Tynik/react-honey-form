@@ -3,8 +3,8 @@ import {
   HoneyFormInteractiveFieldType,
   HoneyFormInteractiveFieldValidator,
   HoneyFormFieldBuiltInValidator,
-  HoneyFormStaticFieldType,
-  HoneyFormStaticFieldValidator,
+  HoneyFormPassiveFieldType,
+  HoneyFormPassiveFieldValidator,
 } from './types';
 
 import type { CustomDateRangeForm } from './form.types';
@@ -76,9 +76,9 @@ export const INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP: Record<
   },
 };
 
-export const STATIC_FIELD_TYPE_VALIDATORS_MAP: Record<
-  HoneyFormStaticFieldType,
-  HoneyFormStaticFieldValidator<any, any, any>
+export const PASSIVE_FIELD_TYPE_VALIDATORS_MAP: Record<
+  HoneyFormPassiveFieldType,
+  HoneyFormPassiveFieldValidator<any, any, any>
 > = {
   checkbox: () => true,
   radio: () => true,

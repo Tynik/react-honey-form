@@ -14,9 +14,9 @@ export type HoneyFormChildFormId = string;
 export type HoneyFormInteractiveFieldType = 'string' | 'numeric' | 'number' | 'email';
 
 /**
- * Represents the types of static form fields that typically don't change based on user input.
+ * Represents the types of passive form fields that typically don't change based on user input.
  */
-export type HoneyFormStaticFieldType = 'checkbox' | 'radio' | 'file';
+export type HoneyFormPassiveFieldType = 'checkbox' | 'radio' | 'file';
 
 /**
  * Represents the type of field to work with any object: array or object.
@@ -24,13 +24,13 @@ export type HoneyFormStaticFieldType = 'checkbox' | 'radio' | 'file';
 export type HoneyFormObjectFieldType = 'object';
 
 /**
- * Represents the array type of field to work with nested forms
+ * Represents the array type of field to work with nested forms.
  */
 export type HoneyFormNestedFormsFieldType = 'nestedForms';
 
 export type HoneyFormFieldType =
   | HoneyFormInteractiveFieldType
-  | HoneyFormStaticFieldType
+  | HoneyFormPassiveFieldType
   | HoneyFormObjectFieldType
   | HoneyFormNestedFormsFieldType;
 
@@ -236,22 +236,22 @@ export type HoneyFormInteractiveFieldValidator<
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 /**
- * Context object for static field validators. This includes information about the form,
+ * Context object for passive field validators. This includes information about the form,
  * the specific field being validated, and the context of the form.
  */
-export type HoneyFormStaticFieldValidatorContext<
+export type HoneyFormPassiveFieldValidatorContext<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = {
   formContext: FormContext;
-  fieldConfig: HoneyFormStaticFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
   formFields: HoneyFormFields<Form, FormContext>;
 };
 
 /**
- * A custom validation function for a static form field. It should return one of the following:
+ * A custom validation function for a passive form field. It should return one of the following:
  * - `true` (indicating the value is valid).
  * - An error message (indicating the value is invalid).
  * - An array of `HoneyFormFieldError` objects (for multiple errors).
@@ -265,7 +265,7 @@ export type HoneyFormStaticFieldValidatorContext<
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
-export type HoneyFormStaticFieldValidator<
+export type HoneyFormPassiveFieldValidator<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext = undefined,
@@ -278,7 +278,7 @@ export type HoneyFormStaticFieldValidator<
   /**
    * The validation context, containing the field configuration and other form fields.
    */
-  context: HoneyFormStaticFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
+  context: HoneyFormPassiveFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 /**
@@ -587,14 +587,14 @@ export type HoneyFormInteractiveFieldConfig<
 >;
 
 /**
- * Represents the configuration for a static form field within the context of a specific form.
+ * Represents the configuration for a passive form field within the context of a specific form.
  *
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
-type HoneyFormStaticFieldConfig<
+export type HoneyFormPassiveFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext = undefined,
@@ -602,13 +602,13 @@ type HoneyFormStaticFieldConfig<
 > = BaseHoneyFormFieldConfig<
   {
     /**
-     * The type of the static form field.
+     * The type of the passive form field.
      */
-    type: HoneyFormStaticFieldType;
+    type: HoneyFormPassiveFieldType;
     /**
      * Custom validation function.
      */
-    validator?: HoneyFormStaticFieldValidator<Form, FieldName, FormContext, FieldValue>;
+    validator?: HoneyFormPassiveFieldValidator<Form, FieldName, FormContext, FieldValue>;
   },
   Form,
   FieldName,
@@ -624,7 +624,7 @@ type HoneyFormStaticFieldConfig<
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
-type HoneyFormObjectFieldConfig<
+export type HoneyFormObjectFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext = undefined,
@@ -634,7 +634,7 @@ type HoneyFormObjectFieldConfig<
     /**
      * Type identifier for the object field.
      */
-    type: HoneyFormNestedFormsFieldType;
+    type: HoneyFormObjectFieldType;
     /**
      * Custom validator function for the object field.
      */
@@ -661,7 +661,13 @@ type HoneyFormNestedFormsFieldConfig<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = BaseHoneyFormFieldConfig<
   {
+    /**
+     * Type identifier for the nested forms field.
+     */
     type: HoneyFormNestedFormsFieldType;
+    /**
+     * Custom validator function for the nested forms field.
+     */
     validator?: HoneyFormNestedFormsFieldValidator<Form, FieldName, FormContext, FieldValue>;
   },
   Form,
@@ -685,7 +691,7 @@ export type HoneyFormFieldConfig<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > =
   | HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>
-  | HoneyFormStaticFieldConfig<Form, FieldName, FormContext, FieldValue>
+  | HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>
   | HoneyFormObjectFieldConfig<Form, FieldName, FormContext, FieldValue>
   | HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
 
@@ -706,7 +712,9 @@ export type ChildHoneyFormFieldConfig<
   FieldValue extends ChildForm[FieldName] = ChildForm[FieldName],
 > =
   | HoneyFormInteractiveFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
-  | HoneyFormStaticFieldConfig<ChildForm, FieldName, FormContext, FieldValue>;
+  | HoneyFormPassiveFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
+  | HoneyFormObjectFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
+  | HoneyFormNestedFormsFieldConfig<ChildForm, FieldName, FormContext, FieldValue>;
 
 /**
  * Represents a built-in form field validator function.
@@ -748,7 +756,7 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
-type GenericFieldHTMLAttributes<T> = Pick<
+export type BaseFieldHTMLAttributes<T> = Pick<
   InputHTMLAttributes<T>,
   'type' | 'name' | 'inputMode' | 'aria-required' | 'aria-invalid'
 >;
@@ -769,28 +777,55 @@ type GenericFieldHTMLAttributes<T> = Pick<
  * @remarks
  * When the `onBlur` event is triggered, and the field's mode is set to 'blur', the validation process
  *  will not be run if the field has the `readonly` property set to `true`.
+ *
+ * @template BaseFieldHTMLAttributes - Base HTML attributes for a form field.
  */
 export type HoneyFormInteractiveFieldProps<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  GenericFieldHTMLAttributes<any> &
+  BaseFieldHTMLAttributes<any> &
     Pick<InputHTMLAttributes<any>, 'onChange' | 'onBlur'> & {
       ref: RefObject<any>;
       value: FieldValue | undefined;
     }
 >;
 
+/**
+ * Represents the props for a passive form field, such as checkbox or radio.
+ *
+ * @remarks
+ * These props include the base HTML attributes, checked state, and `onChange` handler.
+ *
+ * @template BaseFieldHTMLAttributes - Base HTML attributes for a form field.
+ */
+export type HoneyFormPassiveFieldProps = Readonly<
+  BaseFieldHTMLAttributes<any> &
+    Pick<InputHTMLAttributes<any>, 'checked' | 'onChange'> & {
+      ref: RefObject<any>;
+    }
+>;
+
+/**
+ * Represents the props for an object form field.
+ *
+ * @remarks
+ * These props include the base HTML attributes, a ref, the field value, and the `onChange` handler.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FieldValue - Type representing the value of the field.
+ */
 export type HoneyFormObjectFieldProps<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  GenericFieldHTMLAttributes<any> & {
+  BaseFieldHTMLAttributes<any> & {
     ref: RefObject<any>;
     value: FieldValue | undefined;
-    onChange: (value: FieldValue) => void;
+    onChange: (value: FieldValue | undefined) => void;
   }
 >;
 
@@ -935,7 +970,15 @@ export type HoneyFormField<
     /**
      * An object with the necessary props to bind to the corresponding input element in the form.
      */
-    props: HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue>;
+    props: HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue> | undefined;
+    /**
+     * Properties for non-interactive fields (e.g., checkbox, radio, file).
+     */
+    passiveProps: HoneyFormPassiveFieldProps | undefined;
+    /**
+     * Properties for object fields, enabling direct handling of object values.
+     */
+    objectProps: HoneyFormObjectFieldProps<Form, FieldName, FieldValue> | undefined;
     /**
      * A function to add a new value to a parent field that can have child forms.
      */

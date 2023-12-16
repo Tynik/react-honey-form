@@ -123,13 +123,13 @@ describe('Component [HoneyForm]: Field mode usage', () => {
 describe('Component [HoneyForm]: File field type', () => {
   it('should handle multiple files field type', async () => {
     type Form = {
-      avatar: FileList;
+      images: FileList;
     };
 
     const onSubmit = jest.fn<Promise<void>, [Form]>();
 
     const fields: HoneyFormFieldsConfigs<Form> = {
-      avatar: {
+      images: {
         required: true,
         type: 'file',
         props: {
@@ -142,7 +142,7 @@ describe('Component [HoneyForm]: File field type', () => {
       <HoneyForm fields={fields} onSubmit={onSubmit}>
         {({ formFields }) => (
           <>
-            <input data-testid="avatar" {...formFields.avatar.props} value={undefined} />
+            <input data-testid="images" {...formFields.images.passiveProps} />
 
             <button type="submit" data-testid="save">
               Save
@@ -154,7 +154,7 @@ describe('Component [HoneyForm]: File field type', () => {
 
     const file = new Blob(['test data'], { type: 'text/plain' });
 
-    fireEvent.change(getByTestId('avatar'), { target: { files: [file] } });
+    fireEvent.change(getByTestId('images'), { target: { files: [file] } });
 
     // Submit the form
     fireEvent.click(getByTestId('save'));
@@ -162,7 +162,7 @@ describe('Component [HoneyForm]: File field type', () => {
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
         {
-          avatar: [expect.any(Blob)],
+          images: [expect.any(Blob)],
         },
         { context: undefined },
       ),
@@ -209,9 +209,9 @@ describe('Component [HoneyFormDynamicField]', () => {
         <HoneyFormDynamicField name="gender" type="radio" defaultValue={null}>
           {field => (
             <fieldset name="gender">
-              <input value="male" data-testid="male" {...field.props} />
-              <input value="female" data-testid="female" {...field.props} />
-              <input value="other" data-testid="other" {...field.props} />
+              <input value="male" data-testid="male" {...field.passiveProps} />
+              <input value="female" data-testid="female" {...field.passiveProps} />
+              <input value="other" data-testid="other" {...field.passiveProps} />
             </fieldset>
           )}
         </HoneyFormDynamicField>

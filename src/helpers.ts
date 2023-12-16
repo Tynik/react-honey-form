@@ -14,6 +14,8 @@ import type {
   HoneyFormServerErrors,
   HoneyFormFieldErrorMessage,
   HoneyFormInteractiveFieldConfig,
+  HoneyFormPassiveFieldConfig,
+  HoneyFormObjectFieldConfig,
 } from './types';
 
 export const noop = () => {
@@ -181,7 +183,7 @@ export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>
  *
  * @returns {fieldConfig is HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext>} - A boolean indicating whether the field is interactive.
  */
-export const checkIfFieldInteractive = <
+export const checkIfFieldIsInteractive = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -192,6 +194,46 @@ export const checkIfFieldInteractive = <
   fieldConfig.type === 'numeric' ||
   fieldConfig.type === 'number' ||
   fieldConfig.type === 'email';
+
+/**
+ * Checks if a given form field is of passive type, such as checkbox, radio, or file.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param fieldConfig - Configuration options for the form field.
+ *
+ * @returns A boolean indicating whether the field is of passive type.
+ */
+export const checkIfFieldIsPassive = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
+): fieldConfig is HoneyFormPassiveFieldConfig<Form, FieldName, FormContext> =>
+  fieldConfig.type === 'checkbox' || fieldConfig.type === 'radio' || fieldConfig.type === 'file';
+
+/**
+ * Checks if a given form field is of object type.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param fieldConfig - Configuration options for the form field.
+ *
+ * @returns A boolean indicating whether the field is of object type.
+ */
+export const checkIfFieldIsObject = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
+): fieldConfig is HoneyFormObjectFieldConfig<Form, FieldName, FormContext> =>
+  fieldConfig.type === 'object';
 
 /**
  * Options object for determining whether to skip a form field.
@@ -268,7 +310,9 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
         return childFormsCleanValues as Form[keyof Form];
       }
 
-      return checkIfFieldInteractive(formField.config) && formField.config.submitFormattedValue
+      const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+
+      return !isFieldInteractive || formField.config.submitFormattedValue
         ? formField.value
         : formField.cleanValue;
     },

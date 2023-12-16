@@ -30,7 +30,7 @@ import {
   getNextErrorsFreeField,
 } from './field';
 import {
-  checkIfFieldInteractive,
+  checkIfFieldIsInteractive,
   forEachFormError,
   getFormErrors,
   getFormValues,
@@ -86,7 +86,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           const fieldConfig = nextFormFields[fieldName].config;
 
           const filteredValue =
-            checkIfFieldInteractive(fieldConfig) && fieldConfig.filter
+            checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter
               ? fieldConfig.filter(values[fieldName], { formContext })
               : values[fieldName];
 
@@ -98,7 +98,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           );
 
           const formattedValue =
-            checkIfFieldInteractive(nextFormField.config) && nextFormField.config.formatter
+            checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.formatter
               ? nextFormField.config.formatter(filteredValue, { formContext })
               : filteredValue;
 
@@ -245,7 +245,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       const formField = formFields[fieldName];
 
       const filteredValue =
-        checkIfFieldInteractive(formField.config) && formField.config.filter
+        checkIfFieldIsInteractive(formField.config) && formField.config.filter
           ? formField.config.filter(formField.rawValue, { formContext })
           : formField.rawValue;
 

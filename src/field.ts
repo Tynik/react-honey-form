@@ -19,14 +19,24 @@ import type {
   HoneyFormAddFieldError,
   HoneyFormDefaultsRef,
   HoneyFormFieldsRef,
+  BaseFieldHTMLAttributes,
+  HoneyFormPassiveFieldProps,
+  HoneyFormObjectFieldProps,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
   BUILT_IN_FIELD_VALIDATORS,
   BUILT_IN_INTERACTIVE_FIELD_VALIDATORS,
-  STATIC_FIELD_TYPE_VALIDATORS_MAP,
+  PASSIVE_FIELD_TYPE_VALIDATORS_MAP,
 } from './validators';
-import { checkIfFieldInteractive, forEachFormField, getFormValues, isSkipField } from './helpers';
+import {
+  checkIfFieldIsInteractive,
+  checkIfFieldIsObject,
+  checkIfFieldIsPassive,
+  forEachFormField,
+  getFormValues,
+  isSkipField,
+} from './helpers';
 
 const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, HTMLInputTypeAttribute>> = {
   email: 'email',
@@ -60,7 +70,9 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
  *
  * @template Form - The form type.
  * @template FieldName - The field name.
+ *
  * @param fieldConfig - The configuration of the form field.
+ *
  * @returns The HTML input mode for the field, or `undefined` if not specified.
  */
 const getFieldInputMode = <Form extends HoneyFormBaseForm>(
@@ -101,7 +113,7 @@ export const createField = <
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
     required: false,
-    ...(checkIfFieldInteractive(fieldConfig) && {
+    ...(checkIfFieldIsInteractive(fieldConfig) && {
       // Set default config values
       mode: 'change',
       formatOnBlur: false,
@@ -115,7 +127,9 @@ export const createField = <
   // Set initial field value as the default value
   formDefaultValuesRef.current[fieldName] = config.defaultValue;
 
-  const isFieldInteractive = checkIfFieldInteractive(config);
+  const isFieldInteractive = checkIfFieldIsInteractive(config);
+  const isFieldPassive = checkIfFieldIsPassive(config);
+  const isFieldObject = checkIfFieldIsObject(config);
 
   const filteredValue =
     isFieldInteractive && config.filter
@@ -127,45 +141,83 @@ export const createField = <
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
 
-  const fieldProps: HoneyFormInteractiveFieldProps<Form, FieldName> = {
-    ref: formFieldRef,
+  const baseFieldProps: BaseFieldHTMLAttributes<any> = {
     type: FIELD_TYPE_MAP[config.type],
     inputMode: getFieldInputMode(config),
     name: fieldName.toString(),
-    ...(config.type !== 'radio' && config.type !== 'file' && { value: formattedValue }),
-    //
-    onChange: e => {
-      let newFieldValue: Form[FieldName];
-
-      if (config.type === 'checkbox') {
-        newFieldValue = e.target.checked as Form[FieldName];
-        //
-      } else if (config.type === 'file') {
-        newFieldValue = e.target.files as Form[FieldName];
-        //
-      } else {
-        newFieldValue = e.target.value as Form[FieldName];
-      }
-
-      setFieldValue(fieldName, newFieldValue, {
-        isValidate: isFieldInteractive && config.mode === 'change',
-        isFormat: isFieldInteractive && !config.formatOnBlur,
-      });
-    },
-    ...(isFieldInteractive &&
-      (config.mode === 'blur' || config.formatOnBlur) && {
-        onBlur: e => {
-          if (!e.target.readOnly) {
-            setFieldValue(fieldName, e.target.value);
-          }
-        },
-      }),
     // ARIA
     'aria-required': config.required,
     'aria-invalid': false,
-    // Additional field properties from field configuration
-    ...config.props,
   };
+
+  const interactiveFieldProps: HoneyFormInteractiveFieldProps<Form, FieldName> | undefined =
+    isFieldInteractive
+      ? {
+          ...baseFieldProps,
+          ref: formFieldRef,
+          value: formattedValue,
+          //
+          onChange: e => {
+            setFieldValue(fieldName, e.target.value, {
+              isValidate: config.mode === 'change',
+              isFormat: !config.formatOnBlur,
+            });
+          },
+          ...((config.mode === 'blur' || config.formatOnBlur) && {
+            onBlur: e => {
+              if (!e.target.readOnly) {
+                setFieldValue(fieldName, e.target.value);
+              }
+            },
+          }),
+          // Additional field properties from field configuration
+          ...config.props,
+        }
+      : undefined;
+
+  const passiveFieldProps: HoneyFormPassiveFieldProps | undefined = isFieldPassive
+    ? {
+        ...baseFieldProps,
+        ref: formFieldRef,
+        ...(config.type === 'checkbox' && { checked: config.defaultValue as boolean }),
+        //
+        onChange: e => {
+          let newFieldValue: Form[FieldName];
+
+          if (config.type === 'checkbox') {
+            newFieldValue = e.target.checked as Form[FieldName];
+            //
+          } else if (config.type === 'file') {
+            newFieldValue = e.target.files as Form[FieldName];
+            //
+          } else {
+            newFieldValue = e.target.value as Form[FieldName];
+          }
+
+          setFieldValue(fieldName, newFieldValue, {
+            isFormat: false,
+          });
+        },
+        // Additional field properties from field configuration
+        ...config.props,
+      }
+    : undefined;
+
+  const objectFieldProps: HoneyFormObjectFieldProps<Form, FieldName> | undefined = isFieldObject
+    ? {
+        ...baseFieldProps,
+        ref: formFieldRef,
+        value: formattedValue,
+        //
+        onChange: newFieldValue => {
+          setFieldValue(fieldName, newFieldValue, {
+            isFormat: false,
+          });
+        },
+        // Additional field properties from field configuration
+        ...config.props,
+      }
+    : undefined;
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {
     formFieldsRef,
@@ -180,7 +232,9 @@ export const createField = <
     rawValue: filteredValue,
     cleanValue: filteredValue,
     value: formattedValue,
-    props: fieldProps,
+    props: interactiveFieldProps,
+    passiveProps: passiveFieldProps,
+    objectProps: objectFieldProps,
     // TODO: try to fix the next error
     // @ts-expect-error
     getChildFormsValues: () => {
@@ -226,7 +280,9 @@ export const createField = <
  * @template Form - The form type.
  * @template FieldName - The name of the field.
  * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ *
  * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state with errors cleared.
  */
 export const getNextErrorsFreeField = <
@@ -236,14 +292,32 @@ export const getNextErrorsFreeField = <
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
+  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldPassive = checkIfFieldIsPassive(formField.config);
+  const isFieldObject = checkIfFieldIsObject(formField.config);
+
   return {
     ...formField,
     cleanValue: undefined,
     errors: [],
-    props: {
-      ...formField.props,
-      'aria-invalid': false,
-    },
+    props: isFieldInteractive
+      ? {
+          ...formField.props,
+          'aria-invalid': false,
+        }
+      : undefined,
+    passiveProps: isFieldPassive
+      ? {
+          ...formField.passiveProps,
+          'aria-invalid': false,
+        }
+      : undefined,
+    objectProps: isFieldObject
+      ? {
+          ...formField.objectProps,
+          'aria-invalid': false,
+        }
+      : undefined,
   };
 };
 
@@ -253,8 +327,10 @@ export const getNextErrorsFreeField = <
  * @template Form - The form type.
  * @template FieldName - The name of the field.
  * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
  * @param {HoneyFormFieldError[]} fieldErrors - The errors to be set on the form field.
+ *
  * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state with specified errors.
  */
 export const getNextErredField = <
@@ -265,15 +341,35 @@ export const getNextErredField = <
   formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldErrors: HoneyFormFieldError[],
 ): HoneyFormField<Form, FieldName, FormContext> => {
+  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldPassive = checkIfFieldIsPassive(formField.config);
+  const isFieldObject = checkIfFieldIsObject(formField.config);
+
+  const isFieldErred = fieldErrors.length > 0;
+
   return {
     ...formField,
     errors: fieldErrors,
     // Set clean value as `undefined` if any error is present
     cleanValue: fieldErrors.length ? undefined : formField.cleanValue,
-    props: {
-      ...formField.props,
-      'aria-invalid': fieldErrors.length > 0,
-    },
+    props: isFieldInteractive
+      ? {
+          ...formField.props,
+          'aria-invalid': isFieldErred,
+        }
+      : undefined,
+    passiveProps: isFieldPassive
+      ? {
+          ...formField.passiveProps,
+          'aria-invalid': isFieldErred,
+        }
+      : undefined,
+    objectProps: isFieldObject
+      ? {
+          ...formField.objectProps,
+          'aria-invalid': isFieldErred,
+        }
+      : undefined,
   };
 };
 
@@ -281,6 +377,7 @@ export const getNextErredField = <
  * Get the next cleared field state by resetting the values to `undefined`.
  *
  * @param {HoneyFormField} formField - The form field to clear.
+ *
  * @returns {HoneyFormField} - The next form field state after clearing.
  */
 export const getNextClearedField = <
@@ -290,16 +387,27 @@ export const getNextClearedField = <
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
+  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldObject = checkIfFieldIsObject(formField.config);
+
   const errorsFreeField = getNextErrorsFreeField(formField);
 
   return {
     ...errorsFreeField,
     value: undefined,
     rawValue: undefined,
-    props: {
-      ...errorsFreeField.props,
-      value: undefined,
-    },
+    props: isFieldInteractive
+      ? {
+          ...errorsFreeField.props,
+          value: undefined,
+        }
+      : undefined,
+    objectProps: isFieldObject
+      ? {
+          ...errorsFreeField.objectProps,
+          value: undefined,
+        }
+      : undefined,
   };
 };
 
@@ -347,6 +455,7 @@ const handleFieldValidationResult = <
  * @param {HoneyFormFieldValidationResult | null} validationResult - The result of the field validation.
  * @param {HoneyFormField} formField - The form field being validated.
  * @param {Form[FieldName] | undefined} cleanValue - The cleaned value of the field.
+ *
  * @returns {HoneyFormField} - The next form field state after validation.
  */
 const getNextValidatedField = <
@@ -380,10 +489,12 @@ const getNextValidatedField = <
  * @template FieldName - The name of the field to validate.
  * @template FormContext - The context of the form.
  * @template FieldValue - The type of the field's value.
+ *
  * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
  * @param {FieldValue | undefined} fieldValue - The current value of the form field.
+ *
  * @returns {HoneyFormFieldValidationResult | null} - The result of the field type validation.
  */
 const executeFieldTypeValidator = <
@@ -403,7 +514,7 @@ const executeFieldTypeValidator = <
 
   let validationResult: HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
-  if (checkIfFieldInteractive(formField.config)) {
+  if (checkIfFieldIsInteractive(formField.config)) {
     // Get the validator function associated with the field type
     const validator = INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
 
@@ -412,8 +523,8 @@ const executeFieldTypeValidator = <
       formFields,
       fieldConfig: formField.config,
     });
-  } else {
-    const validator = STATIC_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
+  } else if (checkIfFieldIsPassive(formField.config)) {
+    const validator = PASSIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
 
     validationResult = validator(fieldValue, {
       formContext,
@@ -431,6 +542,21 @@ const executeFieldTypeValidator = <
   return null;
 };
 
+/**
+ * Executes internal field validators for a given form field.
+ *
+ * @remarks
+ * This function iterates over built-in field validators and executes them for the specified field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ *
+ * @param fieldValue - The current value of the field.
+ * @param fieldConfig - Configuration options for the form field.
+ * @param fieldErrors - An array of errors associated with the field.
+ */
 const executeInternalFieldValidators = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -445,7 +571,7 @@ const executeInternalFieldValidators = <
     validator(fieldValue, fieldConfig, fieldErrors);
   });
 
-  if (checkIfFieldInteractive(fieldConfig)) {
+  if (checkIfFieldIsInteractive(fieldConfig)) {
     BUILT_IN_INTERACTIVE_FIELD_VALIDATORS.forEach(validator => {
       validator(fieldValue, fieldConfig, fieldErrors);
     });
@@ -458,6 +584,7 @@ const executeInternalFieldValidators = <
  * @template Form - The form type.
  * @template FieldName - The name of the field.
  * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field being validated.
  * @param {Promise<HoneyFormFieldValidationResult>} validationResponse - The result of the promise-based validation.
  */
@@ -524,10 +651,12 @@ const sanitizeFieldValue = <
  * @template FieldName - The name of the field to validate.
  * @template FormContext - The context of the form.
  * @template FieldValue - The value of the field.
+ *
  * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
  * @param {FieldName} fieldName - The name of the field to validate.
  * @param {FieldValue | undefined} fieldValue - The value of the field.
+ *
  * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state of the validated field.
  */
 export const executeFieldValidator = <
@@ -584,9 +713,11 @@ export const executeFieldValidator = <
  * @template Form - The form type.
  * @template FieldName - The name of the field to validate.
  * @template FormContext - The context of the form.
+ *
  * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
  * @param {FieldName} fieldName - The name of the field to validate.
+ *
  * @returns {Promise<HoneyFormField<Form, FieldName, FormContext>>} - The next state of the validated field.
  */
 export const executeFieldValidatorAsync = async <
@@ -603,7 +734,7 @@ export const executeFieldValidatorAsync = async <
   const fieldErrors: HoneyFormFieldError[] = [];
 
   const filteredValue =
-    checkIfFieldInteractive(formField.config) && formField.config.filter
+    checkIfFieldIsInteractive(formField.config) && formField.config.filter
       ? formField.config.filter(formField.rawValue, { formContext })
       : formField.rawValue;
 
@@ -654,6 +785,7 @@ export const executeFieldValidatorAsync = async <
  * @template Form - The form type.
  * @template FieldName - The name of the field.
  * @template FormContext - The context of the form.
+ *
  * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
  * @param {FieldName} fieldName - The name of the current field.
@@ -683,6 +815,7 @@ const checkSkippableFields = <
  *
  * @template Form - The form type.
  * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
  */
 export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
@@ -698,6 +831,7 @@ export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
  *
  * @template Form - The form type.
  * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
  * @param {keyof Form} fieldName - The name of the field triggering the clearing.
  * @param {keyof Form | null} initiatorFieldName - The name of the field that initiated the clearing (optional).
@@ -741,6 +875,7 @@ const clearDependentFields = <
  *
  * @template Form - The form type.
  * @template FieldName - The name of the field to trigger validations for.
+ *
  * @param {FormContext} formContext - The context object for the form.
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields after a change.
  * @param {FieldName} fieldName - The name of the field triggering validations.
@@ -767,7 +902,7 @@ const triggerScheduledFieldsValidations = <
       // Skip validation if the field is marked to be skipped
       if (!isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
         const filteredValue =
-          checkIfFieldInteractive(nextFormField.config) && nextFormField.config.filter
+          checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.filter
             ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
             : nextFormField.rawValue;
 
@@ -799,9 +934,11 @@ type NextFieldsStateOptions<Form extends HoneyFormBaseForm, FormContext> = {
  * @template FieldName - The name of the field that changed.
  * @template FieldValue - The type of the field's value.
  * @template FormContext - The context type for the form.
+ *
  * @param {FieldName} fieldName - The name of the field that changed.
  * @param {FieldValue | undefined} fieldValue - The new value of the changed field.
  * @param {NextFieldsStateOptions<Form, FormContext>} options - Options for computing the next state.
+ *
  * @returns {HoneyFormFields<Form, FormContext>} - The next state of form fields.
  */
 export const getNextFieldsState = <
@@ -817,12 +954,15 @@ export const getNextFieldsState = <
   const formField = formFields[fieldName];
 
   const nextFormFields = { ...formFields };
-
   let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formField;
+
+  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldPassive = checkIfFieldIsPassive(formField.config);
+  const isFieldObject = checkIfFieldIsObject(formField.config);
 
   // Apply filtering to the field value if a filter function is defined
   const filteredValue =
-    checkIfFieldInteractive(formField.config) && formField.config.filter
+    isFieldInteractive && formField.config.filter
       ? formField.config.filter(fieldValue, { formContext })
       : fieldValue;
 
@@ -835,7 +975,7 @@ export const getNextFieldsState = <
 
   // If validation is requested, clear dependent fields and execute the field validator
   const formattedValue =
-    isFormat && checkIfFieldInteractive(formField.config) && formField.config.formatter
+    isFieldInteractive && isFormat && formField.config.formatter
       ? formField.config.formatter(filteredValue, { formContext })
       : filteredValue;
 
@@ -843,10 +983,24 @@ export const getNextFieldsState = <
     ...nextFormField,
     rawValue: filteredValue,
     value: formattedValue,
-    props: {
-      ...nextFormField.props,
-      value: formattedValue,
-    },
+    props: isFieldInteractive
+      ? {
+          ...nextFormField.props,
+          value: formattedValue,
+        }
+      : undefined,
+    passiveProps: isFieldPassive
+      ? {
+          ...nextFormField.passiveProps,
+          ...(formField.config.type === 'checkbox' && { checked: fieldValue as boolean }),
+        }
+      : undefined,
+    objectProps: isFieldObject
+      ? {
+          ...nextFormField.objectProps,
+          value: formattedValue,
+        }
+      : undefined,
   };
 
   nextFormFields[fieldName] = nextFormField;

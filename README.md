@@ -51,6 +51,7 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
    - `radio`: Represents a radio input field. The `value` property will not be destructured from field properties and must be set directly in the input field's `value` attribute.
    - `file`: Represents a file input field.
    - `object`: Represents an object field, where `onChange` can directly accept any object instead of `e.target.value`.
+   - `nestedForms`: Represents the array type of field to work with nested forms.
    
    The default value for the type property is string. This property determines the validation rules and behavior for the corresponding form field.
 3. `required` - A boolean value indicating whether the form field is required or not. If set to `true`, the field must have a non-empty value for the form to be considered valid. Default is `false`.
@@ -80,7 +81,9 @@ The `useHoneyForm` hook returns an object with the following properties:
    - `cleanValue`: The processed value after filtering and formatting. If there are errors, this may be `undefined`.
    - `value`: The final, formatted value ready to be displayed to the user.
    - `errors`: An array of error messages if the field is invalid.
-   - `props`: An object with the necessary props to bind to the corresponding input element in the form.
+   - `props`: An object with the necessary props for interactive elements (inputs where a user can type any text) to bind to the corresponding input element in the form.
+   - `passiveProps`: Properties for non-interactive fields (e.g., checkbox, radio, file).
+   - `objectProps`: Properties for object fields, enabling direct handling of object values. The `onChange` handler directly accepts any object instead of `e.target.value`.
    - `config`: The original configuration object of the field.
    - `getChildFormsValues`: A function to retrieve child forms' values if the field is a parent field.
    - `setValue`: A function to set the value of the field.
