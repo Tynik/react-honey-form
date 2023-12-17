@@ -69,6 +69,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
             <>
               <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
               <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+
               <button
                 type="button"
                 data-testid={`item[${formIndex}].removeItem`}
