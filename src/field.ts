@@ -1,4 +1,4 @@
-import type { HTMLAttributes, HTMLInputTypeAttribute } from 'react';
+import type { HTMLAttributes, HTMLInputTypeAttribute, RefObject } from 'react';
 import { createRef } from 'react';
 
 import type {
@@ -9,7 +9,6 @@ import type {
   HoneyFormFieldValidationResult,
   HoneyFormFieldType,
   HoneyFormFieldValueConvertor,
-  HoneyFormInteractiveFieldProps,
   HoneyFormSetFieldValueInternal,
   HoneyFormPushFieldValue,
   HoneyFormRemoveFieldValue,
@@ -19,9 +18,13 @@ import type {
   HoneyFormAddFieldError,
   HoneyFormDefaultsRef,
   HoneyFormFieldsRef,
-  BaseFieldHTMLAttributes,
-  HoneyFormPassiveFieldProps,
+  BaseHoneyFormFieldHTMLAttributes,
   HoneyFormObjectFieldProps,
+  HoneyFormInteractiveFieldConfig,
+  HoneyFormPassiveFieldConfig,
+  HoneyFormObjectFieldConfig,
+  HoneyFormPassiveFieldProps,
+  HoneyFormInteractiveFieldProps,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -93,6 +96,219 @@ const getFieldInputMode = <Form extends HoneyFormBaseForm>(
   return fieldTypeInputModeMap[fieldConfig.type];
 };
 
+/**
+ * Gets the base HTML attributes for a form field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {FieldName} fieldName - The name of the field.
+ * @param {RefObject<HTMLElement>} formFieldRef - Reference to the form field element.
+ * @param {HoneyFormFieldConfig<Form, FieldName, FormContext>} fieldConfig - Configuration options for the field.
+ *
+ * @returns {BaseHoneyFormFieldHTMLAttributes<any>} - The base HTML attributes for the form field.
+ */
+const getBaseFieldProps = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldName: FieldName,
+  formFieldRef: RefObject<HTMLElement>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
+): BaseHoneyFormFieldHTMLAttributes<any> => {
+  return {
+    ref: formFieldRef,
+    type: FIELD_TYPE_MAP[fieldConfig.type],
+    inputMode: getFieldInputMode(fieldConfig),
+    name: fieldName.toString(),
+    // ARIA
+    'aria-required': fieldConfig.required,
+    'aria-invalid': false,
+  };
+};
+
+type InteractiveFieldPropsOptions<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
+  formFieldRef: RefObject<HTMLElement>;
+  fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+};
+
+/**
+ * Gets the interactive field properties for a form field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ *
+ * @param {FieldName} fieldName - The name of the field.
+ * @param {FieldValue} value - The current value of the field.
+ * @param {InteractiveFieldPropsOptions<Form, FieldName, FormContext>} options - Options for interactive field properties.
+ *
+ * @returns {HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue>} - The interactive field properties.
+ */
+const getInteractiveFieldProps = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName],
+>(
+  fieldName: FieldName,
+  value: FieldValue,
+  {
+    formFieldRef,
+    fieldConfig,
+    setFieldValue,
+  }: InteractiveFieldPropsOptions<Form, FieldName, FormContext>,
+): HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue> => {
+  const baseFieldProps = getBaseFieldProps(fieldName, formFieldRef, fieldConfig);
+
+  return {
+    ...baseFieldProps,
+    value,
+    //
+    onChange: e => {
+      setFieldValue(fieldName, e.target.value, {
+        isValidate: fieldConfig.mode === 'change',
+        isFormat: !fieldConfig.formatOnBlur,
+      });
+    },
+    ...((fieldConfig.mode === 'blur' || fieldConfig.formatOnBlur) && {
+      onBlur: e => {
+        if (!e.target.readOnly) {
+          setFieldValue(fieldName, e.target.value);
+        }
+      },
+    }),
+    // Additional field properties from field configuration
+    ...fieldConfig.props,
+  };
+};
+
+type PassiveFieldPropsOptions<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
+  formFieldRef: RefObject<HTMLElement>;
+  fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+};
+
+/**
+ * Gets the passive field properties for a form field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {FieldName} fieldName - The name of the field.
+ * @param {PassiveFieldPropsOptions<Form, FieldName, FormContext>} options - Options for passive field properties.
+ *
+ * @returns {HoneyFormPassiveFieldProps} - The passive field properties.
+ */
+const getPassiveFieldProps = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldName: FieldName,
+  {
+    formFieldRef,
+    fieldConfig,
+    setFieldValue,
+  }: PassiveFieldPropsOptions<Form, FieldName, FormContext>,
+): HoneyFormPassiveFieldProps => {
+  const baseFieldProps = getBaseFieldProps(fieldName, formFieldRef, fieldConfig);
+
+  return {
+    ...baseFieldProps,
+    ...(fieldConfig.type === 'checkbox' && {
+      checked: (fieldConfig.defaultValue as boolean) ?? false,
+    }),
+    //
+    onChange: e => {
+      let newFieldValue: Form[FieldName];
+
+      if (fieldConfig.type === 'checkbox') {
+        newFieldValue = e.target.checked as Form[FieldName];
+        //
+      } else if (fieldConfig.type === 'file') {
+        newFieldValue = e.target.files as Form[FieldName];
+        //
+      } else {
+        newFieldValue = e.target.value as Form[FieldName];
+      }
+
+      setFieldValue(fieldName, newFieldValue, {
+        isFormat: false,
+      });
+    },
+    // Additional field properties from field configuration
+    ...fieldConfig.props,
+  };
+};
+
+type ObjectFieldPropsOptions<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
+  formFieldRef: RefObject<HTMLElement>;
+  fieldConfig: HoneyFormObjectFieldConfig<Form, FieldName, FormContext>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+};
+
+/**
+ * Gets the object field properties for a form field.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ *
+ *  @param {FieldName} fieldName - The name of the field.
+ * @param {FieldValue} value - The current value of the field.
+ * @param {ObjectFieldPropsOptions<Form, FieldName, FormContext>} options - Options for object field properties.
+ *
+ * @returns {HoneyFormObjectFieldProps<Form, FieldName, FieldValue>} - The object field properties.
+ */
+const getObjectFieldProps = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName],
+>(
+  fieldName: FieldName,
+  value: FieldValue,
+  {
+    formFieldRef,
+    fieldConfig,
+    setFieldValue,
+  }: ObjectFieldPropsOptions<Form, FieldName, FormContext>,
+): HoneyFormObjectFieldProps<Form, FieldName, FieldValue> => {
+  const baseFieldProps = getBaseFieldProps(fieldName, formFieldRef, fieldConfig);
+
+  return {
+    ...baseFieldProps,
+    value,
+    //
+    onChange: newFieldValue => {
+      setFieldValue(fieldName, newFieldValue, {
+        isFormat: false,
+      });
+    },
+    // Additional field properties from field configuration
+    ...fieldConfig.props,
+  };
+};
+
 export const createField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -141,82 +357,28 @@ export const createField = <
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
 
-  const baseFieldProps: BaseFieldHTMLAttributes<any> = {
-    type: FIELD_TYPE_MAP[config.type],
-    inputMode: getFieldInputMode(config),
-    name: fieldName.toString(),
-    // ARIA
-    'aria-required': config.required,
-    'aria-invalid': false,
-  };
-
-  const interactiveFieldProps: HoneyFormInteractiveFieldProps<Form, FieldName> | undefined =
-    isFieldInteractive
-      ? {
-          ...baseFieldProps,
-          ref: formFieldRef,
-          value: formattedValue,
-          //
-          onChange: e => {
-            setFieldValue(fieldName, e.target.value, {
-              isValidate: config.mode === 'change',
-              isFormat: !config.formatOnBlur,
-            });
-          },
-          ...((config.mode === 'blur' || config.formatOnBlur) && {
-            onBlur: e => {
-              if (!e.target.readOnly) {
-                setFieldValue(fieldName, e.target.value);
-              }
-            },
-          }),
-          // Additional field properties from field configuration
-          ...config.props,
-        }
-      : undefined;
-
-  const passiveFieldProps: HoneyFormPassiveFieldProps | undefined = isFieldPassive
-    ? {
-        ...baseFieldProps,
-        ref: formFieldRef,
-        ...(config.type === 'checkbox' && { checked: (config.defaultValue as boolean) ?? false }),
-        //
-        onChange: e => {
-          let newFieldValue: Form[FieldName];
-
-          if (config.type === 'checkbox') {
-            newFieldValue = e.target.checked as Form[FieldName];
-            //
-          } else if (config.type === 'file') {
-            newFieldValue = e.target.files as Form[FieldName];
-            //
-          } else {
-            newFieldValue = e.target.value as Form[FieldName];
-          }
-
-          setFieldValue(fieldName, newFieldValue, {
-            isFormat: false,
-          });
-        },
-        // Additional field properties from field configuration
-        ...config.props,
-      }
+  const interactiveFieldProps = isFieldInteractive
+    ? getInteractiveFieldProps(fieldName, formattedValue, {
+        formFieldRef,
+        fieldConfig: config,
+        setFieldValue,
+      })
     : undefined;
 
-  const objectFieldProps: HoneyFormObjectFieldProps<Form, FieldName> | undefined = isFieldObject
-    ? {
-        ...baseFieldProps,
-        ref: formFieldRef,
-        value: formattedValue,
-        //
-        onChange: newFieldValue => {
-          setFieldValue(fieldName, newFieldValue, {
-            isFormat: false,
-          });
-        },
-        // Additional field properties from field configuration
-        ...config.props,
-      }
+  const passiveFieldProps = isFieldPassive
+    ? getPassiveFieldProps(fieldName, {
+        formFieldRef,
+        fieldConfig: config,
+        setFieldValue,
+      })
+    : undefined;
+
+  const objectFieldProps = isFieldObject
+    ? getObjectFieldProps(fieldName, formattedValue, {
+        formFieldRef,
+        fieldConfig: config,
+        setFieldValue,
+      })
     : undefined;
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {

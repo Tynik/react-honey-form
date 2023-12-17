@@ -504,6 +504,17 @@ export type HoneyFormInteractiveFieldConfig<
      */
     type: HoneyFormInteractiveFieldType;
     /**
+     * In depends on mode, the validation process is changed.
+     *
+     * @example
+     * - If `change` mode is set, each typed character triggers the validation process.
+     * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
+     *  but the re-validate the new field value even validation field mode is `blur` if there is any error.
+     *
+     * @default change
+     */
+    mode?: HoneyFormFieldMode;
+    /**
      * The minimum allowed value for numbers or minimum length for strings.
      *
      * @default undefined
@@ -533,17 +544,6 @@ export type HoneyFormInteractiveFieldConfig<
      * @default 2
      */
     maxFraction?: number;
-    /**
-     * In depends on mode, the validation process is changed.
-     *
-     * @example
-     * - If `change` mode is set, each typed character triggers the validation process.
-     * - If `blur` mode is set, the validation will be triggered when focus leaves the input firstly,
-     *  but the re-validate the new field value even validation field mode is `blur` if there is any error.
-     *
-     * @default change
-     */
-    mode?: HoneyFormFieldMode;
     /**
      * Custom validation function.
      */
@@ -756,10 +756,12 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
-export type BaseFieldHTMLAttributes<T> = Pick<
+export type BaseHoneyFormFieldHTMLAttributes<T> = Pick<
   InputHTMLAttributes<T>,
   'type' | 'name' | 'inputMode' | 'aria-required' | 'aria-invalid'
->;
+> & {
+  ref: RefObject<T>;
+};
 
 /**
  * Represents the props for a form field component.
@@ -778,16 +780,15 @@ export type BaseFieldHTMLAttributes<T> = Pick<
  * When the `onBlur` event is triggered, and the field's mode is set to 'blur', the validation process
  *  will not be run if the field has the `readonly` property set to `true`.
  *
- * @template BaseFieldHTMLAttributes - Base HTML attributes for a form field.
+ * @template BaseHoneyFormFieldHTMLAttributes - Base HTML attributes for a form field.
  */
 export type HoneyFormInteractiveFieldProps<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  BaseFieldHTMLAttributes<any> &
+  BaseHoneyFormFieldHTMLAttributes<any> &
     Pick<InputHTMLAttributes<any>, 'onChange' | 'onBlur'> & {
-      ref: RefObject<any>;
       value: FieldValue | undefined;
     }
 >;
@@ -798,13 +799,10 @@ export type HoneyFormInteractiveFieldProps<
  * @remarks
  * These props include the base HTML attributes, checked state, and `onChange` handler.
  *
- * @template BaseFieldHTMLAttributes - Base HTML attributes for a form field.
+ * @template BaseHoneyFormFieldHTMLAttributes - Base HTML attributes for a form field.
  */
 export type HoneyFormPassiveFieldProps = Readonly<
-  BaseFieldHTMLAttributes<any> &
-    Pick<InputHTMLAttributes<any>, 'checked' | 'onChange'> & {
-      ref: RefObject<any>;
-    }
+  BaseHoneyFormFieldHTMLAttributes<any> & Pick<InputHTMLAttributes<any>, 'checked' | 'onChange'>
 >;
 
 /**
@@ -822,8 +820,7 @@ export type HoneyFormObjectFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  BaseFieldHTMLAttributes<any> & {
-    ref: RefObject<any>;
+  BaseHoneyFormFieldHTMLAttributes<any> & {
     value: FieldValue | undefined;
     onChange: (value: FieldValue | undefined) => void;
   }
