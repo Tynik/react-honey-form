@@ -179,7 +179,7 @@ export const createField = <
     ? {
         ...baseFieldProps,
         ref: formFieldRef,
-        ...(config.type === 'checkbox' && { checked: config.defaultValue as boolean }),
+        ...(config.type === 'checkbox' && { checked: (config.defaultValue as boolean) ?? false }),
         //
         onChange: e => {
           let newFieldValue: Form[FieldName];

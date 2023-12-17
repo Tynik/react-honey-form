@@ -7,7 +7,7 @@ import { useHoneyForm } from '../use-honey-form';
 import { useChildHoneyForm } from '../use-child-honey-form';
 
 describe('Hook [use-honey-form]: General', () => {
-  it('a form should be dirty after setting a new field value', () => {
+  it('should be dirty after setting a new field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -28,7 +28,7 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.isFormDirty).toBeTruthy();
   });
 
-  it('a form should not be dirty when successfully submitted', async () => {
+  it('should not mark the form as dirty when successfully submitted', async () => {
     const { result } = renderHook(() =>
       useHoneyForm({
         fields: {
@@ -51,7 +51,7 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.isFormDirty).toBeFalsy();
   });
 
-  it('clear manually added form fields errors', () => {
+  it('should clear manually added form fields errors', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; age: number }>({
         fields: {
@@ -113,7 +113,7 @@ describe('Hook [use-honey-form]: General', () => {
     expect(renderers).toBe(2);
   });
 
-  it('call `onChange` with form data when any field value is changed', async () => {
+  it('should call `onChange` with form data when any field value is changed', async () => {
     const onChange = jest.fn();
 
     const { result } = renderHook(() =>
@@ -383,7 +383,7 @@ describe('Hook [use-honey-form]: Default values', () => {
     });
   });
 
-  it('set default fields values using form config', () => {
+  it('should set default fields values using form config', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -404,7 +404,7 @@ describe('Hook [use-honey-form]: Default values', () => {
     expect(result.current.formFields.name.props.value).toBe('banana');
   });
 
-  it('set default field values via `Promise` function', async () => {
+  it('should set default field values via `Promise` function', async () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -441,7 +441,7 @@ describe('Hook [use-honey-form]: Default values', () => {
 });
 
 describe('Hook [use-honey-form]: Fields', () => {
-  it('set a new value via `onChange` function', () => {
+  it('should set a new value via the `onChange` function', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -461,7 +461,7 @@ describe('Hook [use-honey-form]: Fields', () => {
     expect(result.current.formFields.name.value).toBe('Peter');
   });
 
-  it('use custom boolean field validator', () => {
+  it('should use custom boolean field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -493,7 +493,7 @@ describe('Hook [use-honey-form]: Fields', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  it('focus form field', () => {
+  it('should focus the form field', () => {
     const Comp = () => {
       const { formFields } = useHoneyForm<{ name: string }>({
         fields: {
@@ -540,7 +540,7 @@ describe('Hook [use-honey-form]: Fields', () => {
 });
 
 describe('Hook [use-honey-form]: String field type', () => {
-  it('string field type should only fill interactive field props', () => {
+  it('should only fill interactive field props for string field type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -558,7 +558,7 @@ describe('Hook [use-honey-form]: String field type', () => {
 });
 
 describe('Hook [use-honey-form]: Numeric field type', () => {
-  it('numeric field type should only fill interactive field props', () => {
+  it('should only fill interactive field props for numeric field type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ phone: string }>({
         fields: {
@@ -638,7 +638,7 @@ describe('Hook [use-honey-form]: Numeric field type', () => {
 });
 
 describe('Hook [use-honey-form]: Number field type', () => {
-  it('number field type should only fill interactive field props', () => {
+  it('should only fill interactive field props for number field type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: string }>({
         fields: {
@@ -733,7 +733,7 @@ describe('Hook [use-honey-form]: Number field type', () => {
 });
 
 describe('Hook [use-honey-form]: Email field type', () => {
-  it('email field type should only fill interactive field props', () => {
+  it('should only fill interactive field props for email field type', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ email: string }>({
         fields: {
@@ -872,6 +872,139 @@ describe('Hook [use-honey-form]: Email field type', () => {
     });
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
+  });
+});
+
+describe('Hook [use-honey-form]: Checkbox field type', () => {
+  it('should only fill passive field props for checkbox field type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ isAcceptTerms: boolean }>({
+        fields: {
+          isAcceptTerms: {
+            type: 'checkbox',
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formFields.isAcceptTerms.props).toBeUndefined();
+    expect(result.current.formFields.isAcceptTerms.passiveProps).toBeDefined();
+    expect(result.current.formFields.isAcceptTerms.objectProps).toBeUndefined();
+  });
+
+  it('should have `checked` attribute in `passiveProps` for checkbox field type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ isAcceptTerms: boolean }>({
+        fields: {
+          isAcceptTerms: {
+            type: 'checkbox',
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formFields.isAcceptTerms.passiveProps.checked).toBeDefined();
+  });
+});
+
+describe('Hook [use-honey-form]: Radio field type', () => {
+  it('should only fill passive field props for radio field type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ mode: string }>({
+        fields: {
+          mode: {
+            type: 'radio',
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formFields.mode.props).toBeUndefined();
+    expect(result.current.formFields.mode.passiveProps).toBeDefined();
+    expect(result.current.formFields.mode.objectProps).toBeUndefined();
+  });
+
+  it('should not have `checked` attribute in `passiveProps` for radio field type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ mode: string }>({
+        fields: {
+          mode: {
+            type: 'radio',
+          },
+        },
+      }),
+    );
+
+    expect('checked' in result.current.formFields.mode.passiveProps).toBeFalsy();
+  });
+});
+
+describe('Hook [use-honey-form]: Object field type', () => {
+  type Category = {
+    id: number;
+    name: string;
+  };
+
+  it('should only fill object field props for object field type', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ category: Category }>({
+        fields: {
+          category: {
+            type: 'object',
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formFields.category.props).toBeUndefined();
+    expect(result.current.formFields.category.passiveProps).toBeUndefined();
+    expect(result.current.formFields.category.objectProps).toBeDefined();
+  });
+
+  it('should set a new value via the `onChange` function using `objectProps`', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ category: Category }>({
+        fields: {
+          category: {
+            type: 'object',
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.formFields.category.objectProps.onChange({
+        id: 0,
+        name: 'Fruits',
+      });
+    });
+
+    expect(result.current.formFields.category.value).toStrictEqual({
+      id: 0,
+      name: 'Fruits',
+    });
+  });
+});
+
+describe('Hook [use-honey-form]: Nested forms field type', () => {
+  it('should not fill any field props for nested forms field type', () => {
+    type Item = {
+      name: string;
+    };
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ items: Item[] }>({
+        fields: {
+          items: {
+            type: 'nestedForms',
+          },
+        },
+      }),
+    );
+
+    expect(result.current.formFields.items.props).toBeUndefined();
+    expect(result.current.formFields.items.passiveProps).toBeUndefined();
+    expect(result.current.formFields.items.objectProps).toBeUndefined();
   });
 });
 
