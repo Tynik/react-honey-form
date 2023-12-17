@@ -829,7 +829,7 @@ export type HoneyFormObjectFieldProps<
 export type HoneyFormFieldsRef<
   Form extends ChildHoneyFormBaseForm,
   FormContext,
-> = MutableRefObject<HoneyFormFields<Form, FormContext> | null>;
+> = RefObject<HoneyFormFields<Form, FormContext> | null>;
 
 /**
  * Contextual information for child forms within a parent form.
@@ -949,6 +949,25 @@ type BaseHoneyFormField<
   } & T
 >;
 
+export type HoneyFormFieldProps<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> = {
+  /**
+   * An object with the necessary props to bind to the corresponding input element in the form.
+   */
+  props: HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue> | undefined;
+  /**
+   * Properties for non-interactive fields (e.g., checkbox, radio, file).
+   */
+  passiveProps: HoneyFormPassiveFieldProps | undefined;
+  /**
+   * Properties for object fields, enabling direct handling of object values.
+   */
+  objectProps: HoneyFormObjectFieldProps<Form, FieldName, FieldValue> | undefined;
+};
+
 /**
  * Represents the state and functionality of a form field.
  *
@@ -963,19 +982,7 @@ export type HoneyFormField<
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = BaseHoneyFormField<
-  {
-    /**
-     * An object with the necessary props to bind to the corresponding input element in the form.
-     */
-    props: HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue> | undefined;
-    /**
-     * Properties for non-interactive fields (e.g., checkbox, radio, file).
-     */
-    passiveProps: HoneyFormPassiveFieldProps | undefined;
-    /**
-     * Properties for object fields, enabling direct handling of object values.
-     */
-    objectProps: HoneyFormObjectFieldProps<Form, FieldName, FieldValue> | undefined;
+  HoneyFormFieldProps<Form, FieldName, FieldValue> & {
     /**
      * A function to add a new value to a parent field that can have child forms.
      */

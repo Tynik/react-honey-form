@@ -25,6 +25,7 @@ import type {
   HoneyFormObjectFieldConfig,
   HoneyFormPassiveFieldProps,
   HoneyFormInteractiveFieldProps,
+  HoneyFormFieldProps,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -148,7 +149,7 @@ type InteractiveFieldPropsOptions<
  * @template FieldValue - Type representing the value of the field.
  *
  * @param {FieldName} fieldName - The name of the field.
- * @param {FieldValue} value - The current value of the field.
+ * @param {FieldValue} fieldValue - The current value of the field.
  * @param {InteractiveFieldPropsOptions<Form, FieldName, FormContext>} options - Options for interactive field properties.
  *
  * @returns {HoneyFormInteractiveFieldProps<Form, FieldName, FieldValue>} - The interactive field properties.
@@ -160,7 +161,7 @@ const getInteractiveFieldProps = <
   FieldValue extends Form[FieldName],
 >(
   fieldName: FieldName,
-  value: FieldValue,
+  fieldValue: FieldValue,
   {
     formFieldRef,
     fieldConfig,
@@ -171,7 +172,7 @@ const getInteractiveFieldProps = <
 
   return {
     ...baseFieldProps,
-    value,
+    value: fieldValue,
     //
     onChange: e => {
       setFieldValue(fieldName, e.target.value, {
@@ -274,7 +275,7 @@ type ObjectFieldPropsOptions<
  * @template FieldValue - Type representing the value of the field.
  *
  *  @param {FieldName} fieldName - The name of the field.
- * @param {FieldValue} value - The current value of the field.
+ * @param {FieldValue} fieldValue - The current value of the field.
  * @param {ObjectFieldPropsOptions<Form, FieldName, FormContext>} options - Options for object field properties.
  *
  * @returns {HoneyFormObjectFieldProps<Form, FieldName, FieldValue>} - The object field properties.
@@ -286,7 +287,7 @@ const getObjectFieldProps = <
   FieldValue extends Form[FieldName],
 >(
   fieldName: FieldName,
-  value: FieldValue,
+  fieldValue: FieldValue,
   {
     formFieldRef,
     fieldConfig,
@@ -297,7 +298,7 @@ const getObjectFieldProps = <
 
   return {
     ...baseFieldProps,
-    value,
+    value: fieldValue,
     //
     onChange: newFieldValue => {
       setFieldValue(fieldName, newFieldValue, {
@@ -306,6 +307,86 @@ const getObjectFieldProps = <
     },
     // Additional field properties from field configuration
     ...fieldConfig.props,
+  };
+};
+
+type FieldPropsOptions<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
+  formFieldRef: RefObject<HTMLElement>;
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+};
+
+/**
+ * Gets the properties for a form field based on its type.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ * @template FieldValue - Type representing the value of the field.
+ *
+ * @param {FieldName} fieldName - The name of the field.
+ * @param {FieldValue} fieldValue - The current value of the field.
+ * @param {FieldPropsOptions<Form, FieldName, FormContext>} options - Options for field properties.
+ *
+ * @returns {HoneyFormFieldProps<Form, FieldName, FieldValue>} - The field properties.
+ */
+const getFieldProps = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName],
+>(
+  fieldName: FieldName,
+  fieldValue: FieldValue,
+  { formFieldRef, fieldConfig, setFieldValue }: FieldPropsOptions<Form, FieldName, FormContext>,
+): HoneyFormFieldProps<Form, FieldName, FieldValue> => {
+  const isFieldInteractive = checkIfFieldIsInteractive(fieldConfig);
+  if (isFieldInteractive) {
+    return {
+      passiveProps: undefined,
+      objectProps: undefined,
+      props: getInteractiveFieldProps(fieldName, fieldValue, {
+        formFieldRef,
+        fieldConfig,
+        setFieldValue,
+      }),
+    };
+  }
+
+  const isFieldPassive = checkIfFieldIsPassive(fieldConfig);
+  if (isFieldPassive) {
+    return {
+      props: undefined,
+      objectProps: undefined,
+      passiveProps: getPassiveFieldProps(fieldName, {
+        formFieldRef,
+        fieldConfig,
+        setFieldValue,
+      }),
+    };
+  }
+
+  const isFieldObject = checkIfFieldIsObject(fieldConfig);
+  if (isFieldObject) {
+    return {
+      props: undefined,
+      passiveProps: undefined,
+      objectProps: getObjectFieldProps(fieldName, fieldValue, {
+        formFieldRef,
+        fieldConfig,
+        setFieldValue,
+      }),
+    };
+  }
+
+  return {
+    props: undefined,
+    passiveProps: undefined,
+    objectProps: undefined,
   };
 };
 
@@ -344,8 +425,6 @@ export const createField = <
   formDefaultValuesRef.current[fieldName] = config.defaultValue;
 
   const isFieldInteractive = checkIfFieldIsInteractive(config);
-  const isFieldPassive = checkIfFieldIsPassive(config);
-  const isFieldObject = checkIfFieldIsObject(config);
 
   const filteredValue =
     isFieldInteractive && config.filter
@@ -357,46 +436,26 @@ export const createField = <
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
 
-  const interactiveFieldProps = isFieldInteractive
-    ? getInteractiveFieldProps(fieldName, formattedValue, {
-        formFieldRef,
-        fieldConfig: config,
-        setFieldValue,
-      })
-    : undefined;
-
-  const passiveFieldProps = isFieldPassive
-    ? getPassiveFieldProps(fieldName, {
-        formFieldRef,
-        fieldConfig: config,
-        setFieldValue,
-      })
-    : undefined;
-
-  const objectFieldProps = isFieldObject
-    ? getObjectFieldProps(fieldName, formattedValue, {
-        formFieldRef,
-        fieldConfig: config,
-        setFieldValue,
-      })
-    : undefined;
-
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {
     formFieldsRef,
     isValidationScheduled: false,
     childForms: undefined,
   };
 
+  const fieldProps = getFieldProps(fieldName, formattedValue, {
+    formFieldRef,
+    fieldConfig: config,
+    setFieldValue,
+  });
+
   const newFormField: HoneyFormField<Form, FieldName, FormContext> = {
+    ...fieldProps,
     config,
     errors: [],
     defaultValue: config.defaultValue,
     rawValue: filteredValue,
     cleanValue: filteredValue,
     value: formattedValue,
-    props: interactiveFieldProps,
-    passiveProps: passiveFieldProps,
-    objectProps: objectFieldProps,
     // TODO: try to fix the next error
     // @ts-expect-error
     getChildFormsValues: () => {
