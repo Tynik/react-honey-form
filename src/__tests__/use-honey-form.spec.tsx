@@ -203,7 +203,7 @@ describe('Hook [use-honey-form]: General', () => {
     );
 
     act(() => {
-      result.current.setFormValues({ name: 'apple' }, { clearAll: true });
+      result.current.setFormValues({ name: 'apple' }, { isClearAll: true });
     });
 
     expect(result.current.formFields.name.value).toBe('apple');
@@ -213,6 +213,31 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.formFields.kind.value).toBe(undefined);
     expect(result.current.formFields.kind.cleanValue).toBe(undefined);
     expect(result.current.formFields.kind.props.value).toBe(undefined);
+  });
+
+  it('should synchronize form values with external values', () => {
+    type Form = { name: string };
+
+    let externalFormValues: Partial<Form> = {};
+
+    const { result, rerender } = renderHook(() =>
+      useHoneyForm<Form>({
+        fields: {
+          name: {
+            type: 'string',
+            defaultValue: 'banana',
+          },
+        },
+        values: externalFormValues,
+      }),
+    );
+
+    expect(result.current.formFields.name.value).toBe('banana');
+
+    externalFormValues = { name: 'apple' };
+    rerender();
+
+    expect(result.current.formFields.name.value).toBe('apple');
   });
 });
 

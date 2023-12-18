@@ -42,9 +42,25 @@ import {
   warningMessage,
 } from './helpers';
 
+const DEFAULTS = {};
+
+/**
+ * The hook is designed to trigger a callback function whenever the provided data changes.
+ */
+const useOnChange = <Data>(data: Data, fn: (data: Data) => void) => {
+  const dataRef = useRef(data);
+
+  useEffect(() => {
+    if (dataRef.current !== data) {
+      fn(data);
+    }
+  }, [data]);
+};
+
 export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   initialFormFieldsStateResolver,
-  defaults = {},
+  defaults = DEFAULTS,
+  values: externalValues,
   resetAfterSubmit = false,
   context: formContext,
   onSubmit,
@@ -59,8 +75,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
-  const formDefaultValuesRef = useRef<HoneyFormDefaultValues<Form>>(
-    typeof defaults === 'function' ? {} : defaults,
+  const formDefaultsRef = useRef<HoneyFormDefaultValues<Form>>(
+    typeof defaults === 'function' ? {} : { ...defaults },
   );
   const formFieldsRef = useRef<HoneyFormFields<Form, FormContext> | null>(null);
   const isFormDirtyRef = useRef(false);
@@ -114,17 +130,17 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    *
    * @param values - The values to set for each form field.
    * @param options - Additional options for setting form values.
-   *   @param clearAll - If true, clears all existing form field values before setting new values.
+   *   @param isClearAll - If true, clears all existing form field values before setting new values.
    *   @param isSkipOnChange - If true, skips the debounced `onChange` handling.
    */
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
-    (values, { clearAll = false, isSkipOnChange = false } = {}) => {
+    (values, { isClearAll = false, isSkipOnChange = false } = {}) => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setFormFields(formFields =>
         debouncedOnChangeHandler(() => {
           const nextFormFields = { ...formFields };
 
-          if (clearAll) {
+          if (isClearAll) {
             clearAllFields(nextFormFields);
           }
 
@@ -319,7 +335,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           [fieldName]: createField(fieldName, config, {
             formContext,
             formFieldsRef,
-            formDefaultValuesRef,
+            formDefaultsRef,
             setFieldValue,
             clearFieldErrors,
             pushFieldValue,
@@ -334,7 +350,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
   const removeFormField = useCallback<HoneyFormRemoveFormField<Form>>(fieldName => {
     // Clearing the default field value
-    delete formDefaultValuesRef.current[fieldName];
+    delete formDefaultsRef.current[fieldName];
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
@@ -442,7 +458,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     initialFormFieldsStateResolver({
       formContext,
       formFieldsRef,
-      formDefaultValuesRef,
+      formDefaultsRef,
       setFieldValue,
       clearFieldErrors,
       pushFieldValue,
@@ -517,13 +533,16 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   //
   formFieldsRef.current = formFields;
 
+  // Detect changes in `externalValues` and update the form values accordingly
+  useOnChange(externalValues, values => setFormValues(values, { isSkipOnChange: true }));
+
   useEffect(() => {
     if (typeof defaults === 'function') {
       setIsFormDefaultsFetching(true);
 
       defaults()
         .then(defaultValues => {
-          formDefaultValuesRef.current = defaultValues;
+          formDefaultsRef.current = defaultValues;
 
           setFormValues(defaultValues);
         })
@@ -555,7 +574,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     isFormValid: isFormValidRef.current,
     isFormSubmitting: formState.isSubmitting,
     isFormSubmitted: isFormSubmittedRef.current,
-    formDefaultValues: formDefaultValuesRef.current,
+    formDefaultValues: formDefaultsRef.current,
     // functions
     setFormValues,
     setFormErrors,

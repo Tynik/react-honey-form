@@ -97,7 +97,7 @@ export type HoneyFormFieldError = {
 };
 
 /**
- * Result types that a field validator can return:
+ * Represents the possible result types that a field validator can return:
  * - `true`: Indicates a successful validation.
  * - `string`: Represents a custom error message.
  * - `ReactElement`: Denotes a custom error component (e.g., a translated message).
@@ -211,13 +211,13 @@ export type HoneyFormInteractiveFieldValidatorContext<
  * - An array of `HoneyFormFieldError` objects (for multiple errors).
  * - A `Promise` that resolves to any of the above responses.
  *
- * @returns `true` if the value is valid, an error message if the value is invalid,
- *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
- *
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
+ *
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
  */
 export type HoneyFormInteractiveFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -257,13 +257,13 @@ export type HoneyFormPassiveFieldValidatorContext<
  * - An array of `HoneyFormFieldError` objects (for multiple errors).
  * - A `Promise` that resolves to any of the above responses.
  *
- * @returns `true` if the value is valid, an error message if the value is invalid,
- *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
- *
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
+ *
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
  */
 export type HoneyFormPassiveFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -364,13 +364,13 @@ export type HoneyFormNestedFormsFieldValidatorContext<
 /**
  * Validator function for a nested forms field within a larger form.
  *
- * @returns `true` if the value is valid, an error message if the value is invalid,
- *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
- *
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
+ *
+ * @returns `true` if the value is valid, an error message if the value is invalid,
+ *  an array of `HoneyFormFieldError` objects, or a `Promise` that resolves to any of these.
  */
 export type HoneyFormNestedFormsFieldValidator<
   Form extends HoneyFormBaseForm,
@@ -388,29 +388,83 @@ export type HoneyFormNestedFormsFieldValidator<
   context: HoneyFormNestedFormsFieldValidatorContext<Form, FieldName, FormContext, FieldValue>,
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
+/**
+ * Context object for the filter function of a form field.
+ *
+ * @template FormContext - Type representing the contextual information for the form.
+ *
+ * @property formContext - The contextual information for the form.
+ */
 type HoneyFormFieldFilterContext<FormContext> = {
   formContext: FormContext;
 };
 
+/**
+ * Function type representing a filter for form field values.
+ *
+ * @template FieldValue - Type representing the value of the field.
+ * @template FormContext - Type representing the contextual information for the form.
+ *
+ * @param value - The value to be filtered.
+ * @param context - The context object containing information relevant to the form.
+ *
+ * @returns The filtered value, possibly transformed based on the provided context.
+ */
 export type HoneyFormFieldFilter<FieldValue, FormContext = undefined> = (
   value: FieldValue | undefined,
   context: HoneyFormFieldFilterContext<FormContext>,
 ) => FieldValue | undefined;
 
+/**
+ * Contextual information provided to a form field formatter function.
+ *
+ * @template FormContext - Type representing the contextual information for the form.
+ *
+ * @property formContext - The context object containing information relevant to the form.
+ */
 type HoneyFormFieldFormatterContext<FormContext> = {
   formContext: FormContext;
 };
 
+/**
+ * Represents a formatter function for formatting the value of a form field.
+ *
+ * @template FieldValue - Type representing the value of the form field.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param value - The current value of the form field.
+ * @param context - The context object providing additional information for formatting.
+ *
+ * @returns The formatted value of the form field or undefined if no formatting is applied.
+ */
 export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
   value: FieldValue | undefined,
   context: HoneyFormFieldFormatterContext<FormContext>,
 ) => FieldValue | undefined;
 
+/**
+ * Context object for the `HoneyFormSkipField` function.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {FormContext} formContext - The contextual information for the form.
+ * @param {HoneyFormFields<Form, FormContext>} formFields - The fields of the form.
+ */
 type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;
   formFields: HoneyFormFields<Form, FormContext>;
 };
 
+/**
+ * Function type for determining whether to skip a field based on the form's context.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param context - The context object containing form context and form fields.
+ * @returns `true` if the field should be skipped, `false` otherwise.
+ */
 type HoneyFormSkipField<Form extends HoneyFormBaseForm, FormContext> = (
   context: HoneyFormSkipFieldContext<Form, FormContext>,
 ) => boolean;
@@ -808,12 +862,12 @@ export type HoneyFormPassiveFieldProps = Readonly<
 /**
  * Represents the props for an object form field.
  *
- * @remarks
- * These props include the base HTML attributes, a ref, the field value, and the `onChange` handler.
- *
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FieldValue - Type representing the value of the field.
+ *
+ * @remarks
+ * These props include the base HTML attributes, a ref, the field value, and the `onChange` handler.
  */
 export type HoneyFormObjectFieldProps<
   Form extends HoneyFormBaseForm,
@@ -1108,7 +1162,7 @@ export type HoneyFormOnChange<Form extends HoneyFormBaseForm> = (
 export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
-  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
+  formDefaultsRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
   pushFieldValue: HoneyFormPushFieldValue<Form>;
@@ -1125,6 +1179,10 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
    * Can be a Promise function to asynchronously retrieve defaults.
    */
   defaults?: HoneyFormDefaults<Form>;
+  /**
+   *
+   */
+  values?: Partial<Form>;
   /**
    * Determines whether the form should be reset to its initial state after a successful submit.
    * The form will be reset only when the `onSubmit` callback does not return any errors.
@@ -1201,19 +1259,27 @@ export type ChildHoneyFormOptions<
   FormContext
 >;
 
+/**
+ * Options allowing customization of form values setting behavior.
+ */
 type UseHoneyFormSetFormValuesOptions = {
   /**
-   * Clear all field values before setting new values.
+   * If `true`, clear all field values before setting new values.
    */
-  clearAll?: boolean;
+  isClearAll?: boolean;
   /**
-   * If true, skips the debounced `onChange` handling.
+   * If `true`, skips the debounced `onChange` handling.
    *
    * @default false
    */
   isSkipOnChange?: boolean;
 };
 
+/**
+ * Type representing a function to set values, allowing partial updates and options customization.
+ *
+ * @template Form - Type representing the entire form.
+ */
 export type HoneyFormSetFormValues<Form extends HoneyFormBaseForm> = (
   values: Partial<Form>,
   options?: UseHoneyFormSetFormValuesOptions,

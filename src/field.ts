@@ -382,7 +382,7 @@ const getFieldProps = <
 type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
-  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
+  formDefaultsRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
   pushFieldValue: HoneyFormPushFieldValue<Form>;
@@ -400,7 +400,7 @@ export const createField = <
   {
     formContext,
     formFieldsRef,
-    formDefaultValuesRef,
+    formDefaultsRef,
     setFieldValue,
     clearFieldErrors,
     pushFieldValue,
@@ -422,7 +422,7 @@ export const createField = <
   const formFieldRef = createRef<HTMLElement>();
 
   // Set initial field value as the default value
-  formDefaultValuesRef.current[fieldName] = config.defaultValue;
+  formDefaultsRef.current[fieldName] = config.defaultValue;
 
   const isFieldInteractive = checkIfFieldIsInteractive(config);
 
@@ -476,7 +476,7 @@ export const createField = <
     setValue: (value, options) => setFieldValue(fieldName, value, options),
     pushValue: value => pushFieldValue(fieldName, value),
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
-    resetValue: () => setFieldValue(fieldName, formDefaultValuesRef.current[fieldName]),
+    resetValue: () => setFieldValue(fieldName, formDefaultsRef.current[fieldName]),
     //
     addError: error => addFormFieldError(fieldName, error),
     clearErrors: () => clearFieldErrors(fieldName),
@@ -517,28 +517,34 @@ export const getNextErrorsFreeField = <
   const isFieldPassive = checkIfFieldIsPassive(formField.config);
   const isFieldObject = checkIfFieldIsObject(formField.config);
 
+  const props = isFieldInteractive
+    ? {
+        ...formField.props,
+        'aria-invalid': false,
+      }
+    : undefined;
+
+  const passiveProps = isFieldPassive
+    ? {
+        ...formField.passiveProps,
+        'aria-invalid': false,
+      }
+    : undefined;
+
+  const objectProps = isFieldObject
+    ? {
+        ...formField.objectProps,
+        'aria-invalid': false,
+      }
+    : undefined;
+
   return {
     ...formField,
+    props,
+    passiveProps,
+    objectProps,
     cleanValue: undefined,
     errors: [],
-    props: isFieldInteractive
-      ? {
-          ...formField.props,
-          'aria-invalid': false,
-        }
-      : undefined,
-    passiveProps: isFieldPassive
-      ? {
-          ...formField.passiveProps,
-          'aria-invalid': false,
-        }
-      : undefined,
-    objectProps: isFieldObject
-      ? {
-          ...formField.objectProps,
-          'aria-invalid': false,
-        }
-      : undefined,
   };
 };
 
@@ -619,22 +625,26 @@ export const getNextClearedField = <
 
   const errorsFreeField = getNextErrorsFreeField(formField);
 
+  const props = isFieldInteractive
+    ? {
+        ...errorsFreeField.props,
+        value: undefined,
+      }
+    : undefined;
+
+  const objectProps = isFieldObject
+    ? {
+        ...errorsFreeField.objectProps,
+        value: undefined,
+      }
+    : undefined;
+
   return {
     ...errorsFreeField,
+    props,
+    objectProps,
     value: undefined,
     rawValue: undefined,
-    props: isFieldInteractive
-      ? {
-          ...errorsFreeField.props,
-          value: undefined,
-        }
-      : undefined,
-    objectProps: isFieldObject
-      ? {
-          ...errorsFreeField.objectProps,
-          value: undefined,
-        }
-      : undefined,
   };
 };
 

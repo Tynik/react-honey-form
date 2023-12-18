@@ -40,7 +40,7 @@ const createInitialFormFields = <
   parentField,
   fieldsConfigs,
   formFieldsRef,
-  formDefaultValuesRef,
+  formDefaultsRef,
   setFieldValue,
   clearFieldErrors,
   pushFieldValue,
@@ -63,14 +63,12 @@ const createInitialFormFields = <
       {
         ...fieldConfig,
         defaultValue:
-          childFormFieldValue ??
-          fieldConfig.defaultValue ??
-          formDefaultValuesRef.current[fieldName],
+          childFormFieldValue ?? fieldConfig.defaultValue ?? formDefaultsRef.current[fieldName],
       },
       {
         formContext,
         formFieldsRef,
-        formDefaultValuesRef,
+        formDefaultsRef,
         setFieldValue,
         clearFieldErrors,
         pushFieldValue,
