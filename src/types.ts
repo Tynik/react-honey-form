@@ -1206,6 +1206,12 @@ type UseHoneyFormSetFormValuesOptions = {
    * Clear all field values before setting new values.
    */
   clearAll?: boolean;
+  /**
+   * If true, skips the debounced `onChange` handling.
+   *
+   * @default false
+   */
+  isSkipOnChange?: boolean;
 };
 
 export type HoneyFormSetFormValues<Form extends HoneyFormBaseForm> = (

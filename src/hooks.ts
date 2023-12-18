@@ -72,13 +72,30 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     setFormState(prevFormState => ({ ...prevFormState, ...newFormState }));
   }, []);
 
-  const debouncedOnChangeHandler = (fn: () => HoneyFormFields<Form, FormContext>) => {
+  /**
+   * Handles form field changes with optional debouncing.
+   *
+   * @param fn - A function that returns the next form fields.
+   * @param isSkipOnChange - If true, skips the debouncing mechanism and directly returns the result of the provided function.
+   *
+   * @returns The next form fields after handling the change.
+   */
+  const debouncedOnChangeHandler = (
+    fn: () => HoneyFormFields<Form, FormContext>,
+    isSkipOnChange = false,
+  ) => {
+    // If `isSkipOnChange` is `true`, skip debouncing and directly return the result of the provided function.
+    if (isSkipOnChange) {
+      return fn();
+    }
+
     if (onChangeTimeoutRef.current) {
       clearTimeout(onChangeTimeoutRef.current);
     }
 
     const nextFormFields = fn();
 
+    // If `onChange` is provided, set a timeout for debouncing and call onChange after the timeout.
     if (onChange) {
       onChangeTimeoutRef.current = window.setTimeout(() => {
         onChangeTimeoutRef.current = null;
@@ -92,8 +109,16 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     return nextFormFields;
   };
 
+  /**
+   * Updates form field values based on the provided values object.
+   *
+   * @param values - The values to set for each form field.
+   * @param options - Additional options for setting form values.
+   *   @param clearAll - If true, clears all existing form field values before setting new values.
+   *   @param isSkipOnChange - If true, skips the debounced `onChange` handling.
+   */
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
-    (values, { clearAll = false } = {}) => {
+    (values, { clearAll = false, isSkipOnChange = false } = {}) => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setFormFields(formFields =>
         debouncedOnChangeHandler(() => {
@@ -137,7 +162,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           });
 
           return nextFormFields;
-        }),
+        }, isSkipOnChange),
       );
     },
     [formContext],
