@@ -55,17 +55,6 @@ const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   number: value => (value ? Number(value) : undefined),
 };
 
-type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
-  formContext: FormContext;
-  formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
-  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
-  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
-  pushFieldValue: HoneyFormPushFieldValue<Form>;
-  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
-  addFormFieldError: HoneyFormAddFieldError<Form>;
-};
-
 /**
  * Gets the appropriate input mode for a given form field based on its configuration.
  *
@@ -390,6 +379,17 @@ const getFieldProps = <
   };
 };
 
+type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  formContext: FormContext;
+  formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
+  formDefaultValuesRef: HoneyFormDefaultsRef<Form>;
+  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  pushFieldValue: HoneyFormPushFieldValue<Form>;
+  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
+  addFormFieldError: HoneyFormAddFieldError<Form>;
+};
+
 export const createField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -568,29 +568,35 @@ export const getNextErredField = <
 
   const isFieldErred = fieldErrors.length > 0;
 
+  const props = isFieldInteractive
+    ? {
+        ...formField.props,
+        'aria-invalid': isFieldErred,
+      }
+    : undefined;
+
+  const passiveProps = isFieldPassive
+    ? {
+        ...formField.passiveProps,
+        'aria-invalid': isFieldErred,
+      }
+    : undefined;
+
+  const objectProps = isFieldObject
+    ? {
+        ...formField.objectProps,
+        'aria-invalid': isFieldErred,
+      }
+    : undefined;
+
   return {
     ...formField,
+    props,
+    passiveProps,
+    objectProps,
     errors: fieldErrors,
     // Set clean value as `undefined` if any error is present
     cleanValue: fieldErrors.length ? undefined : formField.cleanValue,
-    props: isFieldInteractive
-      ? {
-          ...formField.props,
-          'aria-invalid': isFieldErred,
-        }
-      : undefined,
-    passiveProps: isFieldPassive
-      ? {
-          ...formField.passiveProps,
-          'aria-invalid': isFieldErred,
-        }
-      : undefined,
-    objectProps: isFieldObject
-      ? {
-          ...formField.objectProps,
-          'aria-invalid': isFieldErred,
-        }
-      : undefined,
   };
 };
 

@@ -1151,6 +1151,8 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
   /**
    * The debounce time in milliseconds for the `onChange` callback.
    * This sets a delay before the callback is invoked after a field value change.
+   *
+   * @default 0
    */
   onChangeDebounce?: number;
 };

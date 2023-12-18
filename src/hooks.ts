@@ -49,7 +49,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   context: formContext,
   onSubmit,
   onChange,
-  onChangeDebounce,
+  onChangeDebounce = 0,
 }: FormOptions<Form, FormContext>) => {
   const [formState, setFormState] = useState<HoneyFormFormState>({
     isValidating: false,
@@ -72,51 +72,73 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     setFormState(prevFormState => ({ ...prevFormState, ...newFormState }));
   }, []);
 
+  const debouncedOnChangeHandler = (fn: () => HoneyFormFields<Form, FormContext>) => {
+    if (onChangeTimeoutRef.current) {
+      clearTimeout(onChangeTimeoutRef.current);
+    }
+
+    const nextFormFields = fn();
+
+    if (onChange) {
+      onChangeTimeoutRef.current = window.setTimeout(() => {
+        onChangeTimeoutRef.current = null;
+
+        onChange(getSubmitFormValues(formContext, nextFormFields), {
+          formErrors: getFormErrors(nextFormFields),
+        });
+      }, onChangeDebounce);
+    }
+
+    return nextFormFields;
+  };
+
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
     (values, { clearAll = false } = {}) => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      setFormFields(formFields => {
-        const nextFormFields = { ...formFields };
+      setFormFields(formFields =>
+        debouncedOnChangeHandler(() => {
+          const nextFormFields = { ...formFields };
 
-        if (clearAll) {
-          clearAllFields(nextFormFields);
-        }
+          if (clearAll) {
+            clearAllFields(nextFormFields);
+          }
 
-        Object.keys(values).forEach((fieldName: keyof Form) => {
-          const fieldConfig = nextFormFields[fieldName].config;
+          Object.keys(values).forEach((fieldName: keyof Form) => {
+            const fieldConfig = nextFormFields[fieldName].config;
 
-          const filteredValue =
-            checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter
-              ? fieldConfig.filter(values[fieldName], { formContext })
-              : values[fieldName];
+            const filteredValue =
+              checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter
+                ? fieldConfig.filter(values[fieldName], { formContext })
+                : values[fieldName];
 
-          let nextFormField = executeFieldValidator(
-            formContext,
-            nextFormFields,
-            fieldName,
-            filteredValue,
-          );
+            let nextFormField = executeFieldValidator(
+              formContext,
+              nextFormFields,
+              fieldName,
+              filteredValue,
+            );
 
-          const formattedValue =
-            checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.formatter
-              ? nextFormField.config.formatter(filteredValue, { formContext })
-              : filteredValue;
+            const formattedValue =
+              checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.formatter
+                ? nextFormField.config.formatter(filteredValue, { formContext })
+                : filteredValue;
 
-          nextFormField = {
-            ...nextFormField,
-            rawValue: filteredValue,
-            value: formattedValue,
-            props: {
-              ...nextFormField.props,
+            nextFormField = {
+              ...nextFormField,
+              rawValue: filteredValue,
               value: formattedValue,
-            },
-          };
+              props: {
+                ...nextFormField.props,
+                value: formattedValue,
+              },
+            };
 
-          nextFormFields[fieldName] = nextFormField;
-        });
+            nextFormFields[fieldName] = nextFormField;
+          });
 
-        return nextFormFields;
-      });
+          return nextFormFields;
+        }),
+      );
     },
     [formContext],
   );
@@ -163,49 +185,36 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     }
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(formFields => {
-      if (onChangeTimeoutRef.current) {
-        clearTimeout(onChangeTimeoutRef.current);
-      }
+    setFormFields(formFields =>
+      debouncedOnChangeHandler(() => {
+        const formField = formFields[fieldName];
 
-      const formField = formFields[fieldName];
+        const nextFormFields = getNextFieldsState(
+          fieldName,
+          // @ts-expect-error
+          isPushValue ? [...formField.value, fieldValue] : fieldValue,
+          {
+            formContext,
+            formFields,
+            isFormat,
+            // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
+            isValidate: isValidate || formField.errors.length > 0,
+          },
+        );
 
-      const nextFormFields = getNextFieldsState(
-        fieldName,
-        // @ts-expect-error
-        isPushValue ? [...formField.value, fieldValue] : fieldValue,
-        {
-          formContext,
-          formFields,
-          isFormat,
-          // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
-          isValidate: isValidate || formField.errors.length > 0,
-        },
-      );
+        const fieldConfig = nextFormFields[fieldName].config;
 
-      const fieldConfig = nextFormFields[fieldName].config;
+        if (fieldConfig.onChange) {
+          window.setTimeout(() => {
+            fieldConfig.onChange(nextFormFields[fieldName].cleanValue, {
+              formFields: nextFormFields,
+            });
+          }, 0);
+        }
 
-      if (fieldConfig.onChange) {
-        window.setTimeout(() => {
-          fieldConfig.onChange?.(nextFormFields[fieldName].cleanValue, {
-            formFields: nextFormFields,
-          });
-        }, 0);
-      }
-
-      // call onChange() on next iteration to do not affect new state return
-      if (onChange) {
-        onChangeTimeoutRef.current = window.setTimeout(() => {
-          onChangeTimeoutRef.current = null;
-
-          onChange(getSubmitFormValues(formContext, nextFormFields), {
-            formErrors: getFormErrors(nextFormFields),
-          });
-        }, onChangeDebounce ?? 0);
-      }
-
-      return nextFormFields;
-    });
+        return nextFormFields;
+      }),
+    );
   };
 
   const clearFieldErrors: HoneyFormClearFieldErrors<Form> = fieldName => {

@@ -37,7 +37,7 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 6. `context` - An optional object that you can pass to the form for use in field validators or other custom logic. This context can contain additional data or functions that are needed for validation or other form-related operations.
 7. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
 8. `onChange` - An optional callback function that will be called when any field value is changed.
-9. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback.
+9. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback. Default is `0`.
 
 ## Field Configuration
 
