@@ -1177,10 +1177,18 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
   /**
    * Default values for the form fields.
    * Can be a Promise function to asynchronously retrieve defaults.
+   *
+   * @default {}
    */
   defaults?: HoneyFormDefaults<Form>;
   /**
+   * External values that can be provided to the form to synchronize its values.
+   * If provided, the form will stay in sync with these external values.
    *
+   * @remarks
+   * The callback `onChange` will not be called when using this form field values synchronization.
+   *
+   * @default undefined
    */
   values?: Partial<Form>;
   /**

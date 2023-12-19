@@ -28,6 +28,7 @@ import {
   getNextErredField,
   getNextFieldsState,
   getNextErrorsFreeField,
+  getNextSingleFieldState,
 } from './field';
 import {
   checkIfFieldIsInteractive,
@@ -43,19 +44,6 @@ import {
 } from './helpers';
 
 const DEFAULTS = {};
-
-/**
- * The hook is designed to trigger a callback function whenever the provided data changes.
- */
-const useOnChange = <Data>(data: Data, fn: (data: Data) => void) => {
-  const dataRef = useRef(data);
-
-  useEffect(() => {
-    if (dataRef.current !== data) {
-      fn(data);
-    }
-  }, [data]);
-};
 
 export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   initialFormFieldsStateResolver,
@@ -147,34 +135,24 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           Object.keys(values).forEach((fieldName: keyof Form) => {
             const fieldConfig = nextFormFields[fieldName].config;
 
+            const isFieldInteractive = checkIfFieldIsInteractive(fieldConfig);
+
             const filteredValue =
-              checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter
+              isFieldInteractive && fieldConfig.filter
                 ? fieldConfig.filter(values[fieldName], { formContext })
                 : values[fieldName];
 
-            let nextFormField = executeFieldValidator(
+            const nextFormField = executeFieldValidator(
               formContext,
               nextFormFields,
               fieldName,
               filteredValue,
             );
 
-            const formattedValue =
-              checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.formatter
-                ? nextFormField.config.formatter(filteredValue, { formContext })
-                : filteredValue;
-
-            nextFormField = {
-              ...nextFormField,
-              rawValue: filteredValue,
-              value: formattedValue,
-              props: {
-                ...nextFormField.props,
-                value: formattedValue,
-              },
-            };
-
-            nextFormFields[fieldName] = nextFormField;
+            nextFormFields[fieldName] = getNextSingleFieldState(nextFormField, filteredValue, {
+              formContext,
+              isFormat: true,
+            });
           });
 
           return nextFormFields;
@@ -534,7 +512,11 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   formFieldsRef.current = formFields;
 
   // Detect changes in `externalValues` and update the form values accordingly
-  useOnChange(externalValues, values => setFormValues(values, { isSkipOnChange: true }));
+  useEffect(() => {
+    if (externalValues) {
+      setFormValues(externalValues, { isSkipOnChange: true });
+    }
+  }, [externalValues]);
 
   useEffect(() => {
     if (typeof defaults === 'function') {

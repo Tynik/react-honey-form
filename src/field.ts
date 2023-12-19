@@ -1157,6 +1157,80 @@ const triggerScheduledFieldsValidations = <
   });
 };
 
+/**
+ * Options for determining the next state of a single form field.
+ *
+ * @template FormContext - The form context type.
+ */
+type NextSingleFieldStateOptions<FormContext> = {
+  formContext: FormContext;
+  isFormat: boolean;
+};
+
+/**
+ * Gets the next state of a single form field based on the provided field value.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the form field.
+ * @template FieldValue - The value type of the form field.
+ * @template FormContext - The form context type.
+ *
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ * @param {FieldValue} fieldValue - The new value for the form field.
+ * @param {NextSingleFieldStateOptions<FormContext>} options - Additional options for determining the next field state.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state of the form field.
+ */
+export const getNextSingleFieldState = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FieldValue extends Form[FieldName],
+  FormContext,
+>(
+  formField: HoneyFormField<Form, FieldName, FormContext>,
+  fieldValue: FieldValue,
+  { formContext, isFormat }: NextSingleFieldStateOptions<FormContext>,
+): HoneyFormField<Form, FieldName, FormContext> => {
+  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldPassive = checkIfFieldIsPassive(formField.config);
+  const isFieldObject = checkIfFieldIsObject(formField.config);
+
+  const formattedValue =
+    isFieldInteractive && isFormat && formField.config.formatter
+      ? formField.config.formatter(fieldValue, { formContext })
+      : fieldValue;
+
+  const props = isFieldInteractive
+    ? {
+        ...formField.props,
+        value: fieldValue,
+      }
+    : undefined;
+
+  const passiveProps = isFieldPassive
+    ? {
+        ...formField.passiveProps,
+        ...(formField.config.type === 'checkbox' && { checked: fieldValue as boolean }),
+      }
+    : undefined;
+
+  const objectProps = isFieldObject
+    ? {
+        ...formField.objectProps,
+        value: fieldValue,
+      }
+    : undefined;
+
+  return {
+    ...formField,
+    props,
+    passiveProps,
+    objectProps,
+    rawValue: fieldValue,
+    value: formattedValue,
+  };
+};
+
 type NextFieldsStateOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;
   formFields: HoneyFormFields<Form, FormContext>;
@@ -1188,19 +1262,17 @@ export const getNextFieldsState = <
   fieldValue: FieldValue | undefined,
   { formContext, formFields, isValidate, isFormat }: NextFieldsStateOptions<Form, FormContext>,
 ): HoneyFormFields<Form, FormContext> => {
-  const formField = formFields[fieldName];
+  const fieldConfig = formFields[fieldName].config;
 
   const nextFormFields = { ...formFields };
-  let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formField;
+  let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formFields[fieldName];
 
-  const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
-  const isFieldPassive = checkIfFieldIsPassive(formField.config);
-  const isFieldObject = checkIfFieldIsObject(formField.config);
+  const isFieldInteractive = checkIfFieldIsInteractive(fieldConfig);
 
   // Apply filtering to the field value if a filter function is defined
   const filteredValue =
-    isFieldInteractive && formField.config.filter
-      ? formField.config.filter(fieldValue, { formContext })
+    isFieldInteractive && fieldConfig.filter
+      ? fieldConfig.filter(fieldValue, { formContext })
       : fieldValue;
 
   // If validation is requested, clear dependent fields and execute the field validator
@@ -1210,37 +1282,10 @@ export const getNextFieldsState = <
     nextFormField = executeFieldValidator(formContext, nextFormFields, fieldName, filteredValue);
   }
 
-  // If validation is requested, clear dependent fields and execute the field validator
-  const formattedValue =
-    isFieldInteractive && isFormat && formField.config.formatter
-      ? formField.config.formatter(filteredValue, { formContext })
-      : filteredValue;
-
-  nextFormField = {
-    ...nextFormField,
-    rawValue: filteredValue,
-    value: formattedValue,
-    props: isFieldInteractive
-      ? {
-          ...nextFormField.props,
-          value: formattedValue,
-        }
-      : undefined,
-    passiveProps: isFieldPassive
-      ? {
-          ...nextFormField.passiveProps,
-          ...(formField.config.type === 'checkbox' && { checked: fieldValue as boolean }),
-        }
-      : undefined,
-    objectProps: isFieldObject
-      ? {
-          ...nextFormField.objectProps,
-          value: formattedValue,
-        }
-      : undefined,
-  };
-
-  nextFormFields[fieldName] = nextFormField;
+  nextFormFields[fieldName] = getNextSingleFieldState(nextFormField, filteredValue, {
+    formContext,
+    isFormat,
+  });
 
   checkSkippableFields(formContext, nextFormFields, fieldName);
   triggerScheduledFieldsValidations(formContext, nextFormFields, fieldName);

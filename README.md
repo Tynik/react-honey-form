@@ -33,11 +33,12 @@ The `useHoneyForm` hook takes an options object as a single argument with the fo
 2. `formIndex` - An optional parameter that represents the index of the child form within an array of forms. This parameter is used when working with nested forms.
 3. `parentField` - An optional parameter that specifies the parent field for a child form. When working with nested forms, this parameter allows you to establish a parent-child relationship between forms. The `parentField` should be a reference to the parent form field where the child form's data will be stored. By linking a child form to a parent field, changes in the child form's fields can be synchronized with the corresponding parent field, enabling hierarchical data management.
 4. `defaults` - An optional object that defines the default values for the form fields. It allows you to pre-populate the form fields with initial values. If the `defaults` argument is a regular object, it is expected to have keys corresponding to the field names and values representing the default values for those fields. If the `defaults` argument is a Promise function, it should resolve an object with the same structure, allowing for more dynamic default values based on some logic or external data.
-5. `resetAfterSubmit` - An optional parameter that specifies whether the form should be reset to its initial state after a successful submission. The form will be reset only when the `onSubmit` callback completes without returning any errors.
-6. `context` - An optional object that you can pass to the form for use in field validators or other custom logic. This context can contain additional data or functions that are needed for validation or other form-related operations.
-7. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
-8. `onChange` - An optional callback function that will be called when any field value is changed.
-9. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback. Default is `0`.
+5. `values` - An optional object with form field values that can be provided to the form to synchronize its values. If provided, the form will stay in sync with these external values. The callback `onChange` will not be called when using this form field values synchronization.
+6. `resetAfterSubmit` - An optional parameter that specifies whether the form should be reset to its initial state after a successful submission. The form will be reset only when the `onSubmit` callback completes without returning any errors.
+7. `context` - An optional object that you can pass to the form for use in field validators or other custom logic. This context can contain additional data or functions that are needed for validation or other form-related operations.
+8. `onSubmit` - A callback function that will be called when the form is submitted. The function receives the form data as a parameter.
+9. `onChange` - An optional callback function that will be called when any field value is changed.
+10. `onChangeDebounce` - An optional number that specifies the debounce time in milliseconds for the `onChange` callback. Default is `0`.
 
 ## Field Configuration
 
