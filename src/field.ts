@@ -749,7 +749,10 @@ const executeFieldTypeValidator = <
     return null;
   }
 
-  let validationResult: HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
+  let validationResult:
+    | HoneyFormFieldValidationResult
+    | Promise<HoneyFormFieldValidationResult>
+    | null = null;
 
   if (checkIfFieldIsInteractive(formField.config)) {
     // Get the validator function associated with the field type
