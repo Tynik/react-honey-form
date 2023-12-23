@@ -215,6 +215,26 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.formFields.kind.props.value).toBe(undefined);
   });
 
+  it('should initially synchronize form values with external values', () => {
+    type Form = { name: string };
+
+    const externalFormValues: Partial<Form> = { name: 'apple' };
+
+    const { result } = renderHook(() =>
+      useHoneyForm<Form>({
+        fields: {
+          name: {
+            type: 'string',
+            defaultValue: 'banana',
+          },
+        },
+        values: externalFormValues,
+      }),
+    );
+
+    expect(result.current.formFields.name.value).toBe('apple');
+  });
+
   it('should synchronize form values with external values', () => {
     type Form = { name: string };
 

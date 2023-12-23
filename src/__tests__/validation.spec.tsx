@@ -277,7 +277,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     expect(onSubmit).toHaveBeenCalledWith({ age1: 2, age2: 3, age3: 4 }, { context: undefined });
   });
 
-  it('check required field when submitting', async () => {
+  it('check required string field type when submitting', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -307,7 +307,34 @@ describe('Hook [use-honey-form]: Validation', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('customized required field value message', async () => {
+  it('check required object field type when submitting', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ category: string }>({
+        fields: {
+          category: {
+            type: 'object',
+            required: true,
+          },
+        },
+        onSubmit,
+      }),
+    );
+
+    await act(() => result.current.submitForm());
+
+    expect(result.current.formFields.category.errors).toStrictEqual([
+      {
+        type: 'required',
+        message: 'The value is required',
+      },
+    ]);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('should handle custom required field error message during form submission', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -337,14 +364,14 @@ describe('Hook [use-honey-form]: Validation', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('check required field with empty array value', async () => {
+  it('should validate required field with empty array value', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
       useHoneyForm<{ names: string[] }>({
         fields: {
           names: {
-            type: 'string',
+            type: 'object',
             required: true,
             defaultValue: [],
           },
@@ -385,9 +412,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
 
-    await act(async () => {
-      await result.current.validateForm();
-    });
+    await act(() => result.current.validateForm());
 
     expect(result.current.formErrors).toStrictEqual({
       name: [
@@ -423,9 +448,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
 
-    await act(async () => {
-      await result.current.validateForm({ targetFields: [] });
-    });
+    await act(() => result.current.validateForm({ targetFields: [] }));
 
     expect(Object.keys(result.current.formErrors).length).toBe(2);
   });
@@ -448,9 +471,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
 
-    await act(async () => {
-      await result.current.validateForm({ targetFields: ['name'] });
-    });
+    await act(() => result.current.validateForm({ targetFields: ['name'] }));
 
     expect(result.current.formErrors).toStrictEqual({
       name: [
@@ -480,9 +501,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
 
-    await act(async () => {
-      await result.current.validateForm({ excludeFields: ['name'] });
-    });
+    await act(() => result.current.validateForm({ excludeFields: ['name'] }));
 
     expect(result.current.formErrors).toStrictEqual({
       age: [
@@ -512,9 +531,7 @@ describe('Hook [use-honey-form]: Direct form fields validation', () => {
 
     expect(result.current.formErrors).toStrictEqual({});
 
-    await act(async () => {
-      await result.current.validateForm({ excludeFields: [] });
-    });
+    await act(() => result.current.validateForm({ excludeFields: [] }));
 
     expect(Object.keys(result.current.formErrors).length).toBe(2);
   });
