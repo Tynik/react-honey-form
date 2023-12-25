@@ -1,0 +1,13 @@
+import { HoneyForm } from '../../components';
+
+export const BaseForm = () => {
+  return <HoneyForm fields={{ name: { type: 'string'}}}>
+    {({ formFields}) =>
+      <>
+        <input {...formFields.name.props}/>
+      </>
+    }
+  </HoneyForm>
+}
+
+# Hello <BaseForm />
