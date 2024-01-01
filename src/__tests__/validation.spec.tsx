@@ -651,8 +651,8 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
         fields: {
           amountFrom: {
             type: 'string',
-            validator: (value, { formFields }) => {
-              formFields.amountTo.scheduleValidation();
+            validator: (value, { formFields, scheduleValidation }) => {
+              scheduleValidation('amountTo');
 
               if (value > formFields.amountTo.value) {
                 return 'The `amountFrom` field value must be less than `amountTo`';
@@ -663,8 +663,8 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
           },
           amountTo: {
             type: 'string',
-            validator: (value, { formFields }) => {
-              formFields.amountFrom.scheduleValidation();
+            validator: (value, { formFields, scheduleValidation }) => {
+              scheduleValidation('amountFrom');
 
               if (value < formFields.amountFrom.value) {
                 return 'The `amountTo` field value must be greater than `amountFrom`';
@@ -738,16 +738,12 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.fromDate.setValue(new Date('04/05/2031'));
-    });
+    act(() => result.current.formFields.fromDate.setValue(new Date('04/05/2031')));
 
     // errors should not be shown when only one field is filled
     expect(result.current.formErrors).toStrictEqual({});
 
-    act(() => {
-      result.current.formFields.toDate.setValue(new Date('03/04/2030'));
-    });
+    act(() => result.current.formFields.toDate.setValue(new Date('03/04/2030')));
 
     expect(result.current.formErrors).toStrictEqual({
       fromDate: [
@@ -764,9 +760,7 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
       ],
     });
 
-    act(() => {
-      result.current.formFields.toDate.setValue(new Date('04/05/2031'));
-    });
+    act(() => result.current.formFields.toDate.setValue(new Date('04/05/2031')));
 
     expect(result.current.formErrors).toStrictEqual({});
   });

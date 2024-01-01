@@ -305,7 +305,11 @@ export const createHoneyFormDateFromValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
     DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
-    DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
+    DateToKey extends Exclude<DatePropertyKey<Form>, DateFromKey> = Exclude<
+      DatePropertyKey<Form>,
+      DateFromKey
+    >,
+    FormContext = undefined,
   >({
     dateToKey,
     minDate,
@@ -317,7 +321,7 @@ export const createHoneyFormDateFromValidator =
     Form,
     DateFromKey,
     DateToKey
-  >): HoneyFormInteractiveFieldValidator<Form, DateFromKey> =>
+  >): HoneyFormInteractiveFieldValidator<Form, DateFromKey, FormContext> =>
   /**
    * Validator function for "Date From" field.
    *
@@ -325,9 +329,9 @@ export const createHoneyFormDateFromValidator =
    * @param params - Validation parameters.
    * @returns {boolean | string} - `true` if valid, error message if invalid.
    */
-  (dateFrom, { formFields }): boolean | string => {
+  (dateFrom, { formFields, scheduleValidation }): boolean | string => {
     // Schedule validation for the associated "Date To" field
-    formFields[dateToKey].scheduleValidation();
+    scheduleValidation(dateToKey);
 
     // If "Date From" is not set, consider it valid
     if (!dateFrom) {
@@ -381,8 +385,12 @@ type CreateHoneyFormDateToValidatorOptions<
 export const createHoneyFormDateToValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
-    DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
     DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
+    DateFromKey extends Exclude<DatePropertyKey<Form>, DateToKey> = Exclude<
+      DatePropertyKey<Form>,
+      DateToKey
+    >,
+    FormContext = undefined,
   >({
     dateFromKey,
     minDate,
@@ -394,7 +402,7 @@ export const createHoneyFormDateToValidator =
     Form,
     DateFromKey,
     DateToKey
-  >): HoneyFormInteractiveFieldValidator<Form, DateToKey> =>
+  >): HoneyFormInteractiveFieldValidator<Form, DateToKey, FormContext> =>
   /**
    * Validator function for "Date To" field.
    *
@@ -402,9 +410,9 @@ export const createHoneyFormDateToValidator =
    * @param params - Validation parameters.
    * @returns {boolean | string} - `true` if valid, error message if invalid.
    */
-  (dateTo, { formFields }): boolean | string => {
+  (dateTo, { formFields, scheduleValidation }): boolean | string => {
     // Schedule validation for the associated "Date From" field
-    formFields[dateFromKey].scheduleValidation();
+    scheduleValidation(dateFromKey);
 
     // If "Date To" is not set, consider it valid
     if (!dateTo) {

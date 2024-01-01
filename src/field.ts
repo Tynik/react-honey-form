@@ -40,6 +40,7 @@ import {
   forEachFormField,
   getFormValues,
   isSkipField,
+  scheduleValidation,
 } from './helpers';
 
 const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, HTMLInputTypeAttribute>> = {
@@ -68,8 +69,12 @@ const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
  *
  * @returns The HTML input mode for the field, or `undefined` if not specified.
  */
-const getFieldInputMode = <Form extends HoneyFormBaseForm>(
-  fieldConfig: HoneyFormFieldConfig<Form, keyof Form>,
+const getFieldInputMode = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
 ): HTMLAttributes<any>['inputMode'] | undefined => {
   if (fieldConfig.type === 'number' && fieldConfig.decimal) {
     return 'decimal';
@@ -487,9 +492,6 @@ export const createField = <
 
       formFieldRef.current.focus();
     },
-    scheduleValidation: () => {
-      fieldMeta.isValidationScheduled = true;
-    },
   };
 
   return newFormField;
@@ -607,13 +609,13 @@ export const getNextErredField = <
 };
 
 /**
- * Get the next cleared field state by resetting the values to `undefined`.
+ * Get the next reset field state by setting the values to default value and clear all field errors.
  *
- * @param {HoneyFormField} formField - The form field to clear.
+ * @param {HoneyFormField} formField - The form field to reset.
  *
- * @returns {HoneyFormField} - The next form field state after clearing.
+ * @returns {HoneyFormField} - The next form field state after resetting.
  */
-export const getNextClearedField = <
+export const getNextResetField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -628,14 +630,14 @@ export const getNextClearedField = <
   const props = isFieldInteractive
     ? {
         ...errorsFreeField.props,
-        value: undefined,
+        value: errorsFreeField.defaultValue,
       }
     : undefined;
 
   const objectProps = isFieldObject
     ? {
         ...errorsFreeField.objectProps,
-        value: undefined,
+        value: errorsFreeField.defaultValue,
       }
     : undefined;
 
@@ -643,8 +645,9 @@ export const getNextClearedField = <
     ...errorsFreeField,
     props,
     objectProps,
-    value: undefined,
-    rawValue: undefined,
+    value: errorsFreeField.defaultValue,
+    rawValue: errorsFreeField.defaultValue,
+    cleanValue: errorsFreeField.defaultValue,
   };
 };
 
@@ -745,7 +748,7 @@ const executeFieldTypeValidator = <
   formField: HoneyFormField<Form, FieldName, FormContext>,
   fieldValue: FieldValue | undefined,
 ): HoneyFormFieldValidationResult | null => {
-  if (formField.config.type === 'nestedForms') {
+  if (formField.config.type === 'object' || formField.config.type === 'nestedForms') {
     return null;
   }
 
@@ -754,6 +757,8 @@ const executeFieldTypeValidator = <
     | Promise<HoneyFormFieldValidationResult>
     | null = null;
 
+  const formValues = getFormValues(formFields);
+
   if (checkIfFieldIsInteractive(formField.config)) {
     // Get the validator function associated with the field type
     const validator = INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
@@ -761,7 +766,9 @@ const executeFieldTypeValidator = <
     validationResult = validator(fieldValue, {
       formContext,
       formFields,
+      formValues,
       fieldConfig: formField.config,
+      scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
     });
   } else if (checkIfFieldIsPassive(formField.config)) {
     const validator = PASSIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
@@ -769,7 +776,9 @@ const executeFieldTypeValidator = <
     validationResult = validator(fieldValue, {
       formContext,
       formFields,
+      formValues,
       fieldConfig: formField.config,
+      scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
     });
   }
 
@@ -929,11 +938,15 @@ export const executeFieldValidator = <
 
     // Execute custom validator. Can only run when the default validator returns true
     if (formField.config.validator) {
+      const formValues = getFormValues(formFields);
+
       const validationResponse = formField.config.validator(sanitizedValue, {
         formContext,
         formFields,
+        formValues,
         // @ts-expect-error
         fieldConfig: formField.config,
+        scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
       });
 
       if (validationResponse instanceof Promise) {
@@ -993,11 +1006,15 @@ export const executeFieldValidatorAsync = async <
 
     // execute custom validator. Can be run only when default validator return true
     if (formField.config.validator) {
+      const formValues = getFormValues(formFields);
+
       const validationResponse = formField.config.validator(sanitizedValue, {
         formContext,
         formFields,
+        formValues,
         // @ts-expect-error
         fieldConfig: formField.config,
+        scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
       });
 
       // If the validation response is a Promise, handle it asynchronously
@@ -1039,44 +1056,53 @@ const checkSkippableFields = <
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
+  const formValues = getFormValues(nextFormFields);
+
   forEachFormField(nextFormFields, otherFieldName => {
     if (fieldName === otherFieldName) {
       return;
     }
 
-    if (isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
+    if (
+      isSkipField(otherFieldName, {
+        formContext,
+        formValues,
+        formFields: nextFormFields,
+      })
+    ) {
       nextFormFields[otherFieldName] = getNextErrorsFreeField(nextFormFields[otherFieldName]);
     }
   });
 };
 
 /**
- * Clears all fields in the form, resetting their values and removing errors.
+ * Reset all fields in the form, resetting their values to default value and removing errors.
  *
  * @template Form - The form type.
  * @template FormContext - The context of the form.
  *
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
  */
-export const clearAllFields = <Form extends HoneyFormBaseForm, FormContext>(
+export const resetAllFields = <Form extends HoneyFormBaseForm, FormContext>(
   nextFormFields: HoneyFormFields<Form, FormContext>,
 ) => {
   forEachFormField(nextFormFields, fieldName => {
-    nextFormFields[fieldName] = getNextClearedField(nextFormFields[fieldName]);
+    nextFormFields[fieldName] = getNextResetField(nextFormFields[fieldName]);
   });
 };
 
 /**
- * Clears fields that depend on the specified field, recursively clearing nested dependencies.
+ * Reset fields to default values that depend on the specified field,
+ *  recursively resetting values to default value of nested dependencies.
  *
  * @template Form - The form type.
  * @template FormContext - The context of the form.
  *
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
- * @param {keyof Form} fieldName - The name of the field triggering the clearing.
- * @param {keyof Form | null} initiatorFieldName - The name of the field that initiated the clearing (optional).
+ * @param {keyof Form} fieldName - The name of the field triggering the resetting.
+ * @param {keyof Form | null} initiatorFieldName - The name of the field that initiated the resetting (optional).
  */
-const clearDependentFields = <
+const resetDependentFields = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -1101,10 +1127,10 @@ const clearDependentFields = <
     if (isDependent) {
       const otherField = nextFormFields[otherFieldName];
 
-      nextFormFields[otherFieldName] = getNextClearedField(otherField);
+      nextFormFields[otherFieldName] = getNextResetField(otherField);
 
       if (otherFieldName !== initiatorFieldName) {
-        clearDependentFields(nextFormFields, otherFieldName, fieldName);
+        resetDependentFields(nextFormFields, otherFieldName, fieldName);
       }
     }
   });
@@ -1129,6 +1155,8 @@ const triggerScheduledFieldsValidations = <
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
 ) => {
+  const formValues = getFormValues(nextFormFields);
+
   forEachFormField(nextFormFields, otherFieldName => {
     // Skip validations for the field triggering the change
     if (otherFieldName === fieldName) {
@@ -1140,7 +1168,13 @@ const triggerScheduledFieldsValidations = <
     // Check if validation is scheduled for the field
     if (nextFormField.__meta__.isValidationScheduled) {
       // Skip validation if the field is marked to be skipped
-      if (!isSkipField(otherFieldName, { formContext, formFields: nextFormFields })) {
+      if (
+        !isSkipField(otherFieldName, {
+          formContext,
+          formValues,
+          formFields: nextFormFields,
+        })
+      ) {
         const filteredValue =
           checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.filter
             ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
@@ -1280,7 +1314,7 @@ export const getNextFieldsState = <
 
   // If validation is requested, clear dependent fields and execute the field validator
   if (isValidate) {
-    clearDependentFields(nextFormFields, fieldName);
+    resetDependentFields(nextFormFields, fieldName);
 
     nextFormField = executeFieldValidator(formContext, nextFormFields, fieldName, filteredValue);
   }

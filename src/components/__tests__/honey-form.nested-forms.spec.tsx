@@ -36,7 +36,28 @@ describe('Component [HoneyForm]: Nested forms', () => {
     CHILD_FORM_ID = 0;
   });
 
-  it('should submit form with correct item values after dynamic addition', async () => {
+  it('should submit updated item with new name and price on form submission', async () => {
+    type ItemsForm = {
+      items: ItemForm[];
+    };
+
+    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm> = {
+      id: {
+        type: 'string',
+        required: true,
+      },
+      name: {
+        type: 'string',
+        required: true,
+        defaultValue: '',
+      },
+      price: {
+        type: 'number',
+        required: true,
+        defaultValue: 0,
+      },
+    };
+
     const onSubmit = jest.fn<Promise<void>, [ItemsForm]>();
 
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
@@ -46,24 +67,106 @@ describe('Component [HoneyForm]: Nested forms', () => {
         <ChildHoneyForm
           formIndex={formIndex}
           parentField={itemsFormFields.items}
-          fields={
+          fields={ITEM_FORM_FIELDS}
+        >
+          {({ formFields }) => (
+            <>
+              <input data-testid={`item[${formIndex}].name`} {...formFields.name.props} />
+              <input data-testid={`item[${formIndex}].price`} {...formFields.price.props} />
+
+              <button
+                type="button"
+                data-testid={`item[${formIndex}].removeItem`}
+                onClick={() => itemsFormFields.items.removeValue(formIndex)}
+              />
+            </>
+          )}
+        </ChildHoneyForm>
+      );
+    };
+
+    const fields: HoneyFormFieldsConfigs<ItemsForm> = {
+      items: {
+        type: 'nestedForms',
+        defaultValue: [
+          {
+            id: getNextChildFormId(),
+            name: 'Banana',
+            price: 5,
+          },
+        ],
+      },
+    };
+
+    const { getByTestId } = render(
+      <HoneyForm fields={fields} onSubmit={onSubmit}>
+        {({ formFields }) => (
+          <>
+            {formFields.items.value.map((itemForm, itemFormIndex) => (
+              <ItemLineForm key={itemForm.id} formIndex={itemFormIndex} />
+            ))}
+
+            <button type="submit" data-testid="save">
+              Save
+            </button>
+          </>
+        )}
+      </HoneyForm>,
+    );
+
+    expect((getByTestId('item[0].name') as HTMLInputElement).value).toEqual('Banana');
+    expect((getByTestId('item[0].price') as HTMLInputElement).value).toEqual('5');
+
+    // Update values for the existent item
+    fireEvent.change(getByTestId('item[0].name'), { target: { value: 'Orange' } });
+    fireEvent.change(getByTestId('item[0].price'), { target: { value: '34' } });
+
+    fireEvent.click(getByTestId('save'));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        {
+          items: [
             {
-              id: {
-                type: 'string',
-                required: true,
-              },
-              name: {
-                type: 'string',
-                required: true,
-                defaultValue: '',
-              },
-              price: {
-                type: 'number',
-                required: true,
-                defaultValue: 0,
-              },
-            } as ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm>
-          }
+              id: '1',
+              name: 'Orange',
+              price: 34,
+            },
+          ],
+        },
+        { context: undefined },
+      ),
+    );
+  });
+
+  it('should submit form with correct item values after dynamic addition', async () => {
+    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm> = {
+      id: {
+        type: 'string',
+        required: true,
+      },
+      name: {
+        type: 'string',
+        required: true,
+        defaultValue: '',
+      },
+      price: {
+        type: 'number',
+        required: true,
+        defaultValue: 0,
+      },
+    };
+
+    const onSubmit = jest.fn<Promise<void>, [ItemsForm]>();
+
+    const ItemLineForm = ({ formIndex }: ItemFormProps) => {
+      const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
+
+      return (
+        <ChildHoneyForm
+          formIndex={formIndex}
+          parentField={itemsFormFields.items}
+          fields={ITEM_FORM_FIELDS}
         >
           {({ formFields }) => (
             <>

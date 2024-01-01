@@ -91,7 +91,6 @@ The `useHoneyForm` hook returns an object with the following properties:
    - `pushValue`: A function to add a new value to a parent field that can have child forms.
    - `removeValue`: A function to remove a value from a parent field by its index.
    - `resetValue`: A function to reset a value to the initial.
-   - `scheduleValidation`: A function that can be used to schedule the validation of another field inside the `validator` function of a field. It allows triggering the validation of a dependent field based on the current field's value.
    - `addError`: A function to add an error to the field's error array.
    - `clearErrors`: A function to clear all errors associated with this field.
    - `focus`: A function to focus on this field. Note: Can only be used when `props` are destructured within a component.

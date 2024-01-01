@@ -16,6 +16,7 @@ import type {
   HoneyFormInteractiveFieldConfig,
   HoneyFormPassiveFieldConfig,
   HoneyFormObjectFieldConfig,
+  HoneyFormValues,
 } from './types';
 
 export const noop = () => {
@@ -173,6 +174,17 @@ export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>
   );
 
 /**
+ * Get the current values of all form fields.
+ *
+ * @param {HoneyFormFields<Form, FormContext>} formFields - The form fields.
+ *
+ * @returns {Form} - The values of all form fields as a form object.
+ */
+export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
+  formFields: HoneyFormFields<Form, FormContext>,
+): Form => mapFormFields(formFields, (_, formField) => formField.value) as Form;
+
+/**
  * Checks if the given form field configuration is interactive.
  *
  * @template Form - Type representing the entire form.
@@ -250,6 +262,10 @@ type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
    * An object containing all form fields and their properties.
    */
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * Form values.
+   */
+  formValues: HoneyFormValues<Form>;
 };
 
 /**
@@ -270,12 +286,19 @@ export const isSkipField = <
   FormContext,
 >(
   fieldName: FieldName,
-  { formContext, formFields }: IsSkipFieldOptions<Form, FormContext>,
-): boolean => formFields[fieldName].config.skip?.({ formContext, formFields }) === true;
+  { formContext, formFields, formValues }: IsSkipFieldOptions<Form, FormContext>,
+): boolean =>
+  formFields[fieldName].config.skip?.({
+    formContext,
+    formFields,
+    formValues,
+  }) === true;
 
-export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
-  formFields: HoneyFormFields<Form, FormContext>,
-): Form => mapFormFields(formFields, (_, formField) => formField.value) as Form;
+export const scheduleValidation = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+  formField: HoneyFormField<Form, FieldName>,
+) => {
+  formField.__meta__.isValidationScheduled = true;
+};
 
 /**
  * Retrieves the values of the form fields suitable for form submission.
@@ -291,8 +314,10 @@ export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
 export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>(
   formContext: FormContext,
   formFields: HoneyFormFields<Form, FormContext>,
-): Form =>
-  mapFormFields(
+): Form => {
+  const formValues = getFormValues(formFields);
+
+  return mapFormFields(
     formFields,
     (_, formField) => {
       if (formField.__meta__.childForms) {
@@ -316,8 +341,9 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
         ? formField.value
         : formField.cleanValue;
     },
-    fieldName => !isSkipField(fieldName, { formContext, formFields }),
+    fieldName => !isSkipField(fieldName, { formContext, formFields, formValues }),
   ) as Form;
+};
 
 /**
  * Retrieves form errors for each form field.

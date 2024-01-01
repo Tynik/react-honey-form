@@ -175,6 +175,15 @@ export type HoneyFormAddFieldError<Form extends HoneyFormBaseForm> = <FieldName 
   error: HoneyFormFieldError,
 ) => void;
 
+/**
+ * A function type for scheduling validation for another field in the form.
+ * It takes the field name (excluding the current field) as a parameter.
+ */
+type HoneyFormScheduleFieldValidation<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+> = (fieldName: Exclude<keyof Form, FieldName>) => void;
+
 type HoneyFormFieldOnChangeContext<Form extends HoneyFormBaseForm, FormContext> = {
   formFields: HoneyFormFields<Form, FormContext>;
 };
@@ -192,6 +201,11 @@ export type HoneyFormFieldOnChange<
 /**
  * Context object for interactive field validators. This includes information about the form,
  * the specific field being validated, and the context of the form.
+ *
+ * @template Form - The form type.
+ * @template FieldName - The name of the field being validated.
+ * @template FormContext - The context object for the form.
+ * @template FieldValue - The type of the field value.
  */
 export type HoneyFormInteractiveFieldValidatorContext<
   Form extends HoneyFormBaseForm,
@@ -199,9 +213,26 @@ export type HoneyFormInteractiveFieldValidatorContext<
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = {
+  /**
+   * The context object for the form.
+   */
   formContext: FormContext;
+  /**
+   * The configuration for the interactive field being validated.
+   */
   fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  /**
+   * The current state of all form fields.
+   */
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * The current values of all form fields.
+   */
+  formValues: HoneyFormValues<Form>;
+  /**
+   * A function to schedule validation for another field.
+   */
+  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
 };
 
 /**
@@ -248,6 +279,14 @@ export type HoneyFormPassiveFieldValidatorContext<
   formContext: FormContext;
   fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * The current values of all form fields.
+   */
+  formValues: HoneyFormValues<Form>;
+  /**
+   * A function to schedule validation for another field.
+   */
+  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
 };
 
 /**
@@ -307,6 +346,10 @@ export type HoneyFormObjectFieldValidatorContext<
    * An object containing all form fields and their properties.
    */
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * A function to schedule validation for another field.
+   */
+  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
 };
 
 /**
@@ -447,13 +490,20 @@ export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
  *
  * @template Form - Type representing the entire form.
  * @template FormContext - Contextual information for the form.
- *
- * @param {FormContext} formContext - The contextual information for the form.
- * @param {HoneyFormFields<Form, FormContext>} formFields - The fields of the form.
  */
 type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
+  /**
+   * The contextual information for the form.
+   */
   formContext: FormContext;
+  /**
+   * The fields of the form.
+   */
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * Form values.
+   */
+  formValues: HoneyFormValues<Form>;
 };
 
 /**
@@ -984,10 +1034,6 @@ type BaseHoneyFormField<
      * Reset field value to default value and clear all errors
      */
     resetValue: () => void;
-    /**
-     * A function to schedule validation for this field. Can only be used inside field's validator.
-     */
-    scheduleValidation: () => void;
     /**
      * A function to add an error to the field's error array.
      */

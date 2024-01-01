@@ -21,7 +21,7 @@ import type {
   HoneyFormValidate,
 } from './types';
 import {
-  clearAllFields,
+  resetAllFields,
   createField,
   executeFieldValidator,
   executeFieldValidatorAsync,
@@ -129,7 +129,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           const nextFormFields = { ...formFields };
 
           if (isClearAll) {
-            clearAllFields(nextFormFields);
+            resetAllFields(nextFormFields);
           }
 
           Object.keys(values).forEach((fieldName: keyof Form) => {
@@ -358,6 +358,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
       const nextFormFields = {} as HoneyFormFields<Form, FormContext>;
 
+      const formValues = getFormValues(formFields);
+
       await Promise.all(
         Object.keys(formFields).map(async (fieldName: keyof Form) => {
           const formField = formFields[fieldName];
@@ -373,7 +375,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           if (
             isExcludeFieldFromValidation ||
             !isTargetFieldValidation ||
-            isSkipField(fieldName, { formContext, formFields })
+            isSkipField(fieldName, { formContext, formFields, formValues })
           ) {
             nextFormFields[fieldName] = getNextErrorsFreeField(formField);
             return;
