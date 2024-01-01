@@ -285,7 +285,7 @@ type DatePropertyKey<Form> = string & keyof Form;
 type CreateHoneyFormDateFromValidatorOptions<
   Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
   DateFromKey extends DatePropertyKey<Form>,
-  DateToKey extends DatePropertyKey<Form>,
+  DateToKey extends Exclude<DatePropertyKey<Form>, DateFromKey>,
 > = {
   dateToKey: DateToKey;
   minDate?: Date;
@@ -304,12 +304,12 @@ type CreateHoneyFormDateFromValidatorOptions<
 export const createHoneyFormDateFromValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+    FormContext = undefined,
     DateFromKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
     DateToKey extends Exclude<DatePropertyKey<Form>, DateFromKey> = Exclude<
       DatePropertyKey<Form>,
       DateFromKey
     >,
-    FormContext = undefined,
   >({
     dateToKey,
     minDate,
@@ -365,7 +365,7 @@ export const createHoneyFormDateFromValidator =
 
 type CreateHoneyFormDateToValidatorOptions<
   Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
-  DateFromKey extends DatePropertyKey<Form>,
+  DateFromKey extends Exclude<DatePropertyKey<Form>, DateToKey>,
   DateToKey extends DatePropertyKey<Form>,
 > = {
   dateFromKey: DateFromKey;
@@ -385,12 +385,12 @@ type CreateHoneyFormDateToValidatorOptions<
 export const createHoneyFormDateToValidator =
   <
     Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
+    FormContext = undefined,
     DateToKey extends DatePropertyKey<Form> = DatePropertyKey<Form>,
     DateFromKey extends Exclude<DatePropertyKey<Form>, DateToKey> = Exclude<
       DatePropertyKey<Form>,
       DateToKey
     >,
-    FormContext = undefined,
   >({
     dateFromKey,
     minDate,
