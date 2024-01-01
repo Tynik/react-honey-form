@@ -365,8 +365,8 @@ export const createHoneyFormDateFromValidator =
 
 type CreateHoneyFormDateToValidatorOptions<
   Form extends CustomDateRangeForm<DateFromKey, DateToKey>,
-  DateFromKey extends Exclude<DatePropertyKey<Form>, DateToKey>,
   DateToKey extends DatePropertyKey<Form>,
+  DateFromKey extends Exclude<DatePropertyKey<Form>, DateToKey>,
 > = {
   dateFromKey: DateFromKey;
   minDate?: Date;
@@ -400,8 +400,8 @@ export const createHoneyFormDateToValidator =
     inclusiveRange = true,
   }: CreateHoneyFormDateToValidatorOptions<
     Form,
-    DateFromKey,
-    DateToKey
+    DateToKey,
+    DateFromKey
   >): HoneyFormInteractiveFieldValidator<Form, DateToKey, FormContext> =>
   /**
    * Validator function for "Date To" field.

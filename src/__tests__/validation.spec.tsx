@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from '../validators';
+import type { CustomDateRangeForm } from '../form.types';
 
 describe('Hook [use-honey-form]: Validation', () => {
   it('use min value validation', () => {
@@ -677,16 +678,12 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.amountFrom.setValue(5);
-    });
+    act(() => result.current.formFields.amountFrom.setValue(5));
 
     // errors should not be shown when only one field is filled
     expect(result.current.formErrors).toStrictEqual({});
 
-    act(() => {
-      result.current.formFields.amountTo.setValue(3);
-    });
+    act(() => result.current.formFields.amountTo.setValue(3));
 
     expect(result.current.formErrors).toStrictEqual({
       amountFrom: [
@@ -703,9 +700,7 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
       ],
     });
 
-    act(() => {
-      result.current.formFields.amountFrom.setValue(2);
-    });
+    act(() => result.current.formFields.amountFrom.setValue(2));
 
     expect(result.current.formErrors).toStrictEqual({});
   });
@@ -713,10 +708,7 @@ describe('Hook [use-honey-form]: Scheduled validation', () => {
 
 describe('Hook [use-honey-form]: Predefined validators', () => {
   it('should validate date range correctly', () => {
-    type DateRangeForm = {
-      fromDate: Date | null;
-      toDate: Date | null;
-    };
+    type DateRangeForm = CustomDateRangeForm<'fromDate', 'toDate'>;
 
     const { result } = renderHook(() =>
       useHoneyForm<DateRangeForm>({
@@ -771,10 +763,7 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
   });
 
   it('should validate date range with min/max date limits', () => {
-    type DateRangeForm = {
-      fromDate: Date | null;
-      toDate: Date | null;
-    };
+    type DateRangeForm = CustomDateRangeForm<'fromDate', 'toDate'>;
 
     const MIN_DATE = new Date('04/05/2031');
     const MAX_DATE = new Date('04/05/2032');
@@ -801,16 +790,12 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
     );
 
     // Set valid from date
-    act(() => {
-      result.current.formFields.fromDate.setValue(MIN_DATE);
-    });
+    act(() => result.current.formFields.fromDate.setValue(MIN_DATE));
 
     expect(result.current.formErrors).toStrictEqual({});
 
     // Set valid to date
-    act(() => {
-      result.current.formFields.toDate.setValue(new Date('06/01/2031'));
-    });
+    act(() => result.current.formFields.toDate.setValue(new Date('06/01/2031')));
 
     expect(result.current.formErrors).toStrictEqual({});
 
@@ -829,16 +814,12 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
     });
 
     // Set valid from date
-    act(() => {
-      result.current.formFields.fromDate.setValue(new Date('05/01/2031'));
-    });
+    act(() => result.current.formFields.fromDate.setValue(new Date('05/01/2031')));
 
     expect(result.current.formErrors).toStrictEqual({});
 
     // Set invalid to date (> max date)
-    act(() => {
-      result.current.formFields.toDate.setValue(new Date('04/06/2032'));
-    });
+    act(() => result.current.formFields.toDate.setValue(new Date('04/06/2032')));
 
     expect(result.current.formErrors).toStrictEqual({
       toDate: [
@@ -850,9 +831,7 @@ describe('Hook [use-honey-form]: Predefined validators', () => {
     });
 
     // Set valid to date
-    act(() => {
-      result.current.formFields.toDate.setValue(MAX_DATE);
-    });
+    act(() => result.current.formFields.toDate.setValue(MAX_DATE));
 
     expect(result.current.formErrors).toStrictEqual({});
   });
