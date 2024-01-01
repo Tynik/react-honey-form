@@ -199,6 +199,39 @@ export type HoneyFormFieldOnChange<
 ) => void;
 
 /**
+ * The base context object for field validators.
+ * It includes information about the entire form, specific form field being validated, and the context of the form.
+ *
+ * @template T - Additional context properties that can be provided by specific field validators.
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ */
+type BaseHoneyFormFieldValidatorContext<
+  T,
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = {
+  /**
+   * The context object for the entire form.
+   */
+  formContext: FormContext;
+  /**
+   * An object containing all form fields and their properties.
+   */
+  formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * The current values of all form fields.
+   */
+  formValues: HoneyFormValues<Form>;
+  /**
+   * A function to schedule validation for another field.
+   */
+  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
+} & T;
+
+/**
  * Context object for interactive field validators. This includes information about the form,
  * the specific field being validated, and the context of the form.
  *
@@ -212,28 +245,14 @@ export type HoneyFormInteractiveFieldValidatorContext<
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = {
-  /**
-   * The context object for the form.
-   */
-  formContext: FormContext;
-  /**
-   * The configuration for the interactive field being validated.
-   */
-  fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
-  /**
-   * The current state of all form fields.
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * The current values of all form fields.
-   */
-  formValues: HoneyFormValues<Form>;
-  /**
-   * A function to schedule validation for another field.
-   */
-  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
-};
+> = BaseHoneyFormFieldValidatorContext<
+  {
+    fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  },
+  Form,
+  FieldName,
+  FormContext
+>;
 
 /**
  * A custom validation function for an interactive form field. It should return one of the following:
@@ -275,19 +294,14 @@ export type HoneyFormPassiveFieldValidatorContext<
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = {
-  formContext: FormContext;
-  fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * The current values of all form fields.
-   */
-  formValues: HoneyFormValues<Form>;
-  /**
-   * A function to schedule validation for another field.
-   */
-  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
-};
+> = BaseHoneyFormFieldValidatorContext<
+  {
+    fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  },
+  Form,
+  FieldName,
+  FormContext
+>;
 
 /**
  * A custom validation function for a passive form field. It should return one of the following:
@@ -333,24 +347,14 @@ export type HoneyFormObjectFieldValidatorContext<
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = {
-  /**
-   * The context object for the entire form.
-   */
-  formContext: FormContext;
-  /**
-   * The configuration for the object field.
-   */
-  fieldConfig: HoneyFormObjectFieldConfig<Form, FieldName, FormContext, FieldValue>;
-  /**
-   * An object containing all form fields and their properties.
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * A function to schedule validation for another field.
-   */
-  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
-};
+> = BaseHoneyFormFieldValidatorContext<
+  {
+    fieldConfig: HoneyFormObjectFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  },
+  Form,
+  FieldName,
+  FormContext
+>;
 
 /**
  * Validator function for an object field.

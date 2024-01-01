@@ -296,10 +296,10 @@ type CreateHoneyFormDateFromValidatorOptions<
 };
 
 /**
- * Creates a validator function for ensuring a "Date From" field is valid in the context of a date range.
+ * Creates a validator function to ensure the validity of a "Date From" field within the context of a date range.
  *
  * @param {CreateHoneyFormDateFromValidatorOptions<Form, DateFromKey, DateToKey>} options - Options for creating the validator.
- * @returns {HoneyFormInteractiveFieldValidator<Form, DateFromKey>} - The validator function.
+ * @returns {HoneyFormInteractiveFieldValidator<Form, DateFromKey, FormContext>} - The validator function for "Date From" field.
  */
 export const createHoneyFormDateFromValidator =
   <
@@ -377,10 +377,10 @@ type CreateHoneyFormDateToValidatorOptions<
 };
 
 /**
- * Creates a validator function for ensuring a "Date To" field is valid in the context of a date range.
+ * Creates a validator function to ensure the validity of a "Date To" field within the context of a date range.
  *
- * @param {CreateHoneyFormDateToValidatorOptions<Form, DateFromKey, DateToKey>} options - Options for creating the validator.
- * @returns {HoneyFormInteractiveFieldValidator<Form, DateToKey>} - The validator function.
+ * @param {CreateHoneyFormDateToValidatorOptions<Form, DateToKey, DateFromKey>} options - Options for creating the validator.
+ * @returns {HoneyFormInteractiveFieldValidator<Form, DateToKey, FormContext>} - The validator function for "Date To" field.
  */
 export const createHoneyFormDateToValidator =
   <
