@@ -294,7 +294,10 @@ export const isSkipField = <
     formValues,
   }) === true;
 
-export const scheduleValidation = <Form extends HoneyFormBaseForm, FieldName extends keyof Form>(
+export const scheduleFieldValidation = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+>(
   formField: HoneyFormField<Form, FieldName>,
 ) => {
   formField.__meta__.isValidationScheduled = true;

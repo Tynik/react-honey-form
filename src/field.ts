@@ -40,7 +40,7 @@ import {
   forEachFormField,
   getFormValues,
   isSkipField,
-  scheduleValidation,
+  scheduleFieldValidation,
 } from './helpers';
 
 const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, HTMLInputTypeAttribute>> = {
@@ -768,7 +768,7 @@ const executeFieldTypeValidator = <
       formFields,
       formValues,
       fieldConfig: formField.config,
-      scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
+      scheduleValidation: fieldName => scheduleFieldValidation(formFields[fieldName]),
     });
   } else if (checkIfFieldIsPassive(formField.config)) {
     const validator = PASSIVE_FIELD_TYPE_VALIDATORS_MAP[formField.config.type];
@@ -778,7 +778,7 @@ const executeFieldTypeValidator = <
       formFields,
       formValues,
       fieldConfig: formField.config,
-      scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
+      scheduleValidation: fieldName => scheduleFieldValidation(formFields[fieldName]),
     });
   }
 
@@ -946,7 +946,7 @@ export const executeFieldValidator = <
         formValues,
         // @ts-expect-error
         fieldConfig: formField.config,
-        scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
+        scheduleValidation: fieldName => scheduleFieldValidation(formFields[fieldName]),
       });
 
       if (validationResponse instanceof Promise) {
@@ -1014,7 +1014,7 @@ export const executeFieldValidatorAsync = async <
         formValues,
         // @ts-expect-error
         fieldConfig: formField.config,
-        scheduleValidation: fieldName => scheduleValidation(formFields[fieldName]),
+        scheduleValidation: fieldName => scheduleFieldValidation(formFields[fieldName]),
       });
 
       // If the validation response is a Promise, handle it asynchronously
@@ -1240,7 +1240,7 @@ export const getNextSingleFieldState = <
   const props = isFieldInteractive
     ? {
         ...formField.props,
-        value: fieldValue,
+        value: formattedValue,
       }
     : undefined;
 
