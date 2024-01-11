@@ -101,10 +101,16 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
     // If `onChange` is provided, set a timeout for debouncing and call onChange after the timeout.
     if (onChange) {
+      const formFields = formFieldsRef.current;
+      if (!formFields) {
+        throw new Error('The `formFieldsRef` value is null');
+      }
+
       onChangeTimeoutRef.current = window.setTimeout(() => {
         onChangeTimeoutRef.current = null;
 
         onChange(getSubmitFormValues(formContext, nextFormFields), {
+          formFields,
           formErrors: getFormErrors(nextFormFields),
         });
       }, onChangeDebounce);
@@ -181,7 +187,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       formFields =>
         mapFormFields(formFields, (_, formField) =>
           getNextErrorsFreeField(formField),
-        ) as HoneyFormFields<Form, FormContext>,
+        ) as unknown as HoneyFormFields<Form, FormContext>,
     );
   }, []);
 

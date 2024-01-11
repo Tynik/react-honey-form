@@ -393,20 +393,14 @@ export type HoneyFormNestedFormsFieldValidatorContext<
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> = {
-  /**
-   * The context object for the entire form.
-   */
-  formContext: FormContext;
-  /**
-   * The configuration for the object field.
-   */
-  fieldConfig: HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
-  /**
-   * An object containing all form fields and their properties.
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-};
+> = BaseHoneyFormFieldValidatorContext<
+  {
+    fieldConfig: HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
+  },
+  Form,
+  FieldName,
+  FormContext
+>;
 
 /**
  * Validator function for a nested forms field within a larger form.
@@ -1188,7 +1182,13 @@ export type HoneyFormOnSubmit<Form extends HoneyFormBaseForm, FormContext = unde
 /**
  * The context object provided to the `HoneyFormOnChange` callback function, containing information about form field changes.
  */
-type HoneyFormOnChangeContext<Form extends HoneyFormBaseForm> = {
+type HoneyFormOnChangeContext<Form extends HoneyFormBaseForm, FormContext> = {
+  /**
+   * An object that contains the state of the form fields.
+   *
+   * @default {}
+   */
+  formFields: HoneyFormFields<Form, FormContext>;
   /**
    * An object that includes all field errors.
    * When a field has any error, the field appears in this object as a key, and the value is an array of field errors.
@@ -1204,9 +1204,9 @@ type HoneyFormOnChangeContext<Form extends HoneyFormBaseForm> = {
  * @param data - The current data of the form, including all form field values.
  * @param context - The context object providing additional information about the change, such as form field errors.
  */
-export type HoneyFormOnChange<Form extends HoneyFormBaseForm> = (
+export type HoneyFormOnChange<Form extends HoneyFormBaseForm, FormContext> = (
   data: Form,
-  context: HoneyFormOnChangeContext<Form>,
+  context: HoneyFormOnChangeContext<Form, FormContext>,
 ) => void;
 
 export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm, FormContext> = {
@@ -1263,7 +1263,7 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
   /**
    * A callback function triggered whenever the value of any form field changes.
    */
-  onChange?: HoneyFormOnChange<Form>;
+  onChange?: HoneyFormOnChange<Form, FormContext>;
   /**
    * The debounce time in milliseconds for the `onChange` callback.
    * This sets a delay before the callback is invoked after a field value change.
