@@ -518,6 +518,17 @@ type HoneyFormSkipField<Form extends HoneyFormBaseForm, FormContext> = (
 ) => boolean;
 
 /**
+ * Base input HTML attributes excluding 'value', 'onChange', 'aria-required', and 'aria-invalid'.
+ *
+ * @remarks
+ * These properties are excluded as they are handled internally by the form library.
+ */
+type HoneyFormFieldConfigProps = Omit<
+  InputHTMLAttributes<any>,
+  'value' | 'onChange' | 'aria-required' | 'aria-invalid'
+>;
+
+/**
  * Represents the base configuration for a form field.
  *
  * @template T - Additional properties specific to the field.
@@ -565,16 +576,7 @@ type BaseHoneyFormFieldConfig<
      * These properties can be used to customize the behavior of the HTML input element associated with the field.
      * This includes properties like field name, type, and any other valid HTML input attributes.
      */
-    props?: Omit<
-      /**
-       * Base input HTML attributes excluding 'value', 'onChange', 'aria-required', and 'aria-invalid'.
-       *
-       * @remarks
-       * These properties are excluded as they are handled internally by the form library.
-       */
-      InputHTMLAttributes<any>,
-      'value' | 'onChange' | 'aria-required' | 'aria-invalid'
-    >;
+    props?: HoneyFormFieldConfigProps;
     /**
      * A function to determine whether to skip validation and submission for this field.
      */
@@ -756,7 +758,7 @@ export type HoneyFormObjectFieldConfig<
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
-type HoneyFormNestedFormsFieldConfig<
+export type HoneyFormNestedFormsFieldConfig<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext = undefined,

@@ -17,6 +17,7 @@ import type {
   HoneyFormPassiveFieldConfig,
   HoneyFormObjectFieldConfig,
   HoneyFormValues,
+  HoneyFormNestedFormsFieldConfig,
 } from './types';
 
 export const noop = () => {
@@ -246,6 +247,26 @@ export const checkIfFieldIsObject = <
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
 ): fieldConfig is HoneyFormObjectFieldConfig<Form, FieldName, FormContext> =>
   fieldConfig.type === 'object';
+
+/**
+ * Checks if a given form field is nested forms.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the field in the form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param fieldConfig - Configuration options for the form field.
+ *
+ * @returns A boolean indicating whether the field is nested forms.
+ */
+export const checkIfFieldIsNestedForms = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
+): fieldConfig is HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext> =>
+  fieldConfig.type === 'nestedForms';
 
 /**
  * Options object for determining whether to skip a form field.

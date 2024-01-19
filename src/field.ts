@@ -35,6 +35,7 @@ import {
 } from './validators';
 import {
   checkIfFieldIsInteractive,
+  checkIfFieldIsNestedForms,
   checkIfFieldIsObject,
   checkIfFieldIsPassive,
   forEachFormField,
@@ -166,7 +167,7 @@ const getInteractiveFieldProps = <
 
   return {
     ...baseFieldProps,
-    value: fieldValue,
+    value: fieldValue ?? ('' as FieldValue),
     //
     onChange: e => {
       setFieldValue(fieldName, e.target.value, {
@@ -884,13 +885,13 @@ const sanitizeFieldValue = <
   FieldValue extends Form[FieldName],
 >(
   fieldType: HoneyFormFieldType | undefined,
-  rawFieldValue: FieldValue | undefined,
+  fieldValue: FieldValue | undefined,
 ) => {
   const valueConvertor = fieldType
     ? (DEFAULT_FIELD_VALUE_CONVERTORS_MAP[fieldType] as HoneyFormFieldValueConvertor<FieldValue>)
     : null;
 
-  return valueConvertor ? valueConvertor(rawFieldValue) : rawFieldValue;
+  return valueConvertor ? valueConvertor(fieldValue) : fieldValue;
 };
 
 /**
@@ -986,10 +987,17 @@ export const executeFieldValidatorAsync = async <
 
   const fieldErrors: HoneyFormFieldError[] = [];
 
-  const filteredValue =
-    checkIfFieldIsInteractive(formField.config) && formField.config.filter
-      ? formField.config.filter(formField.rawValue, { formContext })
-      : formField.rawValue;
+  let filteredValue: Form[FieldName];
+
+  if (checkIfFieldIsInteractive(formField.config) && formField.config.filter) {
+    filteredValue = formField.config.filter(formField.rawValue, { formContext });
+    //
+  } else if (checkIfFieldIsNestedForms(formField.config)) {
+    filteredValue = formField.getChildFormsValues() as Form[FieldName];
+    //
+  } else {
+    filteredValue = formField.rawValue;
+  }
 
   const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
 

@@ -471,7 +471,7 @@ describe('Hook [use-honey-form]: Default values', () => {
 
     expect(result.current.formFields.name.value).toBeUndefined();
     expect(result.current.formFields.name.cleanValue).toBeUndefined();
-    expect(result.current.formFields.name.props.value).toBeUndefined();
+    expect(result.current.formFields.name.props.value).toBe('');
 
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeTruthy());
     await waitFor(() => expect(result.current.isFormDefaultsFetching).toBeFalsy());
