@@ -33,8 +33,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
         fields: {
           price: {
             type: 'string',
-            defaultValue: '',
-            filter: value => value.replace(/\$/, ''),
+            filter: value => value?.replace(/\$/, ''),
             formatter: value => `$${value}`,
           },
         },
@@ -104,9 +103,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.cardExpirationDate.setValue('10/29');
-    });
+    act(() => result.current.formFields.cardExpirationDate.setValue('10/29'));
 
     expect(result.current.formFields.cardExpirationDate.value).toBe('10/29');
 
@@ -129,33 +126,23 @@ describe('Hook [use-honey-form]: Use predefined string formatter for segments', 
       }),
     );
 
-    act(() => {
-      result.current.formFields.cardNumber.setValue('');
-    });
+    act(() => result.current.formFields.cardNumber.setValue(''));
 
     expect(result.current.formFields.cardNumber.value).toBe('');
 
-    act(() => {
-      result.current.formFields.cardNumber.setValue('1');
-    });
+    act(() => result.current.formFields.cardNumber.setValue('1'));
 
     expect(result.current.formFields.cardNumber.value).toBe('1');
 
-    act(() => {
-      result.current.formFields.cardNumber.setValue('1111');
-    });
+    act(() => result.current.formFields.cardNumber.setValue('1111'));
 
     expect(result.current.formFields.cardNumber.value).toBe('1111');
 
-    act(() => {
-      result.current.formFields.cardNumber.setValue('11111');
-    });
+    act(() => result.current.formFields.cardNumber.setValue('11111'));
 
     expect(result.current.formFields.cardNumber.value).toBe('1111 1');
 
-    act(() => {
-      result.current.formFields.cardNumber.setValue('1111111111111111');
-    });
+    act(() => result.current.formFields.cardNumber.setValue('1111111111111111'));
 
     expect(result.current.formFields.cardNumber.value).toBe('1111 1111 1111 1111');
   });

@@ -92,7 +92,6 @@ describe('Hook [use-honey-form]: General', () => {
         fields: {
           name: {
             type: 'string',
-            defaultValue: '',
           },
         },
       });
@@ -262,12 +261,19 @@ describe('Hook [use-honey-form]: General', () => {
 
 describe('Hook [use-honey-form]: Form context', () => {
   it('should use `allowedNames` configuration from the context in validator function', () => {
+    type FormData = {
+      name: string;
+    };
+
+    type FormContext = {
+      allowedNames: string[];
+    };
+
     const { result } = renderHook(() =>
-      useHoneyForm({
+      useHoneyForm<FormData, FormContext>({
         fields: {
           name: {
             type: 'string',
-            defaultValue: '',
             validator: (value, { formContext }) => formContext.allowedNames.includes(value),
           },
         },
@@ -286,13 +292,20 @@ describe('Hook [use-honey-form]: Form context', () => {
   });
 
   it('should use `maxStrLength` configuration from the context in filter function', () => {
+    type FormData = {
+      name: string;
+    };
+
+    type FormContext = {
+      maxStrLength: number;
+    };
+
     const { result } = renderHook(() =>
-      useHoneyForm({
+      useHoneyForm<FormData, FormContext>({
         fields: {
           name: {
             type: 'string',
-            defaultValue: '',
-            filter: (value, { formContext }) => value.slice(0, formContext.maxStrLength),
+            filter: (value, { formContext }) => value?.slice(0, formContext.maxStrLength),
           },
         },
         context: {
@@ -310,12 +323,19 @@ describe('Hook [use-honey-form]: Form context', () => {
   });
 
   it('should use `currencySign` configuration from the context in format function', () => {
+    type FormData = {
+      price: string;
+    };
+
+    type FormContext = {
+      currencySign: string;
+    };
+
     const { result } = renderHook(() =>
-      useHoneyForm({
+      useHoneyForm<FormData, FormContext>({
         fields: {
           price: {
             type: 'string',
-            defaultValue: '',
             formatter: (value, { formContext }) => `${formContext.currencySign}${value}`,
           },
         },
@@ -378,7 +398,6 @@ describe('Hook [use-honey-form]: Reset form', () => {
           name: {
             type: 'string',
             required: true,
-            defaultValue: '',
           },
         },
       }),
@@ -394,7 +413,7 @@ describe('Hook [use-honey-form]: Reset form', () => {
       result.current.resetForm();
     });
 
-    expect(result.current.formValues.name).toBe('');
+    expect(result.current.formValues.name).toBe(undefined);
 
     expect(result.current.formErrors).toStrictEqual({});
     expect(result.current.formFields.name.errors).toStrictEqual([]);

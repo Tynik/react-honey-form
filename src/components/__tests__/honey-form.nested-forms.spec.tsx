@@ -49,7 +49,6 @@ describe('Component [HoneyForm]: Nested forms', () => {
       name: {
         type: 'string',
         required: true,
-        defaultValue: '',
       },
       price: {
         type: 'number',
@@ -148,7 +147,6 @@ describe('Component [HoneyForm]: Nested forms', () => {
       name: {
         type: 'string',
         required: true,
-        defaultValue: '',
       },
       price: {
         type: 'number',
@@ -429,7 +427,6 @@ describe('Component [HoneyForm]: Nested forms', () => {
           name: {
             type: 'string',
             required: true,
-            defaultValue: '',
           },
           price: {
             type: 'number',

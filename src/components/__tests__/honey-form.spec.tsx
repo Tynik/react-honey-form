@@ -80,7 +80,6 @@ describe('Component [HoneyForm]: Field mode usage', () => {
       name: {
         type: 'string',
         mode: 'blur',
-        defaultValue: '',
         validator: value => value.length > 3,
       },
     };

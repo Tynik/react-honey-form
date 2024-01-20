@@ -1312,13 +1312,15 @@ export const getNextFieldsState = <
   const nextFormFields = { ...formFields };
   let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formFields[fieldName];
 
-  const isFieldInteractive = checkIfFieldIsInteractive(fieldConfig);
+  let filteredValue: Form[FieldName];
 
-  // Apply filtering to the field value if a filter function is defined
-  const filteredValue =
-    isFieldInteractive && fieldConfig.filter
-      ? fieldConfig.filter(fieldValue, { formContext })
-      : fieldValue;
+  if (checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter) {
+    // Apply filtering to the field value if a filter function is defined
+    filteredValue = fieldConfig.filter(fieldValue, { formContext });
+    //
+  } else {
+    filteredValue = fieldValue;
+  }
 
   // If validation is requested, clear dependent fields and execute the field validator
   if (isValidate) {
