@@ -825,9 +825,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('');
-    });
+    act(() => result.current.formFields.email.setValue(''));
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
   });
@@ -844,9 +842,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
     );
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('abc');
-    });
+    act(() => result.current.formFields.email.setValue('abc'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([
       {
@@ -855,9 +851,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a@');
-    });
+    act(() => result.current.formFields.email.setValue('a@'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([
       {
@@ -866,9 +860,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a@g');
-    });
+    act(() => result.current.formFields.email.setValue('a@g'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([
       {
@@ -877,9 +869,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a@gmail.');
-    });
+    act(() => result.current.formFields.email.setValue('a@gmail.'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([
       {
@@ -888,9 +878,7 @@ describe('Hook [use-honey-form]: Email field type', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.email.setValue('...a@gmail.com');
-    });
+    act(() => result.current.formFields.email.setValue('...a@gmail.com'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([
       {
@@ -912,27 +900,19 @@ describe('Hook [use-honey-form]: Email field type', () => {
     );
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a.kr@gmail.com');
-    });
+    act(() => result.current.formFields.email.setValue('a.kr@gmail.com'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a+1@gmail.com');
-    });
+    act(() => result.current.formFields.email.setValue('a+1@gmail.com'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a-b@gmail.com');
-    });
+    act(() => result.current.formFields.email.setValue('a-b@gmail.com'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.email.setValue('a_b@gmail.com');
-    });
+    act(() => result.current.formFields.email.setValue('a_b@gmail.com'));
 
     expect(result.current.formFields.email.errors).toStrictEqual([]);
   });

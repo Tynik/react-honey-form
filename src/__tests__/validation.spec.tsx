@@ -186,6 +186,33 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
+  it('should validate max length for email field', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ email: string }>({
+        fields: {
+          email: {
+            type: 'email',
+            max: 15,
+          },
+        },
+      }),
+    );
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => result.current.formFields.email.setValue('A12@gmail.com'));
+
+    expect(result.current.formFields.email.errors).toStrictEqual([]);
+
+    act(() => result.current.formFields.email.setValue('A12345@gmail.com'));
+
+    expect(result.current.formFields.email.errors).toStrictEqual([
+      {
+        type: 'max',
+        message: 'The length must be less than or equal to 15 characters',
+      },
+    ]);
+  });
+
   it('should submit form when field is optional with set max length', async () => {
     const onSubmit = jest.fn();
 

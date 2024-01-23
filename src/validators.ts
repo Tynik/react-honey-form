@@ -209,7 +209,9 @@ export const minLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
   fieldErrors,
 ) => {
   if (
-    fieldConfig.type !== 'string' ||
+    (fieldConfig.type !== 'string' &&
+      fieldConfig.type !== 'email' &&
+      fieldConfig.type !== 'numeric') ||
     fieldConfig.min === undefined ||
     fieldConfig.max !== undefined
   ) {
@@ -238,7 +240,9 @@ export const maxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
   fieldErrors,
 ) => {
   if (
-    fieldConfig.type !== 'string' ||
+    (fieldConfig.type !== 'string' &&
+      fieldConfig.type !== 'email' &&
+      fieldConfig.type !== 'numeric') ||
     fieldConfig.max === undefined ||
     fieldConfig.min !== undefined
   ) {
@@ -264,7 +268,9 @@ export const minMaxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltIn
   fieldErrors,
 ) => {
   if (
-    fieldConfig.type !== 'string' ||
+    (fieldConfig.type !== 'string' &&
+      fieldConfig.type !== 'email' &&
+      fieldConfig.type !== 'numeric') ||
     fieldConfig.min === undefined ||
     fieldConfig.max === undefined
   ) {
