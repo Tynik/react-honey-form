@@ -1031,7 +1031,7 @@ type BaseHoneyFormField<
      */
     removeValue: (formIndex: number) => void;
     /**
-     * Reset field value to default value and clear all errors
+     * Reset field value to default value and clear all errors.
      */
     resetValue: () => void;
     /**
@@ -1042,6 +1042,10 @@ type BaseHoneyFormField<
      * A function to clear all errors associated with this field.
      */
     clearErrors: () => void;
+    /**
+     * A function to validate the field.
+     */
+    validate: () => void;
     /**
      * Built-in metadata used by the library.
      */
@@ -1217,6 +1221,7 @@ export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm
   formDefaultsRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  validateField: HoneyFormValidateField<Form>;
   pushFieldValue: HoneyFormPushFieldValue<Form>;
   removeFieldValue: HoneyFormRemoveFieldValue<Form>;
   addFormFieldError: HoneyFormAddFieldError<Form>;

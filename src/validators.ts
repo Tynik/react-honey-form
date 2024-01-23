@@ -118,7 +118,11 @@ export const minValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVali
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.min === undefined || fieldConfig.max !== undefined) {
+  if (
+    fieldConfig.type !== 'number' ||
+    fieldConfig.min === undefined ||
+    fieldConfig.max !== undefined
+  ) {
     return;
   }
 
@@ -144,12 +148,15 @@ export const maxValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVali
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.max === undefined || fieldConfig.min !== undefined) {
+  if (
+    fieldConfig.type !== 'number' ||
+    fieldConfig.max === undefined ||
+    fieldConfig.min !== undefined
+  ) {
     return;
   }
 
   if (
-    fieldValue === undefined ||
     Number.isNaN(fieldValue) ||
     (typeof fieldValue === 'number' && fieldValue > fieldConfig.max)
   ) {
@@ -170,7 +177,11 @@ export const minMaxValueBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInV
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.min === undefined || fieldConfig.max === undefined) {
+  if (
+    fieldConfig.type !== 'number' ||
+    fieldConfig.min === undefined ||
+    fieldConfig.max === undefined
+  ) {
     return;
   }
 
@@ -197,7 +208,11 @@ export const minLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.min === undefined || fieldConfig.max !== undefined) {
+  if (
+    fieldConfig.type !== 'string' ||
+    fieldConfig.min === undefined ||
+    fieldConfig.max !== undefined
+  ) {
     return;
   }
 
@@ -222,14 +237,15 @@ export const maxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.max === undefined || fieldConfig.min !== undefined) {
+  if (
+    fieldConfig.type !== 'string' ||
+    fieldConfig.max === undefined ||
+    fieldConfig.min !== undefined
+  ) {
     return;
   }
 
-  if (
-    fieldValue === undefined ||
-    (typeof fieldValue === 'string' && fieldValue.length > fieldConfig.max)
-  ) {
+  if (typeof fieldValue === 'string' && fieldValue.length > fieldConfig.max) {
     fieldErrors.push({
       type: 'max',
       message:
@@ -247,7 +263,11 @@ export const minMaxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltIn
   fieldConfig,
   fieldErrors,
 ) => {
-  if (fieldConfig.min === undefined || fieldConfig.max === undefined) {
+  if (
+    fieldConfig.type !== 'string' ||
+    fieldConfig.min === undefined ||
+    fieldConfig.max === undefined
+  ) {
     return;
   }
 

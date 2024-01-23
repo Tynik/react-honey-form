@@ -6,12 +6,12 @@ import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from
 import type { CustomDateRangeForm } from '../form.types';
 
 describe('Hook [use-honey-form]: Validation', () => {
-  it('use min value validation', () => {
+  it('should validate field value against minimum value constraint', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
-            type: 'string',
+            type: 'number',
             min: 5,
           },
         },
@@ -19,15 +19,11 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(5);
-    });
+    act(() => result.current.formFields.age.setValue(5));
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(4);
-    });
+    act(() => result.current.formFields.age.setValue(4));
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
@@ -37,12 +33,12 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use max value validation', () => {
+  it('should validate field value against maximum value constraint', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
-            type: 'string',
+            type: 'number',
             max: 65,
           },
         },
@@ -50,15 +46,11 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(65);
-    });
+    act(() => result.current.formFields.age.setValue(65));
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(70);
-    });
+    act(() => result.current.formFields.age.setValue(70));
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
@@ -68,12 +60,32 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use min and max value validation', () => {
+  it('should submit form when field is optional with set max value', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ weight: number }>({
+        fields: {
+          weight: {
+            type: 'number',
+            max: 15,
+          },
+        },
+        onSubmit,
+      }),
+    );
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toHaveBeenCalledWith({ weight: undefined }, { context: undefined });
+  });
+
+  it('should validate field value against both minimum and maximum value constraints', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
           age: {
-            type: 'string',
+            type: 'number',
             min: 5,
             max: 65,
           },
@@ -82,9 +94,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(70);
-    });
+    act(() => result.current.formFields.age.setValue(70));
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
@@ -94,7 +104,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use min and max value validation with number field type', () => {
+  it('should validate min and max value constraints using `onChange` callback', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -122,7 +132,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use min length string validation', () => {
+  it('should validate min length for string field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -135,15 +145,11 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.name.setValue('A');
-    });
+    act(() => result.current.formFields.name.setValue('A'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.name.setValue('');
-    });
+    act(() => result.current.formFields.name.setValue(''));
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
@@ -153,7 +159,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use max length string validation', () => {
+  it('should validate max length for string field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -166,15 +172,11 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.name.setValue('A');
-    });
+    act(() => result.current.formFields.name.setValue('A'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.name.setValue('Antonio');
-    });
+    act(() => result.current.formFields.name.setValue('Antonio'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
@@ -184,7 +186,27 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use min and max length for string validation', () => {
+  it('should submit form when field is optional with set max length', async () => {
+    const onSubmit = jest.fn();
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            type: 'string',
+            max: 5,
+          },
+        },
+        onSubmit,
+      }),
+    );
+
+    await act(() => result.current.submitForm());
+
+    expect(onSubmit).toHaveBeenCalledWith({ name: undefined }, { context: undefined });
+  });
+
+  it('should validate min and max length for string field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -198,9 +220,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.name.setValue('Antonio');
-    });
+    act(() => result.current.formFields.name.setValue('Antonio'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
@@ -210,7 +230,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('use equal min and max length for string validation', () => {
+  it('should validate equal min and max length for string field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ code: string }>({
         fields: {
@@ -224,9 +244,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     );
     expect(result.current.formFields.code.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.code.setValue('A81J');
-    });
+    act(() => result.current.formFields.code.setValue('A81J'));
 
     expect(result.current.formFields.code.errors).toStrictEqual([
       {
@@ -236,7 +254,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
-  it('multiple field validators that affects each other', async () => {
+  it('should handle multiple field validators affecting each other', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -278,7 +296,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     expect(onSubmit).toHaveBeenCalledWith({ age1: 2, age2: 3, age3: 4 }, { context: undefined });
   });
 
-  it('check required string field type when submitting', async () => {
+  it('should check required string field type when submitting', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -308,7 +326,7 @@ describe('Hook [use-honey-form]: Validation', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('check required object field type when submitting', async () => {
+  it('should check required object field type when submitting', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>

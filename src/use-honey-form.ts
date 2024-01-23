@@ -24,6 +24,7 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
   formDefaultsRef,
   setFieldValue,
   clearFieldErrors,
+  validateField,
   pushFieldValue,
   removeFieldValue,
   addFormFieldError,
@@ -33,7 +34,7 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
       fieldName,
       {
         ...fieldConfig,
-        defaultValue: fieldConfig.defaultValue ?? formDefaultsRef.current[fieldName],
+        defaultValue: formDefaultsRef.current[fieldName] ?? fieldConfig.defaultValue,
       },
       {
         formContext,
@@ -41,6 +42,7 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
         formDefaultsRef,
         setFieldValue,
         clearFieldErrors,
+        validateField,
         pushFieldValue,
         removeFieldValue,
         addFormFieldError,

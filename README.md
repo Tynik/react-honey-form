@@ -93,6 +93,7 @@ The `useHoneyForm` hook returns an object with the following properties:
    - `resetValue`: A function to reset a value to the initial.
    - `addError`: A function to add an error to the field's error array.
    - `clearErrors`: A function to clear all errors associated with this field.
+   - `validate`: A function to validate this field.
    - `focus`: A function to focus on this field. Note: Can only be used when `props` are destructured within a component.
    - `__meta__`: Internal metadata used by the library.
 2. `formValues` - Provides quick access to the current values of all form fields.

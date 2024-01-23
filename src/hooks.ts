@@ -32,6 +32,7 @@ import {
 } from './field';
 import {
   checkIfFieldIsInteractive,
+  checkIfFieldIsNestedForms,
   forEachFormError,
   getFormErrors,
   getFormValues,
@@ -141,10 +142,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           Object.keys(values).forEach((fieldName: keyof Form) => {
             const fieldConfig = nextFormFields[fieldName].config;
 
-            const isFieldInteractive = checkIfFieldIsInteractive(fieldConfig);
-
             const filteredValue =
-              isFieldInteractive && fieldConfig.filter
+              checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter
                 ? fieldConfig.filter(values[fieldName], { formContext })
                 : values[fieldName];
 
@@ -214,6 +213,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       debouncedOnChangeHandler(() => {
         const formField = formFields[fieldName];
 
+        const isFieldErred = formField.errors.length > 0;
+
         const nextFormFields = getNextFieldsState(
           fieldName,
           // @ts-expect-error
@@ -223,7 +224,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             formFields,
             isFormat,
             // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
-            isValidate: isValidate || formField.errors.length > 0,
+            isValidate: isValidate || isFieldErred,
           },
         );
 
@@ -271,21 +272,33 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     );
   };
 
-  // TODO: not used
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const validateField: HoneyFormValidateField<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
       const formField = formFields[fieldName];
 
-      const filteredValue =
-        checkIfFieldIsInteractive(formField.config) && formField.config.filter
-          ? formField.config.filter(formField.rawValue, { formContext })
-          : formField.rawValue;
+      let filteredValue: Form[typeof fieldName];
+
+      if (checkIfFieldIsInteractive(formField.config) && formField.config.filter) {
+        filteredValue = formField.config.filter(formField.rawValue, { formContext });
+        //
+      } else if (checkIfFieldIsNestedForms(formField.config)) {
+        filteredValue = formField.getChildFormsValues() as Form[typeof fieldName];
+        //
+      } else {
+        filteredValue = formField.rawValue;
+      }
+
+      const nextFormField = executeFieldValidator(
+        formContext,
+        formFields,
+        fieldName,
+        filteredValue,
+      );
 
       return {
         ...formFields,
-        [fieldName]: executeFieldValidator(formContext, formFields, fieldName, filteredValue),
+        [fieldName]: nextFormField,
       };
     });
   };
@@ -322,6 +335,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             formDefaultsRef,
             setFieldValue,
             clearFieldErrors,
+            validateField,
             pushFieldValue,
             removeFieldValue,
             addFormFieldError,
@@ -447,6 +461,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       formDefaultsRef,
       setFieldValue,
       clearFieldErrors,
+      validateField,
       pushFieldValue,
       removeFieldValue,
       addFormFieldError,

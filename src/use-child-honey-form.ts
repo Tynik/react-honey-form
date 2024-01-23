@@ -43,6 +43,7 @@ const createInitialFormFields = <
   formDefaultsRef,
   setFieldValue,
   clearFieldErrors,
+  validateField,
   pushFieldValue,
   removeFieldValue,
   addFormFieldError,
@@ -71,6 +72,7 @@ const createInitialFormFields = <
         formDefaultsRef,
         setFieldValue,
         clearFieldErrors,
+        validateField,
         pushFieldValue,
         removeFieldValue,
         addFormFieldError,
@@ -106,11 +108,11 @@ export const useChildHoneyForm = <
 
   useEffect(() => {
     if (parentField) {
-      if (!Array.isArray(parentField.value)) {
+      if (!Array.isArray(parentField.defaultValue)) {
         throw new Error(USE_HONEY_FORM_ERRORS.parentFieldValue);
       }
 
-      if (parentField.value.length && formIndex === undefined) {
+      if (parentField.defaultValue.length && formIndex === undefined) {
         throw new Error(USE_HONEY_FORM_ERRORS.parentFieldFormIndex);
       }
 

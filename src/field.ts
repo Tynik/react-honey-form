@@ -26,6 +26,7 @@ import type {
   HoneyFormPassiveFieldProps,
   HoneyFormInteractiveFieldProps,
   HoneyFormFieldProps,
+  HoneyFormValidateField,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -391,6 +392,7 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formDefaultsRef: HoneyFormDefaultsRef<Form>;
   setFieldValue: HoneyFormSetFieldValueInternal<Form>;
   clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  validateField: HoneyFormValidateField<Form>;
   pushFieldValue: HoneyFormPushFieldValue<Form>;
   removeFieldValue: HoneyFormRemoveFieldValue<Form>;
   addFormFieldError: HoneyFormAddFieldError<Form>;
@@ -409,6 +411,7 @@ export const createField = <
     formDefaultsRef,
     setFieldValue,
     clearFieldErrors,
+    validateField,
     pushFieldValue,
     removeFieldValue,
     addFormFieldError,
@@ -486,6 +489,7 @@ export const createField = <
     //
     addError: error => addFormFieldError(fieldName, error),
     clearErrors: () => clearFieldErrors(fieldName),
+    validate: () => validateField(fieldName),
     focus: () => {
       if (!formFieldRef.current) {
         throw new Error('The `formFieldRef` is not available');
@@ -1183,10 +1187,17 @@ const triggerScheduledFieldsValidations = <
           formFields: nextFormFields,
         })
       ) {
-        const filteredValue =
-          checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.filter
-            ? nextFormField.config.filter(nextFormField.rawValue, { formContext })
-            : nextFormField.rawValue;
+        let filteredValue: Form[keyof Form];
+
+        if (checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.filter) {
+          filteredValue = nextFormField.config.filter(nextFormField.rawValue, { formContext });
+          //
+        } else if (checkIfFieldIsNestedForms(nextFormField.config)) {
+          filteredValue = nextFormField.getChildFormsValues() as Form[keyof Form];
+          //
+        } else {
+          filteredValue = nextFormField.rawValue;
+        }
 
         nextFormFields[otherFieldName] = executeFieldValidator(
           formContext,
