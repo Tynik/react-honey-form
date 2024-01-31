@@ -218,7 +218,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         const nextFormFields = getNextFieldsState(
           fieldName,
           // @ts-expect-error
-          isPushValue ? [...formField.getChildFormsValues(), fieldValue] : fieldValue,
+          isPushValue ? [...formField.value, fieldValue] : fieldValue,
           {
             formContext,
             formFields,
