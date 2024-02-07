@@ -567,6 +567,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   const isFormErred = Object.keys(formErrors).length > 0;
 
   return {
+    formContext,
     formFieldsRef,
     formFields,
     formValues,

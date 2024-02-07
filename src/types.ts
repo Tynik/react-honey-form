@@ -1415,6 +1415,12 @@ export type HoneyFormFormState = {
 
 export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined> = {
   /**
+   * Form context
+   *
+   * @default undefined
+   */
+  formContext: FormContext;
+  /**
    * An object that contains the state of the form fields.
    *
    * @default {}
