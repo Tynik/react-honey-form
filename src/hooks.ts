@@ -232,9 +232,14 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
 
         if (fieldConfig.onChange) {
           window.setTimeout(() => {
-            fieldConfig.onChange(nextFormFields[fieldName].cleanValue, {
-              formFields: nextFormFields,
-            });
+            fieldConfig.onChange(
+              checkIfFieldIsNestedForms(fieldConfig)
+                ? (nextFormFields[fieldName].getChildFormsValues() as Form[typeof fieldName])
+                : nextFormFields[fieldName].cleanValue,
+              {
+                formFields: nextFormFields,
+              },
+            );
           }, 0);
         }
 
