@@ -1329,6 +1329,12 @@ export type ChildHoneyFormOptions<
  */
 type UseHoneyFormSetFormValuesOptions = {
   /**
+   * Indicates whether setting a new form values should mark the form as "dirty".
+   *
+   * @default true
+   */
+  isDirty?: boolean;
+  /**
    * If `true`, clear all field values before setting new values.
    */
   isClearAll?: boolean;

@@ -146,6 +146,27 @@ describe('Hook [use-honey-form]: General', () => {
     await waitFor(() => expect(onChange.mock.calls[1][0]).toStrictEqual({ name: 'a', kind: 'f' }));
   });
 
+  it('should indicate form is dirty after setting new values', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            type: 'string',
+          },
+        },
+        defaults: {
+          name: 'Apple',
+        },
+      }),
+    );
+
+    expect(result.current.isFormDirty).toBeFalsy();
+
+    act(() => result.current.setFormValues({ name: 'apple' }));
+
+    expect(result.current.isFormDirty).toBeTruthy();
+  });
+
   it('should partially set form values', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string; kind: string }>({
@@ -170,9 +191,7 @@ describe('Hook [use-honey-form]: General', () => {
     expect(result.current.formFields.kind.cleanValue).toBe('fruit');
     expect(result.current.formFields.kind.props.value).toBe('fruit');
 
-    act(() => {
-      result.current.setFormValues({ name: 'apple' });
-    });
+    act(() => result.current.setFormValues({ name: 'apple' }));
 
     expect(result.current.formFields.name.value).toBe('apple');
     expect(result.current.formFields.name.cleanValue).toBe('apple');

@@ -129,7 +129,11 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    *   @param isSkipOnChange - If true, skips the debounced `onChange` handling.
    */
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
-    (values, { isClearAll = false, isSkipOnChange = false } = {}) => {
+    (values, { isDirty = true, isClearAll = false, isSkipOnChange = false } = {}) => {
+      if (isDirty) {
+        isFormDirtyRef.current = true;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setFormFields(formFields =>
         debouncedOnChangeHandler(() => {
@@ -554,7 +558,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         .then(defaultValues => {
           formDefaultsRef.current = defaultValues;
 
-          setFormValues(defaultValues);
+          setFormValues(defaultValues, { isDirty: false });
         })
         .catch(() => {
           setIsFormDefaultsFetchingErred(true);
