@@ -1412,7 +1412,9 @@ export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefi
   ) => Promise<HoneyFormServerErrors<Form> | void>,
 ) => Promise<void>;
 
-export type HoneyFormReset = () => void;
+export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
+  newFormDefaults?: HoneyFormDefaultValues<Form>,
+) => void;
 
 export type HoneyFormFormState = {
   isValidating: boolean;
@@ -1512,5 +1514,5 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
   /**
    * Reset the form to the initial state.
    */
-  resetForm: HoneyFormReset;
+  resetForm: HoneyFormReset<Form>;
 };

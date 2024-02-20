@@ -476,10 +476,12 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       addFormFieldError,
     });
 
-  const resetForm: HoneyFormReset = () => {
+  const resetForm: HoneyFormReset<Form> = newFormDefaults => {
     isFormDirtyRef.current = false;
     isFormValidRef.current = false;
     isFormSubmittedRef.current = false;
+
+    formDefaultsRef.current = { ...formDefaultsRef.current, ...newFormDefaults };
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(getInitialFormFieldsState);
