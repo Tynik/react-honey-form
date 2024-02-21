@@ -614,11 +614,16 @@ export const getNextErredField = <
 };
 
 /**
- * Get the next reset field state by setting the values to default value and clear all field errors.
+ * Retrieves the next state of a form field after resetting its values and clearing all field errors.
  *
- * @param {HoneyFormField} formField - The form field to reset.
+ * @template Form - The type of the form object.
+ * @template FieldName - The type of the field name.
+ * @template FormContext - The type of the form context.
  *
- * @returns {HoneyFormField} - The next form field state after resetting.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field to reset.
+ * @param {boolean} [isResetToDefault=true] - Indicates whether the field should be reset to its default value.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state of the form field after resetting.
  */
 export const getNextResetField = <
   Form extends HoneyFormBaseForm,
@@ -626,33 +631,47 @@ export const getNextResetField = <
   FormContext,
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
+  isResetToDefault: boolean = true,
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const isFieldInteractive = checkIfFieldIsInteractive(formField.config);
+  const isFieldPassive = checkIfFieldIsPassive(formField.config);
   const isFieldObject = checkIfFieldIsObject(formField.config);
 
   const errorsFreeField = getNextErrorsFreeField(formField);
 
+  const newFieldValue = isResetToDefault ? errorsFreeField.defaultValue : undefined;
+
   const props = isFieldInteractive
     ? {
         ...errorsFreeField.props,
-        value: errorsFreeField.defaultValue,
+        value: newFieldValue ?? ('' as Form[FieldName]),
+      }
+    : undefined;
+
+  const passiveProps = isFieldPassive
+    ? {
+        ...errorsFreeField.passiveProps,
+        ...(formField.config.type === 'checkbox' && {
+          checked: errorsFreeField.defaultValue as boolean,
+        }),
       }
     : undefined;
 
   const objectProps = isFieldObject
     ? {
         ...errorsFreeField.objectProps,
-        value: errorsFreeField.defaultValue,
+        value: newFieldValue,
       }
     : undefined;
 
   return {
     ...errorsFreeField,
     props,
+    passiveProps,
     objectProps,
-    value: errorsFreeField.defaultValue,
-    rawValue: errorsFreeField.defaultValue,
-    cleanValue: errorsFreeField.defaultValue,
+    value: newFieldValue,
+    rawValue: newFieldValue,
+    cleanValue: newFieldValue,
   };
 };
 
@@ -1139,7 +1158,7 @@ const resetDependentFields = <
     if (isDependent) {
       const otherField = nextFormFields[otherFieldName];
 
-      nextFormFields[otherFieldName] = getNextResetField(otherField);
+      nextFormFields[otherFieldName] = getNextResetField(otherField, false);
 
       if (otherFieldName !== initiatorFieldName) {
         resetDependentFields(nextFormFields, otherFieldName, fieldName);

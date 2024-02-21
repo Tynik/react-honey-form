@@ -1221,7 +1221,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address.value).toBeUndefined();
     expect(result.current.formFields.address.rawValue).toBeUndefined();
     expect(result.current.formFields.address.cleanValue).toBeUndefined();
-    expect(result.current.formFields.address.props.value).toBeUndefined();
+    expect(result.current.formFields.address.props.value).toBe('');
   });
 
   it('should reset dependent fields in chain when parent field changes', () => {
@@ -1262,12 +1262,12 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address.value).toBeUndefined();
     expect(result.current.formFields.address.rawValue).toBeUndefined();
     expect(result.current.formFields.address.cleanValue).toBeUndefined();
-    expect(result.current.formFields.address.props.value).toBeUndefined();
+    expect(result.current.formFields.address.props.value).toBe('');
 
     expect(result.current.formFields.apt.value).toBeUndefined();
     expect(result.current.formFields.apt.rawValue).toBeUndefined();
     expect(result.current.formFields.apt.cleanValue).toBeUndefined();
-    expect(result.current.formFields.apt.props.value).toBeUndefined();
+    expect(result.current.formFields.apt.props.value).toBe('');
   });
 
   it('should submit with reset dependent field value when parent field changes', async () => {
@@ -1325,7 +1325,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     });
 
     expect(result.current.formFields.address1.value).toBeUndefined();
-    expect(result.current.formFields.address1.props.value).toBeUndefined();
+    expect(result.current.formFields.address1.props.value).toBe('');
 
     expect(result.current.formFields.address2.value).toBe('71st Queens');
 
@@ -1336,7 +1336,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address1.value).toBe('132st Rich-Port');
 
     expect(result.current.formFields.address2.value).toBeUndefined();
-    expect(result.current.formFields.address2.props.value).toBeUndefined();
+    expect(result.current.formFields.address2.props.value).toBe('');
   });
 
   it('should clear multiple cross-dependent fields when relevant fields are modified', () => {
