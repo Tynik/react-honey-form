@@ -81,6 +81,28 @@ type ExtractHoneyFormChildForm<FieldValue> = FieldValue extends (infer ChildForm
 type HoneyFormFieldMode = 'change' | 'blur';
 
 /**
+ * Context object for any field function.
+ *
+ * @template T - Additional properties specific to the field function.
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ */
+type BaseHoneyFormFieldFunctionContext<T, Form extends HoneyFormBaseForm, FormContext> = {
+  /**
+   * The contextual information for the form.
+   */
+  formContext: FormContext;
+  /**
+   * An object containing all form fields and their properties.
+   */
+  formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * The current values of all form fields.
+   */
+  formValues: HoneyFormValues<Form>;
+} & T;
+
+/**
  * Represents a mapping of error types.
  * This allows for custom error messages for different error types.
  */
@@ -212,24 +234,17 @@ type BaseHoneyFormFieldValidatorContext<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
-> = {
-  /**
-   * The context object for the entire form.
-   */
-  formContext: FormContext;
-  /**
-   * An object containing all form fields and their properties.
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * The current values of all form fields.
-   */
-  formValues: HoneyFormValues<Form>;
-  /**
-   * A function to schedule validation for another field.
-   */
-  scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
-} & T;
+> = BaseHoneyFormFieldFunctionContext<
+  {
+    /**
+     * A function to schedule validation for another field.
+     */
+    scheduleValidation: HoneyFormScheduleFieldValidation<Form, FieldName>;
+  },
+  Form,
+  FormContext
+> &
+  T;
 
 /**
  * Context object for interactive field validators. This includes information about the form,
@@ -484,27 +499,6 @@ export type HoneyFormFieldFormatter<FieldValue, FormContext = undefined> = (
 ) => FieldValue | undefined;
 
 /**
- * Context object for the `HoneyFormSkipField` function.
- *
- * @template Form - Type representing the entire form.
- * @template FormContext - Contextual information for the form.
- */
-type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
-  /**
-   * The contextual information for the form.
-   */
-  formContext: FormContext;
-  /**
-   * The fields of the form.
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * Form values.
-   */
-  formValues: HoneyFormValues<Form>;
-};
-
-/**
  * Function type for determining whether to skip a field based on the form's context.
  *
  * @template Form - Type representing the entire form.
@@ -514,7 +508,7 @@ type HoneyFormSkipFieldContext<Form extends HoneyFormBaseForm, FormContext> = {
  * @returns `true` if the field should be skipped, `false` otherwise.
  */
 type HoneyFormSkipField<Form extends HoneyFormBaseForm, FormContext> = (
-  context: HoneyFormSkipFieldContext<Form, FormContext>,
+  context: BaseHoneyFormFieldFunctionContext<unknown, Form, FormContext>,
 ) => boolean;
 
 /**
@@ -527,6 +521,20 @@ type HoneyFormFieldConfigProps = Omit<
   InputHTMLAttributes<any>,
   'value' | 'onChange' | 'aria-required' | 'aria-invalid'
 >;
+
+type HoneyFormFieldDependsOn<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName] = Form[FieldName],
+> =
+  | keyof Form
+  | (keyof Form)[]
+  | ((
+      initiatorFieldName: keyof Form,
+      value: FieldValue | undefined,
+      context: BaseHoneyFormFieldFunctionContext<unknown, Form, FormContext>,
+    ) => boolean);
 
 /**
  * Represents the base configuration for a form field.
@@ -564,7 +572,7 @@ type BaseHoneyFormFieldConfig<
     /**
      * Clears the field value when the dependent field is changed.
      */
-    dependsOn?: keyof Form | (keyof Form)[];
+    dependsOn?: HoneyFormFieldDependsOn<Form, FieldName, FormContext, FieldValue>;
     /**
      * Custom error messages for this field.
      */

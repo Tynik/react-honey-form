@@ -1212,9 +1212,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.city.value).toBe('New York');
     expect(result.current.formFields.address.value).toBe('71st Queens');
 
-    act(() => {
-      result.current.formFields.city.setValue('New Jersey');
-    });
+    act(() => result.current.formFields.city.setValue('New Jersey'));
 
     expect(result.current.formFields.city.value).toBe('New Jersey');
 
@@ -1222,6 +1220,29 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address.rawValue).toBeUndefined();
     expect(result.current.formFields.address.cleanValue).toBeUndefined();
     expect(result.current.formFields.address.props.value).toBe('');
+  });
+
+  it('should not reset unit value to undefined when dependsOn condition is met', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ building: string; unit: string }>({
+        fields: {
+          building: {
+            type: 'string',
+          },
+          unit: {
+            type: 'string',
+            defaultValue: '10A',
+            dependsOn: (initiatorFieldName, _, { formFields }) =>
+              !formFields.unit.defaultValue && initiatorFieldName === 'building',
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.building.setValue('101st Brooklyn Road'));
+
+    expect(result.current.formFields.building.value).toBe('101st Brooklyn Road');
+    expect(result.current.formFields.unit.value).toBe('10A');
   });
 
   it('should reset dependent fields in chain when parent field changes', () => {
@@ -1253,9 +1274,7 @@ describe('Hook [use-honey-form]: Dependent fields', () => {
     expect(result.current.formFields.address.value).toBe('53st Dockland');
     expect(result.current.formFields.apt.value).toBe('341a');
 
-    act(() => {
-      result.current.formFields.city.setValue('New York');
-    });
+    act(() => result.current.formFields.city.setValue('New York'));
 
     expect(result.current.formFields.city.value).toBe('New York');
 

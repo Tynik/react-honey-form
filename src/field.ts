@@ -1129,6 +1129,7 @@ export const resetAllFields = <Form extends HoneyFormBaseForm, FormContext>(
  * @template Form - The form type.
  * @template FormContext - The context of the form.
  *
+ * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
  * @param {keyof Form} fieldName - The name of the field triggering the resetting.
  * @param {keyof Form | null} initiatorFieldName - The name of the field that initiated the resetting (optional).
@@ -1138,6 +1139,7 @@ const resetDependentFields = <
   FieldName extends keyof Form,
   FormContext,
 >(
+  formContext: FormContext,
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
   initiatorFieldName: FieldName | null = null,
@@ -1151,9 +1153,23 @@ const resetDependentFields = <
 
     const { dependsOn } = nextFormFields[otherFieldName].config;
 
-    const isDependent = Array.isArray(dependsOn)
-      ? dependsOn.includes(fieldName)
-      : fieldName === dependsOn;
+    let isDependent: boolean;
+
+    if (Array.isArray(dependsOn)) {
+      isDependent = dependsOn.includes(fieldName);
+      //
+    } else if (typeof dependsOn === 'function') {
+      const formValues = getFormValues(nextFormFields);
+
+      isDependent = dependsOn(initiatorFieldName, nextFormFields[otherFieldName].cleanValue, {
+        formContext,
+        formValues,
+        formFields: nextFormFields,
+      });
+      //
+    } else {
+      isDependent = fieldName === dependsOn;
+    }
 
     if (isDependent) {
       const otherField = nextFormFields[otherFieldName];
@@ -1161,7 +1177,7 @@ const resetDependentFields = <
       nextFormFields[otherFieldName] = getNextResetField(otherField, false);
 
       if (otherFieldName !== initiatorFieldName) {
-        resetDependentFields(nextFormFields, otherFieldName, fieldName);
+        resetDependentFields(formContext, nextFormFields, otherFieldName, fieldName);
       }
     }
   });
@@ -1354,7 +1370,7 @@ export const getNextFieldsState = <
 
   // If validation is requested, clear dependent fields and execute the field validator
   if (isValidate) {
-    resetDependentFields(nextFormFields, fieldName);
+    resetDependentFields(formContext, nextFormFields, fieldName);
 
     nextFormField = executeFieldValidator(formContext, nextFormFields, fieldName, filteredValue);
   }
