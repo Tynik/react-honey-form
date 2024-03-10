@@ -45,9 +45,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.items.setValue([]);
-    });
+    act(() => result.current.formFields.items.setValue([]));
 
     expect(result.current.formFields.items.value).toStrictEqual([]);
   });

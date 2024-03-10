@@ -19,9 +19,7 @@ describe('Hook [use-honey-form]: General', () => {
 
     expect(result.current.isFormDirty).toBeFalsy();
 
-    act(() => {
-      result.current.formFields.age.setValue(56);
-    });
+    act(() => result.current.formFields.age.setValue(56));
 
     expect(result.current.isFormDirty).toBeTruthy();
   });
@@ -35,12 +33,11 @@ describe('Hook [use-honey-form]: General', () => {
             defaultValue: 45,
           },
         },
+        onSubmit: async () => {},
       }),
     );
 
-    act(() => {
-      result.current.formFields.age.setValue(56);
-    });
+    act(() => result.current.formFields.age.setValue(56));
 
     expect(result.current.isFormDirty).toBeTruthy();
 
@@ -77,9 +74,7 @@ describe('Hook [use-honey-form]: General', () => {
 
     expect(Object.keys(result.current.formErrors).length).toBe(2);
 
-    act(() => {
-      result.current.clearFormErrors();
-    });
+    act(() => result.current.clearFormErrors());
 
     expect(Object.keys(result.current.formErrors).length).toBe(0);
   });
@@ -129,18 +124,14 @@ describe('Hook [use-honey-form]: General', () => {
 
     expect(onChange).not.toHaveBeenCalled();
 
-    act(() => {
-      result.current.formFields.name.setValue('a');
-    });
+    act(() => result.current.formFields.name.setValue('a'));
 
     await waitFor(() =>
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(onChange.mock.calls[0][0]).toStrictEqual({ name: 'a', kind: undefined }),
     );
 
-    act(() => {
-      result.current.formFields.kind.setValue('f');
-    });
+    act(() => result.current.formFields.kind.setValue('f'));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     await waitFor(() => expect(onChange.mock.calls[1][0]).toStrictEqual({ name: 'a', kind: 'f' }));

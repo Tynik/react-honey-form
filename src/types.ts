@@ -522,19 +522,22 @@ type HoneyFormFieldConfigProps = Omit<
   'value' | 'onChange' | 'aria-required' | 'aria-invalid'
 >;
 
-type HoneyFormFieldDependsOn<
+type HoneyFormFieldDependsOnFn<
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName] = Form[FieldName],
-> =
-  | keyof Form
-  | (keyof Form)[]
-  | ((
-      initiatorFieldName: keyof Form,
-      value: FieldValue | undefined,
-      context: BaseHoneyFormFieldFunctionContext<unknown, Form, FormContext>,
-    ) => boolean);
+> = (
+  initiatorFieldName: keyof Form,
+  value: FieldValue | undefined,
+  context: BaseHoneyFormFieldFunctionContext<unknown, Form, FormContext>,
+) => boolean;
+
+type HoneyFormFieldDependsOn<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+> = keyof Form | (keyof Form)[] | HoneyFormFieldDependsOnFn<Form, FieldName, FormContext>;
 
 /**
  * Represents the base configuration for a form field.
@@ -572,7 +575,7 @@ type BaseHoneyFormFieldConfig<
     /**
      * Clears the field value when the dependent field is changed.
      */
-    dependsOn?: HoneyFormFieldDependsOn<Form, FieldName, FormContext, FieldValue>;
+    dependsOn?: HoneyFormFieldDependsOn<Form, FieldName, FormContext>;
     /**
      * Custom error messages for this field.
      */
@@ -1332,6 +1335,25 @@ export type ChildHoneyFormOptions<
   FormContext
 >;
 
+type MultiHoneyFormsOnSubmitContext<FormContext> = {
+  formContext: FormContext;
+};
+
+export type MultiHoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = undefined> = {
+  /**
+   * Any object that can be used to pass contextual data to forms.
+   * This provides a way to share additional information or context with field-specific logic.
+   *
+   * @remarks
+   * Context data should be wrapped in `useMemo` to prevent unnecessary recalculations.
+   */
+  context?: FormContext;
+  /**
+   *
+   */
+  onSubmit?: (data: Form[], context: MultiHoneyFormsOnSubmitContext<FormContext>) => Promise<void>;
+};
+
 /**
  * Options allowing customization of form values setting behavior.
  */
@@ -1413,11 +1435,13 @@ type HoneyFormSubmitHandlerContext<FormContext> = {
   formContext: FormContext;
 };
 
+export type HoneyFormSubmitHandler<Form extends HoneyFormBaseForm, FormContext = undefined> = (
+  data: Form,
+  context: HoneyFormSubmitHandlerContext<FormContext>,
+) => Promise<HoneyFormServerErrors<Form> | void>;
+
 export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
-  submitHandler?: (
-    data: Form,
-    context: HoneyFormSubmitHandlerContext<FormContext>,
-  ) => Promise<HoneyFormServerErrors<Form> | void>,
+  submitHandler?: HoneyFormSubmitHandler<Form, FormContext>,
 ) => Promise<void>;
 
 export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
@@ -1431,7 +1455,7 @@ export type HoneyFormFormState = {
 
 export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined> = {
   /**
-   * Form context
+   * Form context.
    *
    * @default undefined
    */
@@ -1523,4 +1547,57 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
    * Reset the form to the initial state.
    */
   resetForm: HoneyFormReset<Form>;
+};
+
+/**
+ * Represents an API for managing multiple form instances.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ */
+export type MultiHoneyFormsApi<Form extends HoneyFormBaseForm, FormContext = undefined> = {
+  /**
+   * An array of form instances.
+   *
+   * @default []
+   */
+  forms: HoneyFormApi<Form, FormContext>[];
+  /**
+   * A boolean value that indicates whether the forms are currently submitting.
+   *
+   * @default false
+   */
+  isFormsSubmitting: boolean;
+  /**
+   * Adds a new form instance to the list of managed forms.
+   *
+   * @param {HoneyFormApi<Form, FormContext>} form - The form instance to add.
+   */
+  addForm: (form: HoneyFormApi<Form, FormContext>) => void;
+  /**
+   * Removes a form instance from the list of managed forms.
+   *
+   * @param {HoneyFormApi<Form, FormContext>} targetForm - The form instance to remove.
+   */
+  removeForm: (targetForm: HoneyFormApi<Form, FormContext>) => void;
+  /**
+   * Removing all form instances from the list.
+   */
+  clearForms: () => void;
+  /**
+   * Validates all forms.
+   *
+   * @returns {Promise<boolean[]>} - A Promise resolving to an array of boolean values indicating the validation status of each form.
+   */
+  validateForms: () => Promise<boolean[]>;
+  /**
+   * Submits all forms.
+   *
+   * @returns {Promise<void[]>} - A Promise resolving to an array of values indicating the submission status of each form.
+   */
+  submitForms: () => Promise<void[]>;
+  /**
+   * Resets all forms. Reset their values to defaults and clear all errors.
+   */
+  resetForms: () => void;
 };

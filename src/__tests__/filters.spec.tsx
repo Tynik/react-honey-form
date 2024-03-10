@@ -32,9 +32,7 @@ describe('Hook [use-honey-form]: Filter function', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.age.setValue('a12b');
-    });
+    act(() => result.current.formFields.age.setValue('a12b'));
 
     expect(result.current.formFields.age.value).toBe('12');
     expect(result.current.formFields.age.cleanValue).toBe('12');

@@ -19,6 +19,7 @@ import type {
   HoneyFormSetFormValues,
   HoneyFormSubmit,
   HoneyFormValidate,
+  HoneyFormErrors,
 } from './types';
 import {
   resetAllFields,
@@ -68,6 +69,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     typeof defaults === 'function' ? {} : { ...defaults },
   );
   const formFieldsRef = useRef<HoneyFormFields<Form, FormContext> | null>(null);
+  const formValuesRef = useRef<Form | null>(null);
+  const formErrorsRef = useRef<HoneyFormErrors<Form> | null>(null);
   const isFormDirtyRef = useRef(false);
   const isFormValidRef = useRef(false);
   const isFormSubmittedRef = useRef(false);
@@ -491,16 +494,22 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    * Submits the form by invoking the submit handler and handling server errors.
    */
   const submitForm = useCallback<HoneyFormSubmit<Form, FormContext>>(
-    async submitHandler => {
+    async formSubmitHandler => {
       if (!formFieldsRef.current) {
         throw new Error('The `formFieldsRef` value is null');
       }
 
-      updateFormState({
-        isValidating: true,
-      });
+      if (!formSubmitHandler && !onSubmit) {
+        throw new Error(
+          'To submit the form, either provide a `submitHandler` function or implement an `onSubmit` callback function',
+        );
+      }
 
       try {
+        updateFormState({
+          isValidating: true,
+        });
+
         if (await validateForm()) {
           // Only submitting the form can clear the dirty state
           updateFormState({
@@ -511,8 +520,10 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           // Prepare data for submission
           const submitData = getSubmitFormValues(formContext, formFieldsRef.current);
 
-          // Call the submitHandler or onSubmit function for actual submission
-          const serverErrors = await (submitHandler || onSubmit)?.(submitData, { formContext });
+          // Choose form submit handler
+          const submitHandler = formSubmitHandler || onSubmit;
+          // Call the `submitHandler` or `onSubmit` function for actual submission
+          const serverErrors = await submitHandler(submitData, { formContext });
 
           if (serverErrors && Object.keys(serverErrors).length) {
             setFormErrors(
@@ -572,17 +583,29 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   }, []);
 
   const formValues = useMemo(() => getFormValues(formFields), [formFields]);
+  formValuesRef.current = formValues;
 
   const formErrors = useMemo(() => getFormErrors(formFields), [formFields]);
+  formErrorsRef.current = formErrors;
 
   const isFormErred = Object.keys(formErrors).length > 0;
 
   return {
     formContext,
     formFieldsRef,
-    formFields,
-    formValues,
-    formErrors,
+    // Getters are needed to get the form fields, values and etc. using multi forms
+    get formDefaultValues() {
+      return formDefaultsRef.current;
+    },
+    get formFields() {
+      return formFieldsRef.current;
+    },
+    get formValues() {
+      return formValuesRef.current;
+    },
+    get formErrors() {
+      return formErrorsRef.current;
+    },
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
     isFormErred,
@@ -591,7 +614,6 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     isFormValid: isFormValidRef.current,
     isFormSubmitting: formState.isSubmitting,
     isFormSubmitted: isFormSubmittedRef.current,
-    formDefaultValues: formDefaultsRef.current,
     // functions
     setFormValues,
     setFormErrors,

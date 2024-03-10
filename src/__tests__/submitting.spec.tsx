@@ -44,9 +44,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.name.setValue('Apple');
-    });
+    act(() => result.current.formFields.name.setValue('Apple'));
 
     expect(result.current.isFormDirty).toBeTruthy();
     expect(result.current.isFormValid).toBeFalsy();
@@ -76,9 +74,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.name.setValue('');
-    });
+    act(() => result.current.formFields.name.setValue(''));
 
     expect(result.current.isFormDirty).toBeTruthy();
     expect(result.current.isFormValid).toBeFalsy();
@@ -112,9 +108,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
 
     expect(submitHandler).not.toHaveBeenCalled();
 
-    act(() => {
-      result.current.formFields.name.setValue('Ken');
-    });
+    act(() => result.current.formFields.name.setValue('Ken'));
 
     await act(() => result.current.submitForm(submitHandler));
 
@@ -140,9 +134,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.age.setValue(1.5);
-    });
+    act(() => result.current.formFields.age.setValue(1.5));
 
     await act(() => result.current.submitForm());
 
@@ -203,9 +195,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.name.setValue('Apple');
-    });
+    act(() => result.current.formFields.name.setValue('Apple'));
 
     expect(result.current.formValues.name).toBe('Apple');
 

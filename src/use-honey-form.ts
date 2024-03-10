@@ -1,3 +1,4 @@
+import { useContext, useEffect } from 'react';
 import type {
   HoneyFormBaseForm,
   HoneyFormOptions,
@@ -8,7 +9,9 @@ import type {
 
 import { createField } from './field';
 import { useForm } from './hooks';
-import { mapFieldsConfigs } from './helpers';
+import { mapFieldsConfigs, noop } from './helpers';
+import type { MultiHoneyFormsContextValue } from './components';
+import { MultiHoneyFormsContext } from './components/multi-honey-forms';
 
 type CreateInitialFormFieldsOptions<
   Form extends HoneyFormBaseForm,
@@ -57,8 +60,26 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
   fields: fieldsConfigs = {} as never,
   ...options
 }: HoneyFormOptions<Form, FormContext>): HoneyFormApi<Form, FormContext> => {
-  return useForm({
+  const multiFormsContext = useContext<MultiHoneyFormsContextValue<Form, FormContext> | undefined>(
+    MultiHoneyFormsContext,
+  );
+
+  const formApi = useForm<Form, FormContext>({
     initialFormFieldsStateResolver: config => createInitialFormFields({ fieldsConfigs, ...config }),
     ...options,
   });
+
+  useEffect(() => {
+    if (!multiFormsContext || multiFormsContext.disableFormsManagement) {
+      return noop;
+    }
+    // Add this form to multi forms context if present
+    multiFormsContext.addForm(formApi);
+
+    return () => {
+      multiFormsContext.removeForm(formApi);
+    };
+  }, []);
+
+  return formApi;
 };

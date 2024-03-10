@@ -6,3 +6,4 @@ export * from './child-honey-form.form';
 export * from './honey-form';
 export * from './child-honey-form';
 export * from './child-honey-form-dynamic.field';
+export * from './multi-honey-forms';
