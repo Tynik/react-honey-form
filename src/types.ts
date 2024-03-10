@@ -1575,6 +1575,13 @@ export type MultiHoneyFormsApi<Form extends HoneyFormBaseForm, FormContext = und
    */
   addForm: (form: HoneyFormApi<Form, FormContext>) => void;
   /**
+   * Inserts a new form instance at the specified index in the list of managed forms.
+   *
+   * @param {number} index - The index at which to insert the form.
+   * @param {HoneyFormApi<Form, FormContext>} form - The form instance to insert.
+   */
+  insertForm: (index: number, form: HoneyFormApi<Form, FormContext>) => void;
+  /**
    * Removes a form instance from the list of managed forms.
    *
    * @param {HoneyFormApi<Form, FormContext>} targetForm - The form instance to remove.

@@ -20,6 +20,25 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     expect(multiFormsApi.current.forms).toStrictEqual([]);
   });
 
+  it('should insert/remove forms to/from multi forms list', () => {
+    const { result: multiFormsApi } = renderHook(() => useMultiHoneyForms({}));
+
+    const { result: formApi1 } = renderHook(() => useHoneyForm({}));
+    const { result: formApi2 } = renderHook(() => useHoneyForm({}));
+
+    act(() => multiFormsApi.current.insertForm(0, formApi1.current));
+
+    expect(multiFormsApi.current.forms).toStrictEqual([formApi1.current]);
+
+    act(() => multiFormsApi.current.insertForm(0, formApi2.current));
+
+    expect(multiFormsApi.current.forms).toStrictEqual([formApi2.current, formApi1.current]);
+
+    act(() => multiFormsApi.current.removeForm(formApi2.current));
+
+    expect(multiFormsApi.current.forms).toStrictEqual([formApi1.current]);
+  });
+
   it('should clear all added multi forms from list', () => {
     const { result: multiFormsApi } = renderHook(() => useMultiHoneyForms({}));
 
