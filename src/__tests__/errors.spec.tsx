@@ -12,7 +12,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
 
   it('error should not be present for just declared field', () => {
     const { result } = renderHook(() =>
-      useHoneyForm({
+      useHoneyForm<{ name: string }>({
         fields: {
           name: {
             type: 'string',

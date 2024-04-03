@@ -4,7 +4,7 @@ import type {
   HoneyFormFields,
   HoneyFormField,
   HoneyFormChildFormContext,
-  HoneyFormChildFormId,
+  HoneyFormId,
   HoneyFormParentField,
   ChildHoneyFormBaseForm,
   HoneyFormFieldsConfigs,
@@ -52,21 +52,21 @@ export const getHoneyFormUniqueId = () => {
  * @template FormContext - The type representing the context associated with the form.
  *
  * @param {HoneyFormFieldsConfigs<Form, FormContext>} fieldsConfigs - Object containing field configurations.
- * @param {(fieldName: keyof Form, fieldConfig: HoneyFormFieldConfig<Form, keyof Form, FormContext>) => HoneyFormField<Form, keyof Form, FormContext>} fieldCallback - Callback function
+ * @param {(fieldName: keyof Form, fieldConfig: HoneyFormFieldConfig<Form, keyof Form, FormContext>) => HoneyFormField<Form, keyof Form, FormContext>} callback - Callback function
  *   invoked for each field configuration, providing the field name and the entire field configuration.
  *
  * @returns {HoneyFormFields<Form, FormContext>} - Object containing mapped form fields.
  */
 export const mapFieldsConfigs = <Form extends HoneyFormBaseForm, FormContext>(
   fieldsConfigs: HoneyFormFieldsConfigs<Form, FormContext>,
-  fieldCallback: (
+  callback: (
     fieldName: keyof Form,
     fieldConfig: HoneyFormFieldConfig<Form, keyof Form, FormContext>,
   ) => HoneyFormField<Form, keyof Form, FormContext>,
 ): HoneyFormFields<Form, FormContext> =>
   Object.keys(fieldsConfigs).reduce(
     (nextFormFields, fieldName: keyof Form) => {
-      nextFormFields[fieldName] = fieldCallback(fieldName, fieldsConfigs[fieldName]);
+      nextFormFields[fieldName] = callback(fieldName, fieldsConfigs[fieldName]);
 
       return nextFormFields;
     },
@@ -79,23 +79,20 @@ export const mapFieldsConfigs = <Form extends HoneyFormBaseForm, FormContext>(
  * @template Form - The form type.
  *
  * @param {HoneyFormServerErrors<Form>} serverErrors - The server errors associated with form fields.
- * @param {(erredFieldName: keyof Form, fieldErrors: HoneyFormFieldErrorMessage[]) => HoneyFormFieldError[]} erredFieldCallback
+ * @param {(erredFieldName: keyof Form, fieldErrors: HoneyFormFieldErrorMessage[]) => HoneyFormFieldError[]} callback
  *   - The callback function to transform server errors for each field.
  *
  * @returns {HoneyFormErrors<Form>} - The mapped server errors.
  */
 export const mapServerErrors = <Form extends HoneyFormBaseForm>(
   serverErrors: HoneyFormServerErrors<Form>,
-  erredFieldCallback: (
+  callback: (
     erredFieldName: keyof Form,
     fieldErrors: HoneyFormFieldErrorMessage[],
   ) => HoneyFormFieldError[],
 ): HoneyFormErrors<Form> =>
   Object.keys(serverErrors).reduce((nextFormErrors, erredFieldName: keyof Form) => {
-    nextFormErrors[erredFieldName] = erredFieldCallback(
-      erredFieldName,
-      serverErrors[erredFieldName],
-    );
+    nextFormErrors[erredFieldName] = callback(erredFieldName, serverErrors[erredFieldName]);
 
     return nextFormErrors;
   }, {} as HoneyFormErrors<Form>);
@@ -107,18 +104,18 @@ export const mapServerErrors = <Form extends HoneyFormBaseForm>(
  * @template FormContext - The type representing the context associated with the form.
  *
  * @param {HoneyFormFields<Form, FormContext>} formFields - Object containing form fields.
- * @param {(fieldName: keyof Form, formField: HoneyFormField<Form, keyof Form, FormContext>) => void} fieldCallback - Callback function
+ * @param {(fieldName: keyof Form, formField: HoneyFormField<Form, keyof Form, FormContext>) => void} callback - Callback function
  *   invoked for each form field, providing the field name and the entire form field object.
  */
 export const forEachFormField = <Form extends HoneyFormBaseForm, FormContext>(
   formFields: HoneyFormFields<Form, FormContext>,
-  fieldCallback: (
+  callback: (
     fieldName: keyof Form,
     formField: HoneyFormField<Form, keyof Form, FormContext>,
   ) => void,
 ) => {
   Object.keys(formFields).forEach((fieldName: keyof Form) =>
-    fieldCallback(fieldName, formFields[fieldName]),
+    callback(fieldName, formFields[fieldName]),
   );
 };
 
@@ -128,15 +125,15 @@ export const forEachFormField = <Form extends HoneyFormBaseForm, FormContext>(
  * @template Form - The type representing the form structure.
  *
  * @param {HoneyFormErrors<Form>} formErrors - Object containing form field errors.
- * @param {(fieldName: keyof Form, fieldErrors: HoneyFormFieldError[]) => void} fieldCallback - Callback function
+ * @param {(fieldName: keyof Form, fieldErrors: HoneyFormFieldError[]) => void} callback - Callback function
  *   invoked for each form field, providing the field name and its associated errors.
  */
 export const forEachFormError = <Form extends HoneyFormBaseForm>(
   formErrors: HoneyFormErrors<Form>,
-  fieldCallback: (erredFieldName: keyof Form, fieldErrors: HoneyFormFieldError[]) => void,
+  callback: (erredFieldName: keyof Form, fieldErrors: HoneyFormFieldError[]) => void,
 ) => {
   Object.keys(formErrors).forEach((erredFieldName: keyof Form) =>
-    fieldCallback(erredFieldName, formErrors[erredFieldName]),
+    callback(erredFieldName, formErrors[erredFieldName]),
   );
 };
 
@@ -144,30 +141,30 @@ export const forEachFormError = <Form extends HoneyFormBaseForm>(
  * Maps over the fields, applying a callback to each field.
  *
  * @param formFields - The fields.
- * @param fieldCallback - A function that takes a field name and its configuration and returns a transformed item.
- * @param filterFieldCallback - (Optional) A function that takes a field name and its configuration and returns a boolean.
+ * @param callback - A function that takes a field name and its configuration and returns a transformed item.
+ * @param filterCallback - (Optional) A function that takes a field name and its configuration and returns a boolean.
  *  If true, the field is excluded from the result.
  *
  * @returns A new object where each field is transformed according to the callback.
  */
 export const mapFormFields = <Form extends HoneyFormBaseForm, FormContext, Item>(
   formFields: HoneyFormFields<Form, FormContext>,
-  fieldCallback: (
+  callback: (
     fieldName: keyof Form,
     formField: HoneyFormField<Form, keyof Form, FormContext>,
   ) => Item,
-  filterFieldCallback?: (
+  filterCallback?: (
     fieldName: keyof Form,
     formField: HoneyFormField<Form, keyof Form, FormContext>,
   ) => boolean,
 ): Record<keyof Form, Item> =>
   Object.keys(formFields).reduce(
     (result, fieldName: keyof Form) => {
-      if (filterFieldCallback?.(fieldName, formFields[fieldName]) === false) {
+      if (filterCallback?.(fieldName, formFields[fieldName]) === false) {
         return result;
       }
 
-      result[fieldName] = fieldCallback(fieldName, formFields[fieldName]);
+      result[fieldName] = callback(fieldName, formFields[fieldName]);
 
       return result;
     },
@@ -301,7 +298,7 @@ type IsSkipFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
  *
  * @returns {boolean} - A boolean indicating whether the field should be skipped.
  */
-export const isSkipField = <
+export const checkIsSkipField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -350,7 +347,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
         formField.__meta__.childForms.forEach(childForm => {
           const childFormFields = childForm.formFieldsRef.current;
           if (!childFormFields) {
-            throw new Error('The child `childFormFields` value is null');
+            throw new Error('[honey-form]: The child `childFormFields` value is null');
           }
 
           childFormsCleanValues.push(getSubmitFormValues(formContext, childFormFields));
@@ -365,7 +362,7 @@ export const getSubmitFormValues = <Form extends HoneyFormBaseForm, FormContext>
         ? formField.value
         : formField.cleanValue;
     },
-    fieldName => !isSkipField(fieldName, { formContext, formFields, formValues }),
+    fieldName => !checkIsSkipField(fieldName, { formContext, formFields, formValues }),
   ) as Form;
 };
 
@@ -419,18 +416,34 @@ export const registerChildForm = <
  * @template ParentForm - The type representing the parent form structure.
  *
  * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field from which to unregister the child form.
- * @param {HoneyFormChildFormId} childFormId - The ID of the child form to unregister.
+ * @param {HoneyFormId} formId - The ID of the child form to unregister.
  */
 export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
   parentFormField: HoneyFormParentField<ParentForm>,
-  childFormId: HoneyFormChildFormId,
+  formId: HoneyFormId,
 ) => {
   // Filter out the child form with the specified ID
   // @ts-expect-error
   parentFormField.__meta__.childForms = parentFormField.__meta__.childForms?.filter(
-    childForm => childForm.id !== childFormId,
+    childForm => childForm.formId !== formId,
   );
 };
+
+/**
+ * Retrieves the index of a child form within a parent form field's list of child forms.
+ *
+ * @template ParentForm - Type representing the parent form.
+ *
+ * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field containing the child forms.
+ * @param {HoneyFormId} formId - The ID of the child form to find.
+ *
+ * @returns {number} - The index of the child form within the parent form field's list of child forms, or -1 if not found.
+ */
+export const getChildFormIndex = <ParentForm extends HoneyFormBaseForm>(
+  parentFormField: HoneyFormParentField<ParentForm>,
+  formId: HoneyFormId,
+): number =>
+  parentFormField.__meta__.childForms?.findIndex(childForm => childForm.formId === formId);
 
 /**
  * Runs validation on child forms associated with a given form field.

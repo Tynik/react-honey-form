@@ -69,7 +69,7 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
         forms.map((form, formIndex) => form.submitForm(submitHandler(formIndex))),
       );
 
-      // Call `onSubmit` callback function only when all forms were successfully pass the validation
+      // Call `onSubmit` callback function only when all forms were successfully passed the validation
       if (formsData.length === forms.length) {
         await onSubmit?.(formsData, { formContext });
       }

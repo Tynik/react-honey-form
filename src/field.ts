@@ -6,16 +6,18 @@ import type {
   HoneyFormFieldConfig,
   HoneyFormFieldError,
   HoneyFormFields,
-  HoneyFormFieldValidationResult,
-  HoneyFormFieldType,
-  HoneyFormFieldValueConvertor,
-  HoneyFormSetFieldValueInternal,
-  HoneyFormPushFieldValue,
-  HoneyFormRemoveFieldValue,
-  HoneyFormClearFieldErrors,
   HoneyFormField,
+  HoneyFormFieldType,
+  HoneyFormFieldValidationResult,
+  HoneyFormFieldValueConvertor,
+  HoneyFormFieldSetInternalValue,
+  HoneyFormFieldPushValue,
+  HoneyFormFieldRemoveValue,
+  HoneyFormFieldAddErrors,
+  HoneyFormFieldClearErrors,
+  HoneyFormFieldProps,
+  HoneyFormFieldSetChildFormsErrors,
   HoneyFormFieldMeta,
-  HoneyFormAddFieldError,
   HoneyFormDefaultsRef,
   HoneyFormFieldsRef,
   BaseHoneyFormFieldHTMLAttributes,
@@ -25,7 +27,6 @@ import type {
   HoneyFormObjectFieldConfig,
   HoneyFormPassiveFieldProps,
   HoneyFormInteractiveFieldProps,
-  HoneyFormFieldProps,
   HoneyFormValidateField,
 } from './types';
 import {
@@ -41,7 +42,7 @@ import {
   checkIfFieldIsPassive,
   forEachFormField,
   getFormValues,
-  isSkipField,
+  checkIsSkipField,
   scheduleFieldValidation,
 } from './helpers';
 
@@ -133,7 +134,7 @@ type InteractiveFieldPropsOptions<
 > = {
   formFieldRef: RefObject<HTMLElement>;
   fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
 };
 
 /**
@@ -195,7 +196,7 @@ type PassiveFieldPropsOptions<
 > = {
   formFieldRef: RefObject<HTMLElement>;
   fieldConfig: HoneyFormPassiveFieldConfig<Form, FieldName, FormContext>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
 };
 
 /**
@@ -259,7 +260,7 @@ type ObjectFieldPropsOptions<
 > = {
   formFieldRef: RefObject<HTMLElement>;
   fieldConfig: HoneyFormObjectFieldConfig<Form, FieldName, FormContext>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
 };
 
 /**
@@ -313,7 +314,7 @@ type FieldPropsOptions<
 > = {
   formFieldRef: RefObject<HTMLElement>;
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
 };
 
 /**
@@ -390,12 +391,13 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
   formDefaultsRef: HoneyFormDefaultsRef<Form>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
-  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
+  clearFieldErrors: HoneyFormFieldClearErrors<Form>;
   validateField: HoneyFormValidateField<Form>;
-  pushFieldValue: HoneyFormPushFieldValue<Form>;
-  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
-  addFormFieldError: HoneyFormAddFieldError<Form>;
+  pushFieldValue: HoneyFormFieldPushValue<Form>;
+  removeFieldValue: HoneyFormFieldRemoveValue<Form>;
+  addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
+  setFieldChildFormsErrors: HoneyFormFieldSetChildFormsErrors<Form>;
 };
 
 export const createField = <
@@ -414,7 +416,8 @@ export const createField = <
     validateField,
     pushFieldValue,
     removeFieldValue,
-    addFormFieldError,
+    addFormFieldErrors,
+    setFieldChildFormsErrors,
   }: CreateFieldOptions<Form, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
@@ -453,14 +456,15 @@ export const createField = <
 
   const fieldProps = getFieldProps(fieldName, formattedValue, {
     formFieldRef,
-    fieldConfig: config,
     setFieldValue,
+    fieldConfig: config,
   });
 
   const newFormField: HoneyFormField<Form, FieldName, FormContext> = {
     ...fieldProps,
     config,
     errors: [],
+    childFormsErrors: [],
     defaultValue: config.defaultValue,
     rawValue: filteredValue,
     cleanValue: filteredValue,
@@ -472,7 +476,7 @@ export const createField = <
         fieldMeta.childForms?.map(childForm => {
           const childFormFields = childForm.formFieldsRef.current;
           if (!childFormFields) {
-            throw new Error('The child `formFieldsRef` value is null');
+            throw new Error('[honey-form]: The child `formFieldsRef` value is null');
           }
 
           return getFormValues(childFormFields);
@@ -487,12 +491,14 @@ export const createField = <
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
     resetValue: () => setFieldValue(fieldName, formDefaultsRef.current[fieldName]),
     //
-    addError: error => addFormFieldError(fieldName, error),
+    addErrors: errors => addFormFieldErrors(fieldName, errors),
+    addError: error => addFormFieldErrors(fieldName, [error]),
+    setChildFormsErrors: errors => setFieldChildFormsErrors(fieldName, errors),
     clearErrors: () => clearFieldErrors(fieldName),
     validate: () => validateField(fieldName),
     focus: () => {
       if (!formFieldRef.current) {
-        throw new Error('The `formFieldRef` is not available');
+        throw new Error('[honey-form]: The `formFieldRef` is not available');
       }
 
       formFieldRef.current.focus();
@@ -873,8 +879,7 @@ const handleFieldPromiseValidationResult = <
     .then(validationResult => {
       if (validationResult) {
         if (Array.isArray(validationResult)) {
-          // TODO: each error triggers one re-render
-          validationResult.forEach(formField.addError);
+          formField.addErrors(validationResult);
           //
         } else if (typeof validationResult !== 'boolean') {
           formField.addError({
@@ -1095,7 +1100,7 @@ const checkSkippableFields = <
     }
 
     if (
-      isSkipField(otherFieldName, {
+      checkIsSkipField(otherFieldName, {
         formContext,
         formValues,
         formFields: nextFormFields,
@@ -1214,14 +1219,13 @@ const triggerScheduledFieldsValidations = <
 
     // Check if validation is scheduled for the field
     if (nextFormField.__meta__.isValidationScheduled) {
-      // Skip validation if the field is marked to be skipped
-      if (
-        !isSkipField(otherFieldName, {
-          formContext,
-          formValues,
-          formFields: nextFormFields,
-        })
-      ) {
+      const isSkipField = checkIsSkipField(otherFieldName, {
+        formContext,
+        formValues,
+        formFields: nextFormFields,
+      });
+
+      if (!isSkipField) {
         let filteredValue: Form[keyof Form];
 
         if (checkIfFieldIsInteractive(nextFormField.config) && nextFormField.config.filter) {

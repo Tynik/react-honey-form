@@ -6,7 +6,7 @@ type KeysWithArrayValues<T> = {
 
 type HoneyFormFieldName = string;
 
-export type HoneyFormChildFormId = string;
+export type HoneyFormId = string;
 
 /**
  * Represents the types of interactive form fields that support dynamic user input.
@@ -61,7 +61,7 @@ export type ChildHoneyFormBaseForm = HoneyFormBaseForm;
 /**
  * Utility type that extracts an array of child forms from a given field value.
  */
-type ExtractHoneyFormChildForms<FieldValue> = FieldValue extends (infer ChildForm extends
+type HoneyFormExtractChildForms<FieldValue> = FieldValue extends (infer ChildForm extends
   ChildHoneyFormBaseForm)[]
   ? ChildForm[]
   : never;
@@ -69,7 +69,7 @@ type ExtractHoneyFormChildForms<FieldValue> = FieldValue extends (infer ChildFor
 /**
  * Utility type that extracts a single child form from a given field value.
  */
-type ExtractHoneyFormChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
+type HoneyFormExtractChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
   ChildHoneyFormBaseForm)[]
   ? ChildForm
   : never;
@@ -158,43 +158,98 @@ type HoneyFormFieldSetValueOptions = {
   isValidate?: boolean;
 };
 
-type HoneyFormSetFieldValueOptionsInternal = HoneyFormFieldSetValueOptions & {
+type HoneyFormFieldSetInternalValueOptions = HoneyFormFieldSetValueOptions & {
   isPushValue?: boolean;
 };
 
-export type HoneyFormSetFieldValueInternal<Form extends HoneyFormBaseForm> = <
+export type HoneyFormFieldSetInternalValue<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
   fieldName: FieldName,
   value: FieldValue,
-  options?: HoneyFormSetFieldValueOptionsInternal,
+  options?: HoneyFormFieldSetInternalValueOptions,
 ) => void;
 
-export type HoneyFormClearFieldErrors<Form extends HoneyFormBaseForm> = <
+export type HoneyFormFieldClearErrors<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof Form,
 >(
   fieldName: FieldName,
 ) => void;
 
-export type HoneyFormPushFieldValue<Form extends HoneyFormBaseForm> = <
+export type HoneyFormFieldPushValue<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof { [F in keyof Form]: Form[F] extends unknown[] ? F : never },
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
   fieldName: FieldName,
-  value: ExtractHoneyFormChildForm<FieldValue>,
+  value: HoneyFormExtractChildForm<FieldValue>,
 ) => void;
 
-export type HoneyFormRemoveFieldValue<Form extends HoneyFormBaseForm> = <
+export type HoneyFormFieldRemoveValue<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof { [F in keyof Form]: Form[F] extends unknown[] ? F : never },
 >(
   fieldName: FieldName,
   formIndex: number,
 ) => void;
 
-export type HoneyFormAddFieldError<Form extends HoneyFormBaseForm> = <FieldName extends keyof Form>(
+/**
+ * Function type for adding an error to a specific form field.
+ *
+ * @template Form - Type representing the entire form.
+ */
+export type HoneyFormFieldAddError<Form extends HoneyFormBaseForm> = <FieldName extends keyof Form>(
   fieldName: FieldName,
   error: HoneyFormFieldError,
+) => void;
+
+/**
+ * Function type for adding errors to a specific form field.
+ *
+ * @template Form - Type representing the entire form.
+ */
+export type HoneyFormFieldAddErrors<Form extends HoneyFormBaseForm> = <
+  FieldName extends keyof Form,
+>(
+  fieldName: FieldName,
+  errors: HoneyFormFieldError[],
+) => void;
+
+/**
+ * Represents the errors associated with each form field in a form.
+ *
+ * @template Form - Type representing the entire form.
+ */
+export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
+  [FieldName in keyof Form]: HoneyFormFieldError[];
+};
+
+/**
+ * Represents the errors of child forms associated with a parent field in a form.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FieldName - Name of the parent field in the form.
+ */
+type HoneyFormChildFormsErrors<
+  Form extends HoneyFormBaseForm,
+  ParentFieldName extends keyof Form,
+> = HoneyFormErrors<HoneyFormExtractChildForm<Form[ParentFieldName]>>[];
+
+/**
+ * Function type for setting the errors of child forms associated with a parent field in a form.
+ *
+ * @template Form - Type representing the entire form.
+ */
+export type HoneyFormFieldSetChildFormsErrors<Form extends HoneyFormBaseForm> = <
+  ParentFieldName extends keyof Form,
+>(
+  /**
+   * The name of the parent field in the form.
+   */
+  parentFieldName: ParentFieldName,
+  /**
+   * The errors of child forms associated with the parent field.
+   */
+  childFormsErrors: HoneyFormChildFormsErrors<Form, ParentFieldName>,
 ) => void;
 
 /**
@@ -951,9 +1006,9 @@ export type HoneyFormFieldsRef<
  */
 export type HoneyFormChildFormContext<ChildForm extends ChildHoneyFormBaseForm, FormContext> = {
   /**
-   * The unique identifier for the child form.
+   * The unique identifier for the form.
    */
-  id: HoneyFormChildFormId;
+  formId: HoneyFormId;
   /**
    * A reference to the form fields of the child form.
    */
@@ -1015,6 +1070,8 @@ type BaseHoneyFormField<
     config: HoneyFormFieldConfig<Form, FieldName, FormContext, FieldValue>;
     /**
      * The default value initially set for the field.
+     *
+     * @default undefined
      */
     defaultValue: FieldValue | undefined;
     /**
@@ -1031,6 +1088,8 @@ type BaseHoneyFormField<
     value: FieldValue | undefined;
     /**
      * An array of errors associated with this field.
+     *
+     * @default []
      */
     errors: HoneyFormFieldError[];
     /**
@@ -1046,9 +1105,13 @@ type BaseHoneyFormField<
      */
     resetValue: () => void;
     /**
-     * A function to add an error to the field's error array.
+     * A function to add a new error to the field.
      */
     addError: (error: HoneyFormFieldError) => void;
+    /**
+     * A function to add the new errors to the field.
+     */
+    addErrors: (errors: HoneyFormFieldError[]) => void;
     /**
      * A function to clear all errors associated with this field.
      */
@@ -1099,13 +1162,23 @@ export type HoneyFormField<
 > = BaseHoneyFormField<
   HoneyFormFieldProps<Form, FieldName, FieldValue> & {
     /**
+     * An array containing errors of child forms if the field is a parent field with child forms.
+     *
+     * @default []
+     */
+    childFormsErrors: HoneyFormChildFormsErrors<Form, FieldName>;
+    /**
+     * A function to set the new child forms errors to the parent field.
+     */
+    setChildFormsErrors: (childFormsErrors: HoneyFormChildFormsErrors<Form, FieldName>) => void;
+    /**
      * A function to add a new value to a parent field that can have child forms.
      */
-    pushValue: (value: ExtractHoneyFormChildForm<FieldValue>) => void;
+    pushValue: (value: HoneyFormExtractChildForm<FieldValue>) => void;
     /**
      * A function to retrieve child forms' values if the field is a parent field.
      */
-    getChildFormsValues: () => ExtractHoneyFormChildForms<FieldValue>;
+    getChildFormsValues: () => HoneyFormExtractChildForms<FieldValue>;
     /**
      * A function to focus on this field. Note: Can only be used when `props` are destructured within a component.
      */
@@ -1169,10 +1242,6 @@ export type ChildHoneyFormFieldsConfigs<
   >;
 };
 
-export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
-  [FieldName in keyof Form]: HoneyFormFieldError[];
-};
-
 export type HoneyFormServerErrors<Form extends HoneyFormBaseForm> = {
   [FieldName in keyof Form]: HoneyFormFieldErrorMessage[];
 };
@@ -1230,18 +1299,28 @@ export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm
   formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
   formDefaultsRef: HoneyFormDefaultsRef<Form>;
-  setFieldValue: HoneyFormSetFieldValueInternal<Form>;
-  clearFieldErrors: HoneyFormClearFieldErrors<Form>;
+  setFieldValue: HoneyFormFieldSetInternalValue<Form>;
+  clearFieldErrors: HoneyFormFieldClearErrors<Form>;
   validateField: HoneyFormValidateField<Form>;
-  pushFieldValue: HoneyFormPushFieldValue<Form>;
-  removeFieldValue: HoneyFormRemoveFieldValue<Form>;
-  addFormFieldError: HoneyFormAddFieldError<Form>;
+  pushFieldValue: HoneyFormFieldPushValue<Form>;
+  removeFieldValue: HoneyFormFieldRemoveValue<Form>;
+  addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
+  setFieldChildFormsErrors: HoneyFormFieldSetChildFormsErrors<Form>;
 };
 
-export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined> = {
+export type FormOptions<
+  Form extends HoneyFormBaseForm,
+  ParentForm extends HoneyFormBaseForm,
+  FormContext = undefined,
+> = {
   initialFormFieldsStateResolver: (
     options: InitialFormFieldsStateResolverOptions<Form, FormContext>,
   ) => HoneyFormFields<Form, FormContext>;
+  /**
+   * A reference to a parent form field.
+   * Use this to create nested forms where the parent field can have child forms.
+   */
+  parentField?: HoneyFormParentField<ParentForm>;
   /**
    * Default values for the form fields.
    * Can be a Promise function to asynchronously retrieve defaults.
@@ -1275,6 +1354,14 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
    */
   context?: FormContext;
   /**
+   * [NOT IMPLEMENTED]
+   *
+   * Where to store the fields values when they changed
+   *
+   * @default undefined
+   */
+  storage?: 'query';
+  /**
    * A callback function triggered when the form is submitted.
    */
   onSubmit?: HoneyFormOnSubmit<Form, FormContext>;
@@ -1291,9 +1378,14 @@ export type FormOptions<Form extends HoneyFormBaseForm, FormContext = undefined>
   onChangeDebounce?: number;
 };
 
-type BaseHoneyFormOptions<T, Form extends HoneyFormBaseForm, FormContext = undefined> = Omit<
-  FormOptions<Form, FormContext>,
-  'initialFormFieldsStateResolver'
+type BaseHoneyFormOptions<
+  T,
+  Form extends HoneyFormBaseForm,
+  ParentForm extends HoneyFormBaseForm,
+  FormContext = undefined,
+> = Omit<
+  FormOptions<Form, ParentForm, FormContext>,
+  'initialFormFieldsStateResolver' | 'parentField'
 > &
   T;
 
@@ -1308,6 +1400,7 @@ export type HoneyFormOptions<
     fields?: HoneyFormFieldsConfigs<Form, FormContext>;
   },
   Form,
+  undefined,
   FormContext
 >;
 
@@ -1332,6 +1425,7 @@ export type ChildHoneyFormOptions<
     fields?: ChildHoneyFormFieldsConfigs<ParentForm, ChildForm, FormContext>;
   },
   ChildForm,
+  ParentForm,
   FormContext
 >;
 
@@ -1339,6 +1433,12 @@ type MultiHoneyFormsOnSubmitContext<FormContext> = {
   formContext: FormContext;
 };
 
+/**
+ * Represents the options for configuring the multi forms.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ */
 export type MultiHoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = undefined> = {
   /**
    * Any object that can be used to pass contextual data to forms.
@@ -1349,7 +1449,12 @@ export type MultiHoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = 
    */
   context?: FormContext;
   /**
+   * A callback function that will be invoked only when all forms have successfully passed validation.
    *
+   * @param {Form[]} data - An array containing the data from all forms.
+   * @param {MultiHoneyFormsOnSubmitContext<FormContext>} context - The contextual information for the submission process.
+   *
+   * @returns {Promise<void>} - A Promise that resolves when the submission process is complete.
    */
   onSubmit?: (data: Form[], context: MultiHoneyFormsOnSubmitContext<FormContext>) => Promise<void>;
 };
@@ -1425,25 +1530,67 @@ type HoneyFormValidateOptions<Form extends HoneyFormBaseForm> = {
 };
 
 /**
- * @param fieldNames - Optional list of field names for validation
+ * Represents a function to validate a form.
+ *
+ * @param {string[]} [fieldNames] - Optional list of field names for validation.
+ *
+ * @returns {Promise<boolean>} - A Promise that resolves to `true` if the form passes validation, or `false` otherwise.
  */
 export type HoneyFormValidate<Form extends HoneyFormBaseForm> = (
   options?: HoneyFormValidateOptions<Form>,
 ) => Promise<boolean>;
 
+/**
+ * Represents a context object for the submit handler function.
+ *
+ * @template FormContext - Contextual information for the form.
+ */
 type HoneyFormSubmitHandlerContext<FormContext> = {
+  /**
+   * The contextual information for the form submission.
+   */
   formContext: FormContext;
 };
 
+/**
+ * Represents a function to handle form submission.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {Form} data - The data of the form to be submitted.
+ * @param {HoneyFormSubmitHandlerContext<FormContext>} context - The context object for the form submission.
+ *
+ * @returns {Promise<HoneyFormServerErrors<Form> | void>} - A Promise that resolves to server errors if any, or `void` if submission succeeds.
+ */
 export type HoneyFormSubmitHandler<Form extends HoneyFormBaseForm, FormContext = undefined> = (
   data: Form,
   context: HoneyFormSubmitHandlerContext<FormContext>,
 ) => Promise<HoneyFormServerErrors<Form> | void>;
 
+/**
+ * Represents a function to submit a form.
+ *
+ * @template Form - Type representing the entire form.
+ * @template FormContext - Contextual information for the form.
+ *
+ * @param {HoneyFormSubmitHandler<Form, FormContext>} [submitHandler] - Optional submit handler function to handle form submission.
+ *
+ * @returns {Promise<void>} - A Promise that resolves once the form submission is complete.
+ */
 export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefined> = (
   submitHandler?: HoneyFormSubmitHandler<Form, FormContext>,
 ) => Promise<void>;
 
+/**
+ * Represents a function to reset a form.
+ *
+ * @template Form - Type representing the entire form.
+ *
+ * @param {HoneyFormDefaultValues<Form>} [newFormDefaults] - Optional new default values for the form fields.
+ *
+ * @returns {void} - This function does not return anything.
+ */
 export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
   newFormDefaults?: HoneyFormDefaultValues<Form>,
 ) => void;
@@ -1539,7 +1686,8 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
    */
   addFormField: HoneyFormAddFormField<Form, FormContext>;
   removeFormField: HoneyFormRemoveFormField<Form>;
-  addFormFieldError: HoneyFormAddFieldError<Form>;
+  addFormFieldError: HoneyFormFieldAddError<Form>;
+  addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
   clearFormErrors: HoneyFormClearErrors;
   validateForm: HoneyFormValidate<Form>;
   submitForm: HoneyFormSubmit<Form, FormContext>;

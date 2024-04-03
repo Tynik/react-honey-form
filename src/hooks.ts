@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
-  HoneyFormAddFieldError,
-  HoneyFormClearFieldErrors,
+  FormOptions,
+  HoneyFormId,
+  HoneyFormBaseForm,
+  HoneyFormFieldAddError,
+  HoneyFormFieldClearErrors,
   HoneyFormDefaultValues,
   HoneyFormFields,
   HoneyFormFormState,
-  HoneyFormPushFieldValue,
-  HoneyFormRemoveFieldValue,
-  HoneyFormSetFieldValueInternal,
+  HoneyFormFieldPushValue,
+  HoneyFormFieldRemoveValue,
+  HoneyFormFieldSetInternalValue,
   HoneyFormValidateField,
-  HoneyFormBaseForm,
-  FormOptions,
   HoneyFormAddFormField,
   HoneyFormClearErrors,
   HoneyFormRemoveFormField,
@@ -20,6 +21,8 @@ import type {
   HoneyFormSubmit,
   HoneyFormValidate,
   HoneyFormErrors,
+  HoneyFormFieldAddErrors,
+  HoneyFormFieldSetChildFormsErrors,
 } from './types';
 import {
   resetAllFields,
@@ -35,10 +38,11 @@ import {
   checkIfFieldIsInteractive,
   checkIfFieldIsNestedForms,
   forEachFormError,
+  getChildFormIndex,
   getFormErrors,
   getFormValues,
   getSubmitFormValues,
-  isSkipField,
+  checkIsSkipField,
   mapFormFields,
   mapServerErrors,
   runChildFormsValidation,
@@ -47,16 +51,24 @@ import {
 
 const DEFAULTS = {};
 
-export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
+export const useForm = <
+  Form extends HoneyFormBaseForm,
+  ParentForm extends HoneyFormBaseForm,
+  FormContext = undefined,
+>({
   initialFormFieldsStateResolver,
+  parentField,
   defaults = DEFAULTS,
   values: externalValues,
   resetAfterSubmit = false,
   context: formContext,
+  storage,
   onSubmit,
   onChange,
   onChangeDebounce = 0,
-}: FormOptions<Form, FormContext>) => {
+}: FormOptions<Form, ParentForm, FormContext>) => {
+  const formIdRef = useRef<HoneyFormId | null>(null);
+
   const [formState, setFormState] = useState<HoneyFormFormState>({
     isValidating: false,
     isSubmitting: false,
@@ -113,9 +125,12 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       onChangeTimeoutRef.current = window.setTimeout(() => {
         onChangeTimeoutRef.current = null;
 
-        onChange(getSubmitFormValues(formContext, nextFormFields), {
+        const submitFormValues = getSubmitFormValues(formContext, nextFormFields);
+        const formErrors = getFormErrors(nextFormFields);
+
+        onChange(submitFormValues, {
           formFields,
-          formErrors: getFormErrors(nextFormFields),
+          formErrors,
         });
       }, onChangeDebounce);
     }
@@ -202,7 +217,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    *
    * @template Form - The form type.
    */
-  const setFieldValue: HoneyFormSetFieldValueInternal<Form> = (
+  const setFieldValue: HoneyFormFieldSetInternalValue<Form> = (
     fieldName,
     fieldValue,
     { isValidate = true, isDirty = true, isFormat = true, isPushValue = false } = {},
@@ -230,23 +245,48 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             formContext,
             formFields,
             isFormat,
-            // Forcibly re-validate the new field value even validation field mode is `blur` if there is any error
+            // Re-validate the field immediately if it previously had errors or if forced to validate
             isValidate: isValidate || isFieldErred,
           },
         );
 
+        // If this form is a child form associated with a parent form and has errors or clears its errors, notify the parent
+        if (parentField) {
+          if (isFieldErred || nextFormFields[fieldName].errors.length) {
+            // Use a timeout to avoid rendering the parent form during this field's render cycle
+            setTimeout(() => {
+              const childFormIndex = getChildFormIndex(parentField, formIdRef.current);
+
+              if (childFormIndex === -1) {
+                warningMessage('[honey-form]: The child form index cannot be found by form id.');
+              } else {
+                // [NOT FINISHED]
+                // // Handle scenarios for scheduled fields
+                // const newChildFormsErrors = [...parentField.childFormsErrors];
+                //
+                // newChildFormsErrors[childFormIndex] = {
+                //   ...newChildFormsErrors[childFormIndex],
+                //   [fieldName]: nextFormFields[fieldName].errors,
+                // };
+                //
+                // parentField.setChildFormsErrors(newChildFormsErrors);
+              }
+            }, 0);
+          }
+        }
+
+        // Extract the configuration of the updated field
         const fieldConfig = nextFormFields[fieldName].config;
 
         if (fieldConfig.onChange) {
           window.setTimeout(() => {
-            fieldConfig.onChange(
-              checkIfFieldIsNestedForms(fieldConfig)
-                ? (nextFormFields[fieldName].getChildFormsValues() as Form[typeof fieldName])
-                : nextFormFields[fieldName].cleanValue,
-              {
-                formFields: nextFormFields,
-              },
-            );
+            const cleanValue = checkIfFieldIsNestedForms(fieldConfig)
+              ? (nextFormFields[fieldName].getChildFormsValues() as Form[typeof fieldName])
+              : nextFormFields[fieldName].cleanValue;
+
+            fieldConfig.onChange(cleanValue, {
+              formFields: nextFormFields,
+            });
           }, 0);
         }
 
@@ -255,7 +295,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     );
   };
 
-  const clearFieldErrors: HoneyFormClearFieldErrors<Form> = fieldName => {
+  const clearFieldErrors: HoneyFormFieldClearErrors<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => ({
       ...formFields,
@@ -263,15 +303,15 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     }));
   };
 
-  const pushFieldValue: HoneyFormPushFieldValue<Form> = (fieldName, value) => {
+  const pushFieldValue: HoneyFormFieldPushValue<Form> = (fieldName, value) => {
     // @ts-expect-error
     setFieldValue(fieldName, value, { isPushValue: true });
   };
 
-  const removeFieldValue: HoneyFormRemoveFieldValue<Form> = (fieldName, formIndex) => {
+  const removeFieldValue: HoneyFormFieldRemoveValue<Form> = (fieldName, formIndex) => {
     const formFields = formFieldsRef.current;
     if (!formFields) {
-      throw new Error('The `formFieldsRef` value is null');
+      throw new Error('[honey-form]: The `formFieldsRef` value is null');
     }
 
     const formField = formFields[fieldName];
@@ -315,7 +355,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     });
   };
 
-  const addFormFieldError = useCallback<HoneyFormAddFieldError<Form>>((fieldName, error) => {
+  const addFormFieldErrors = useCallback<HoneyFormFieldAddErrors<Form>>((fieldName, errors) => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
       const formField = formFields[fieldName];
@@ -325,11 +365,34 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
         [fieldName]: {
           ...formField,
           // When the form can have alien field errors when the server can return non-existed form fields
-          errors: [...(formField?.errors ?? []), error],
+          errors: [...(formField?.errors ?? []), ...errors],
         },
       };
     });
   }, []);
+
+  const addFormFieldError = useCallback<HoneyFormFieldAddError<Form>>(
+    (fieldName, error) => addFormFieldErrors(fieldName, [error]),
+    [addFormFieldErrors],
+  );
+
+  const setFieldChildFormsErrors = useCallback<HoneyFormFieldSetChildFormsErrors<Form>>(
+    (fieldName, childFormsErrors) => {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      setFormFields(formFields => {
+        const formField = formFields[fieldName];
+
+        return {
+          ...formFields,
+          [fieldName]: {
+            ...formField,
+            childFormsErrors,
+          },
+        };
+      });
+    },
+    [],
+  );
 
   const addFormField = useCallback<HoneyFormAddFormField<Form, FormContext>>(
     (fieldName, config) => {
@@ -350,7 +413,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
             validateField,
             pushFieldValue,
             removeFieldValue,
-            addFormFieldError,
+            addFormFieldErrors,
+            setFieldChildFormsErrors,
           }),
         };
       });
@@ -382,7 +446,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     async ({ targetFields, excludeFields } = {}) => {
       const formFields = formFieldsRef.current;
       if (!formFields) {
-        throw new Error('The `formFields` value is null');
+        throw new Error('[honey-form]: The `formFields` value is null');
       }
 
       // Variable to track if any errors are found during validation
@@ -407,16 +471,17 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
           if (
             isExcludeFieldFromValidation ||
             !isTargetFieldValidation ||
-            isSkipField(fieldName, { formContext, formFields, formValues })
+            checkIsSkipField(fieldName, { formContext, formFields, formValues })
           ) {
             nextFormFields[fieldName] = getNextErrorsFreeField(formField);
             return;
           }
 
           const hasChildFormsErrors = await runChildFormsValidation(formField);
-          hasErrors ||= hasChildFormsErrors;
+          if (hasChildFormsErrors) {
+            hasErrors = true;
+          }
 
-          // Execute the field validator asynchronously
           const nextField = await executeFieldValidatorAsync(formContext, formFields, fieldName);
 
           // Filter out errors of type 'server' to avoid blocking the form submission trigger
@@ -449,12 +514,12 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
    */
   const outerValidateForm = useCallback<HoneyFormValidate<Form>>(
     async validateOptions => {
-      // Update the form state to indicate that validation is in progress
-      updateFormState({
-        isValidating: true,
-      });
-
       try {
+        // Update the form state to indicate that validation is in progress
+        updateFormState({
+          isValidating: true,
+        });
+
         return await validateForm(validateOptions);
       } finally {
         // Update the form state to indicate that validation is complete
@@ -476,7 +541,8 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
       validateField,
       pushFieldValue,
       removeFieldValue,
-      addFormFieldError,
+      addFormFieldErrors,
+      setFieldChildFormsErrors,
     });
 
   const resetForm: HoneyFormReset<Form> = newFormDefaults => {
@@ -484,7 +550,9 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     isFormValidRef.current = false;
     isFormSubmittedRef.current = false;
 
-    formDefaultsRef.current = { ...formDefaultsRef.current, ...newFormDefaults };
+    if (newFormDefaults) {
+      formDefaultsRef.current = { ...formDefaultsRef.current, ...newFormDefaults };
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(getInitialFormFieldsState);
@@ -496,12 +564,12 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   const submitForm = useCallback<HoneyFormSubmit<Form, FormContext>>(
     async formSubmitHandler => {
       if (!formFieldsRef.current) {
-        throw new Error('The `formFieldsRef` value is null');
+        throw new Error('[honey-form]: The `formFieldsRef` value is null');
       }
 
       if (!formSubmitHandler && !onSubmit) {
         throw new Error(
-          'To submit the form, either provide a `submitHandler` function or implement an `onSubmit` callback function',
+          '[honey-form]: To submit the form, either provide a `submitHandler` function or implement an `onSubmit` callback function',
         );
       }
 
@@ -559,7 +627,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   // Detect changes in `externalValues` and update the form values accordingly
   useEffect(() => {
     if (externalValues) {
-      setFormValues(externalValues, { isSkipOnChange: true });
+      setFormValues(externalValues, { isDirty: false, isSkipOnChange: true });
     }
   }, [externalValues]);
 
@@ -591,6 +659,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
   const isFormErred = Object.keys(formErrors).length > 0;
 
   return {
+    formIdRef,
     formContext,
     formFieldsRef,
     // Getters are needed to get the form fields, values and etc. using multi forms
@@ -619,6 +688,7 @@ export const useForm = <Form extends HoneyFormBaseForm, FormContext = undefined>
     setFormErrors,
     addFormField,
     removeFormField,
+    addFormFieldErrors,
     addFormFieldError,
     clearFormErrors,
     validateForm: outerValidateForm,

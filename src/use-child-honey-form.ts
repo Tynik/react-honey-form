@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type {
-  HoneyFormChildFormId,
   HoneyFormBaseForm,
   HoneyFormApi,
   ChildHoneyFormOptions,
@@ -9,7 +8,7 @@ import type {
   InitialFormFieldsStateResolverOptions,
   HoneyFormFieldsConfigs,
 } from './types';
-import { USE_HONEY_FORM_ERRORS } from './constants';
+import { HONEY_FORM_ERRORS } from './constants';
 import {
   getHoneyFormUniqueId,
   registerChildForm,
@@ -46,7 +45,8 @@ const createInitialFormFields = <
   validateField,
   pushFieldValue,
   removeFieldValue,
-  addFormFieldError,
+  addFormFieldErrors,
+  setFieldChildFormsErrors,
 }: CreateInitialFormFieldsOptions<ParentForm, ChildForm, FormContext>) => {
   const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
     let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
@@ -75,7 +75,8 @@ const createInitialFormFields = <
         validateField,
         pushFieldValue,
         removeFieldValue,
-        addFormFieldError,
+        addFormFieldErrors,
+        setFieldChildFormsErrors,
       },
     );
   });
@@ -96,39 +97,40 @@ export const useChildHoneyForm = <
   ChildForm,
   FormContext
 > => {
-  const childFormIdRef = useRef<HoneyFormChildFormId | null>(null);
-
-  const { formFieldsRef, ...childFormApi } = useForm({
-    initialFormFieldsStateResolver: config =>
-      createInitialFormFields({ formIndex, parentField, fieldsConfigs, ...config }),
-    ...options,
-  });
+  const { formIdRef, formFieldsRef, ...childFormApi } = useForm<ChildForm, ParentForm, FormContext>(
+    {
+      parentField,
+      initialFormFieldsStateResolver: config =>
+        createInitialFormFields({ formIndex, parentField, fieldsConfigs, ...config }),
+      ...options,
+    },
+  );
 
   const { submitForm, validateForm } = childFormApi;
 
   useEffect(() => {
     if (parentField) {
       if (!Array.isArray(parentField.defaultValue)) {
-        throw new Error(USE_HONEY_FORM_ERRORS.parentFieldValue);
+        throw new Error(HONEY_FORM_ERRORS.parentFieldValue);
       }
 
       if (parentField.defaultValue.length && formIndex === undefined) {
-        throw new Error(USE_HONEY_FORM_ERRORS.parentFieldFormIndex);
+        throw new Error(HONEY_FORM_ERRORS.parentFieldFormIndex);
       }
 
-      childFormIdRef.current = getHoneyFormUniqueId();
+      formIdRef.current = getHoneyFormUniqueId();
 
       registerChildForm(parentField, {
-        id: childFormIdRef.current,
         formFieldsRef,
         submitForm,
         validateForm,
+        formId: formIdRef.current,
       });
     }
 
     return () => {
-      if (parentField && childFormIdRef.current) {
-        unregisterChildForm(parentField, childFormIdRef.current);
+      if (parentField && formIdRef.current) {
+        unregisterChildForm(parentField, formIdRef.current);
       }
     };
   }, []);

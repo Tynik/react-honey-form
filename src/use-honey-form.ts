@@ -30,7 +30,8 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
   validateField,
   pushFieldValue,
   removeFieldValue,
-  addFormFieldError,
+  addFormFieldErrors,
+  setFieldChildFormsErrors,
 }: CreateInitialFormFieldsOptions<Form, FormContext>) => {
   const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) =>
     createField(
@@ -48,7 +49,8 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
         validateField,
         pushFieldValue,
         removeFieldValue,
-        addFormFieldError,
+        addFormFieldErrors,
+        setFieldChildFormsErrors,
       },
     ),
   );
@@ -64,7 +66,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     MultiHoneyFormsContext,
   );
 
-  const formApi = useForm<Form, FormContext>({
+  const formApi = useForm<Form, undefined, FormContext>({
     initialFormFieldsStateResolver: config => createInitialFormFields({ fieldsConfigs, ...config }),
     ...options,
   });
