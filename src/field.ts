@@ -28,6 +28,7 @@ import type {
   HoneyFormPassiveFieldProps,
   HoneyFormInteractiveFieldProps,
   HoneyFormValidateField,
+  HoneyFormParentField,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -1099,13 +1100,13 @@ const checkSkippableFields = <
       return;
     }
 
-    if (
-      checkIsSkipField(otherFieldName, {
-        formContext,
-        formValues,
-        formFields: nextFormFields,
-      })
-    ) {
+    const isSkipField = checkIsSkipField(otherFieldName, {
+      formContext,
+      formValues,
+      formFields: nextFormFields,
+    });
+
+    if (isSkipField) {
       nextFormFields[otherFieldName] = getNextErrorsFreeField(nextFormFields[otherFieldName]);
     }
   });
@@ -1192,17 +1193,21 @@ const resetDependentFields = <
  * Triggers validations for fields that have scheduled validations.
  *
  * @template Form - The form type.
+ * @template ParentForm - The parent form type.
  * @template FieldName - The name of the field to trigger validations for.
  *
+ * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field.
  * @param {FormContext} formContext - The context object for the form.
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields after a change.
  * @param {FieldName} fieldName - The name of the field triggering validations.
  */
 const triggerScheduledFieldsValidations = <
+  ParentForm extends HoneyFormBaseForm,
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
 >(
+  parentField: HoneyFormParentField<ParentForm>,
   formContext: FormContext,
   nextFormFields: HoneyFormFields<Form, FormContext>,
   fieldName: FieldName,
@@ -1326,7 +1331,12 @@ export const getNextSingleFieldState = <
   };
 };
 
-type NextFieldsStateOptions<Form extends HoneyFormBaseForm, FormContext> = {
+type NextFieldsStateOptions<
+  Form extends HoneyFormBaseForm,
+  ParentForm extends HoneyFormBaseForm,
+  FormContext,
+> = {
+  parentField: HoneyFormParentField<ParentForm>;
   formContext: FormContext;
   formFields: HoneyFormFields<Form, FormContext>;
   isValidate: boolean;
@@ -1337,25 +1347,33 @@ type NextFieldsStateOptions<Form extends HoneyFormBaseForm, FormContext> = {
  * Computes the next state of form fields after a change in a specific field.
  *
  * @template Form - The form type.
+ * @template ParentForm - The parent form type.
  * @template FieldName - The name of the field that changed.
  * @template FieldValue - The type of the field's value.
  * @template FormContext - The context type for the form.
  *
  * @param {FieldName} fieldName - The name of the field that changed.
  * @param {FieldValue | undefined} fieldValue - The new value of the changed field.
- * @param {NextFieldsStateOptions<Form, FormContext>} options - Options for computing the next state.
+ * @param {NextFieldsStateOptions<Form, ParentForm, FormContext>} options - Options for computing the next state.
  *
  * @returns {HoneyFormFields<Form, FormContext>} - The next state of form fields.
  */
 export const getNextFieldsState = <
   Form extends HoneyFormBaseForm,
+  ParentForm extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName],
   FormContext,
 >(
   fieldName: FieldName,
   fieldValue: FieldValue | undefined,
-  { formContext, formFields, isValidate, isFormat }: NextFieldsStateOptions<Form, FormContext>,
+  {
+    parentField,
+    formContext,
+    formFields,
+    isValidate,
+    isFormat,
+  }: NextFieldsStateOptions<Form, ParentForm, FormContext>,
 ): HoneyFormFields<Form, FormContext> => {
   const fieldConfig = formFields[fieldName].config;
 
@@ -1385,7 +1403,7 @@ export const getNextFieldsState = <
   });
 
   checkSkippableFields(formContext, nextFormFields, fieldName);
-  triggerScheduledFieldsValidations(formContext, nextFormFields, fieldName);
+  triggerScheduledFieldsValidations(parentField, formContext, nextFormFields, fieldName);
 
   return nextFormFields;
 };

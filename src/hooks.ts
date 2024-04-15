@@ -242,6 +242,7 @@ export const useForm = <
           // @ts-expect-error
           isPushValue ? [...formField.value, fieldValue] : fieldValue,
           {
+            parentField,
             formContext,
             formFields,
             isFormat,

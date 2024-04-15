@@ -392,7 +392,7 @@ export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
  * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the forms.
  *
- * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field where the child form is associated.
+ * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field where the child form is associated.
  * @param {HoneyFormChildFormContext<ChildForm, FormContext>} childFormContext - The context information for the child form.
  */
 export const registerChildForm = <
@@ -400,14 +400,14 @@ export const registerChildForm = <
   ChildForm extends ChildHoneyFormBaseForm,
   FormContext,
 >(
-  parentFormField: HoneyFormParentField<ParentForm>,
+  parentField: HoneyFormParentField<ParentForm>,
   childFormContext: HoneyFormChildFormContext<ChildForm, FormContext>,
 ) => {
   // Ensure __meta__ property exists and is an array, then push the child form context
   // @ts-expect-error
-  parentFormField.__meta__.childForms ||= [];
+  parentField.__meta__.childForms ||= [];
   // @ts-expect-error
-  parentFormField.__meta__.childForms.push(childFormContext);
+  parentField.__meta__.childForms.push(childFormContext);
 };
 
 /**
@@ -415,16 +415,16 @@ export const registerChildForm = <
  *
  * @template ParentForm - The type representing the parent form structure.
  *
- * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field from which to unregister the child form.
+ * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field from which to unregister the child form.
  * @param {HoneyFormId} formId - The ID of the child form to unregister.
  */
 export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
-  parentFormField: HoneyFormParentField<ParentForm>,
+  parentField: HoneyFormParentField<ParentForm>,
   formId: HoneyFormId,
 ) => {
   // Filter out the child form with the specified ID
   // @ts-expect-error
-  parentFormField.__meta__.childForms = parentFormField.__meta__.childForms?.filter(
+  parentField.__meta__.childForms = parentField.__meta__.childForms?.filter(
     childForm => childForm.formId !== formId,
   );
 };
@@ -434,16 +434,15 @@ export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
  *
  * @template ParentForm - Type representing the parent form.
  *
- * @param {HoneyFormParentField<ParentForm>} parentFormField - The parent form field containing the child forms.
+ * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field containing the child forms.
  * @param {HoneyFormId} formId - The ID of the child form to find.
  *
  * @returns {number} - The index of the child form within the parent form field's list of child forms, or -1 if not found.
  */
 export const getChildFormIndex = <ParentForm extends HoneyFormBaseForm>(
-  parentFormField: HoneyFormParentField<ParentForm>,
+  parentField: HoneyFormParentField<ParentForm>,
   formId: HoneyFormId,
-): number =>
-  parentFormField.__meta__.childForms?.findIndex(childForm => childForm.formId === formId);
+): number => parentField.__meta__.childForms?.findIndex(childForm => childForm.formId === formId);
 
 /**
  * Runs validation on child forms associated with a given form field.
