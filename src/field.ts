@@ -1082,24 +1082,14 @@ export const executeFieldValidatorAsync = async <
  *
  * @param {FormContext} formContext - The context of the form.
  * @param {HoneyFormFields<Form, FormContext>} nextFormFields - The next form fields state.
- * @param {FieldName} fieldName - The name of the current field.
  */
-const checkSkippableFields = <
-  Form extends HoneyFormBaseForm,
-  FieldName extends keyof Form,
-  FormContext,
->(
+const checkSkippableFields = <Form extends HoneyFormBaseForm, FormContext>(
   formContext: FormContext,
   nextFormFields: HoneyFormFields<Form, FormContext>,
-  fieldName: FieldName,
 ) => {
   const formValues = getFormValues(nextFormFields);
 
   forEachFormField(nextFormFields, otherFieldName => {
-    if (fieldName === otherFieldName) {
-      return;
-    }
-
     const isSkipField = checkIsSkipField(otherFieldName, {
       formContext,
       formValues,
@@ -1402,7 +1392,7 @@ export const getNextFieldsState = <
     isFormat,
   });
 
-  checkSkippableFields(formContext, nextFormFields, fieldName);
+  checkSkippableFields(formContext, nextFormFields);
   triggerScheduledFieldsValidations(parentField, formContext, nextFormFields, fieldName);
 
   return nextFormFields;
