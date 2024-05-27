@@ -47,7 +47,9 @@ import {
   mapServerErrors,
   runChildFormsValidation,
   warningMessage,
+  errorMessage,
 } from './helpers';
+import { HONEY_FORM_ERRORS } from './constants';
 
 const DEFAULTS = {};
 
@@ -125,7 +127,7 @@ export const useForm = <
       onChangeTimeoutRef.current = window.setTimeout(() => {
         onChangeTimeoutRef.current = null;
 
-        const submitFormValues = getSubmitFormValues(formContext, nextFormFields);
+        const submitFormValues = getSubmitFormValues(parentField, formContext, nextFormFields);
         const formErrors = getFormErrors(nextFormFields);
 
         onChange(submitFormValues, {
@@ -138,14 +140,6 @@ export const useForm = <
     return nextFormFields;
   };
 
-  /**
-   * Updates form field values based on the provided values object.
-   *
-   * @param values - The values to set for each form field.
-   * @param options - Additional options for setting form values.
-   *   @param isClearAll - If true, clears all existing form field values before setting new values.
-   *   @param isSkipOnChange - If true, skips the debounced `onChange` handling.
-   */
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
     (values, { isDirty = true, isClearAll = false, isSkipOnChange = false } = {}) => {
       if (isDirty) {
@@ -162,6 +156,12 @@ export const useForm = <
           }
 
           Object.keys(values).forEach((fieldName: keyof Form) => {
+            if (!(fieldName in nextFormFields)) {
+              throw new Error(
+                `[honey-form]: Attempted to set value for non-existent field "${fieldName.toString()}". The field is not present in the current form fields configuration: ${JSON.stringify(nextFormFields, null, 2)}`,
+              );
+            }
+
             const fieldConfig = nextFormFields[fieldName].config;
 
             const filteredValue =
@@ -251,15 +251,15 @@ export const useForm = <
           },
         );
 
-        // If this form is a child form associated with a parent form and has errors or clears its errors, notify the parent
         if (parentField) {
+          // If this form is a child form associated with a parent form and has errors or clears its errors, notify the parent
           if (isFieldErred || nextFormFields[fieldName].errors.length) {
             // Use a timeout to avoid rendering the parent form during this field's render cycle
             setTimeout(() => {
               const childFormIndex = getChildFormIndex(parentField, formIdRef.current);
 
               if (childFormIndex === -1) {
-                warningMessage('[honey-form]: The child form index cannot be found by form id.');
+                warningMessage('The child form index cannot be found by form id.');
               } else {
                 // [NOT FINISHED]
                 // // Handle scenarios for scheduled fields
@@ -312,7 +312,7 @@ export const useForm = <
   const removeFieldValue: HoneyFormFieldRemoveValue<Form> = (fieldName, formIndex) => {
     const formFields = formFieldsRef.current;
     if (!formFields) {
-      throw new Error('[honey-form]: The `formFieldsRef` value is null');
+      throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
     }
 
     const formField = formFields[fieldName];
@@ -400,7 +400,7 @@ export const useForm = <
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setFormFields(formFields => {
         if (formFields[fieldName]) {
-          warningMessage(`Form field "${fieldName.toString()}" is already present`);
+          warningMessage(`Form field "${fieldName.toString()}" is already present.`);
         }
 
         return {
@@ -447,7 +447,7 @@ export const useForm = <
     async ({ targetFields, excludeFields } = {}) => {
       const formFields = formFieldsRef.current;
       if (!formFields) {
-        throw new Error('[honey-form]: The `formFields` value is null');
+        throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
       }
 
       // Variable to track if any errors are found during validation
@@ -472,7 +472,13 @@ export const useForm = <
           if (
             isExcludeFieldFromValidation ||
             !isTargetFieldValidation ||
-            checkIsSkipField(fieldName, { formContext, formFields, formValues })
+            checkIsSkipField({
+              parentField,
+              fieldName,
+              formContext,
+              formFields,
+              formValues,
+            })
           ) {
             nextFormFields[fieldName] = getNextErrorsFreeField(formField);
             return;
@@ -483,7 +489,12 @@ export const useForm = <
             hasErrors = true;
           }
 
-          const nextField = await executeFieldValidatorAsync(formContext, formFields, fieldName);
+          const nextField = await executeFieldValidatorAsync({
+            parentField,
+            fieldName,
+            formFields,
+            formContext,
+          });
 
           // Filter out errors of type 'server' to avoid blocking the form submission trigger
           const fieldErrors = nextField.errors.filter(fieldError => fieldError.type !== 'server');
@@ -565,7 +576,7 @@ export const useForm = <
   const submitForm = useCallback<HoneyFormSubmit<Form, FormContext>>(
     async formSubmitHandler => {
       if (!formFieldsRef.current) {
-        throw new Error('[honey-form]: The `formFieldsRef` value is null');
+        throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
       }
 
       if (!formSubmitHandler && !onSubmit) {
@@ -587,7 +598,7 @@ export const useForm = <
           });
 
           // Prepare data for submission
-          const submitData = getSubmitFormValues(formContext, formFieldsRef.current);
+          const submitData = getSubmitFormValues(parentField, formContext, formFieldsRef.current);
 
           // Choose form submit handler
           const submitHandler = formSubmitHandler || onSubmit;
@@ -643,6 +654,7 @@ export const useForm = <
           setFormValues(defaultValues, { isDirty: false });
         })
         .catch(() => {
+          errorMessage('Unable to fetch form default values.');
           setIsFormDefaultsFetchingErred(true);
         })
         .finally(() => {

@@ -7,6 +7,7 @@ import type {
   ChildHoneyFormBaseForm,
   InitialFormFieldsStateResolverOptions,
   HoneyFormFieldsConfigs,
+  KeysWithArrayValues,
 } from './types';
 import { HONEY_FORM_ERRORS } from './constants';
 import {
@@ -84,16 +85,30 @@ const createInitialFormFields = <
   return formFields;
 };
 
+/**
+ * Hook for managing a child form within a parent form. This hook integrates with the parent form and allows for the
+ * creation and validation of nested forms.
+ *
+ * @template ParentForm - The type representing the parent form structure.
+ * @template ChildForm - The type representing the child form structure.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ * @template FormContext - The type representing the context associated with the form.
+ *
+ * @param {Object} options - Options for the child form hook.
+ *
+ * @returns {HoneyFormApi<ChildForm, FormContext>} - The API for interacting with the child form.
+ */
 export const useChildHoneyForm = <
   ParentForm extends HoneyFormBaseForm,
   ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm> = KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
 >({
   formIndex,
   parentField,
   fields: fieldsConfigs = {} as never,
   ...options
-}: ChildHoneyFormOptions<ParentForm, ChildForm, FormContext>): HoneyFormApi<
+}: ChildHoneyFormOptions<ParentForm, ChildForm, ParentFieldName, FormContext>): HoneyFormApi<
   ChildForm,
   FormContext
 > => {

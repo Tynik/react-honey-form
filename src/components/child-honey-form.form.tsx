@@ -1,7 +1,12 @@
 import React from 'react';
 
 import type { HTMLAttributes, ReactNode } from 'react';
-import type { HoneyFormBaseForm, ChildHoneyFormBaseForm, HoneyFormApi } from '../types';
+import type {
+  HoneyFormBaseForm,
+  ChildHoneyFormBaseForm,
+  HoneyFormApi,
+  KeysWithArrayValues,
+} from '../types';
 
 import { useChildHoneyFormProvider } from './child-honey-form.provider';
 import { useHoneyFormProvider } from './honey-form.provider';
@@ -10,6 +15,7 @@ export type ChildHoneyFormFormContent<
   // TODO: pass ParentForm to ChildHoneyFormApi
   ParentForm extends HoneyFormBaseForm,
   ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
 > =
   | ReactNode
@@ -21,21 +27,28 @@ export type ChildHoneyFormFormContent<
 export type ChildHoneyFormFormProps<
   ParentForm extends HoneyFormBaseForm,
   ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
 > = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
-  children?: ChildHoneyFormFormContent<ParentForm, ChildForm, FormContext>;
+  children?: ChildHoneyFormFormContent<ParentForm, ChildForm, ParentFieldName, FormContext>;
 };
 
 export const ChildHoneyFormForm = <
   ParentForm extends HoneyFormBaseForm,
   ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
 >({
   children,
   ...props
-}: ChildHoneyFormFormProps<ParentForm, ChildForm, FormContext>) => {
+}: ChildHoneyFormFormProps<ParentForm, ChildForm, ParentFieldName, FormContext>) => {
   const parentHoneyFormApi = useHoneyFormProvider<ParentForm, FormContext>();
-  const childHoneyFormApi = useChildHoneyFormProvider<ParentForm, ChildForm, FormContext>();
+  const childHoneyFormApi = useChildHoneyFormProvider<
+    ParentForm,
+    ChildForm,
+    ParentFieldName,
+    FormContext
+  >();
 
   return (
     <div role="form" data-testid="child-honey-form" {...props}>
