@@ -41,7 +41,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
       items: ItemForm[];
     };
 
-    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm, 'items'> = {
+    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, 'items', ItemForm> = {
       id: {
         type: 'string',
         required: true,
@@ -139,7 +139,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
   });
 
   it('should submit form with correct item values after dynamic addition', async () => {
-    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, ItemForm, 'items'> = {
+    const ITEM_FORM_FIELDS: ChildHoneyFormFieldsConfigs<ItemsForm, 'items', ItemForm> = {
       id: {
         type: 'string',
         required: true,
@@ -330,7 +330,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
+      const { formFields } = useChildHoneyForm<ItemsForm, 'items', ItemForm>({
         formIndex,
         parentField: itemsFormFields.items,
         fields: {
@@ -416,7 +416,7 @@ describe('Component [HoneyForm]: Nested forms', () => {
     const ItemLineForm = ({ formIndex }: ItemFormProps) => {
       const { formFields: itemsFormFields } = useHoneyFormProvider<ItemsForm>();
 
-      const { formFields } = useChildHoneyForm<ItemsForm, ItemForm>({
+      const { formFields } = useChildHoneyForm<ItemsForm, 'items', ItemForm>({
         formIndex,
         parentField: itemsFormFields.items,
         fields: {

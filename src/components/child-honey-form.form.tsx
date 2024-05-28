@@ -14,8 +14,8 @@ import { useHoneyFormProvider } from './honey-form.provider';
 export type ChildHoneyFormFormContent<
   // TODO: pass ParentForm to ChildHoneyFormApi
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > =
   | ReactNode
@@ -26,27 +26,27 @@ export type ChildHoneyFormFormContent<
 
 export type ChildHoneyFormFormProps<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
-  children?: ChildHoneyFormFormContent<ParentForm, ChildForm, ParentFieldName, FormContext>;
+  children?: ChildHoneyFormFormContent<ParentForm, ParentFieldName, ChildForm, FormContext>;
 };
 
 export const ChildHoneyFormForm = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >({
   children,
   ...props
-}: ChildHoneyFormFormProps<ParentForm, ChildForm, ParentFieldName, FormContext>) => {
+}: ChildHoneyFormFormProps<ParentForm, ParentFieldName, ChildForm, FormContext>) => {
   const parentHoneyFormApi = useHoneyFormProvider<ParentForm, FormContext>();
   const childHoneyFormApi = useChildHoneyFormProvider<
     ParentForm,
-    ChildForm,
     ParentFieldName,
+    ChildForm,
     FormContext
   >();
 

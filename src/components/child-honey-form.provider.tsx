@@ -14,8 +14,8 @@ import { useChildHoneyForm } from '../use-child-honey-form';
 type ChildHoneyFormContextValue<
   // TODO: pass ParentForm to ChildHoneyFormApi
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > = HoneyFormApi<ChildForm, FormContext>;
 
@@ -25,21 +25,21 @@ const ChildHoneyFormContext = createContext<
 
 export type ChildHoneyFormProviderProps<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
-> = ChildHoneyFormOptions<ParentForm, ChildForm, ParentFieldName, FormContext>;
+> = ChildHoneyFormOptions<ParentForm, ParentFieldName, ChildForm, FormContext>;
 
 export const ChildHoneyFormProvider = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >({
   children,
   ...props
 }: PropsWithChildren<
-  ChildHoneyFormProviderProps<ParentForm, ChildForm, ParentFieldName, FormContext>
+  ChildHoneyFormProviderProps<ParentForm, ParentFieldName, ChildForm, FormContext>
 >) => {
   const childHoneyFormApi = useChildHoneyForm(props);
 
@@ -52,12 +52,12 @@ export const ChildHoneyFormProvider = <
 
 export const useChildHoneyFormProvider = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >() => {
   const childFormContext = useContext<
-    ChildHoneyFormContextValue<ParentForm, ChildForm, ParentFieldName, FormContext> | undefined
+    ChildHoneyFormContextValue<ParentForm, ParentFieldName, ChildForm, FormContext> | undefined
   >(ChildHoneyFormContext);
 
   if (!childFormContext) {

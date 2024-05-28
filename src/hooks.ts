@@ -121,7 +121,7 @@ export const useForm = <
     if (onChange) {
       const formFields = formFieldsRef.current;
       if (!formFields) {
-        throw new Error('The `formFieldsRef` value is null');
+        throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
       }
 
       onChangeTimeoutRef.current = window.setTimeout(() => {
@@ -158,7 +158,7 @@ export const useForm = <
           Object.keys(values).forEach((fieldName: keyof Form) => {
             if (!(fieldName in nextFormFields)) {
               throw new Error(
-                `[honey-form]: Attempted to set value for non-existent field "${fieldName.toString()}". The field is not present in the current form fields configuration: ${JSON.stringify(nextFormFields, null, 2)}`,
+                `[honey-form]: Attempted to set value for non-existent field "${fieldName.toString()}"`,
               );
             }
 
@@ -580,9 +580,7 @@ export const useForm = <
       }
 
       if (!formSubmitHandler && !onSubmit) {
-        throw new Error(
-          '[honey-form]: To submit the form, either provide a `submitHandler` function or implement an `onSubmit` callback function',
-        );
+        throw new Error(HONEY_FORM_ERRORS.submitHandlerOrOnSubmit);
       }
 
       try {

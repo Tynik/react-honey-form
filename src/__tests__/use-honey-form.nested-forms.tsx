@@ -76,7 +76,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
     );
 
     const { unmount } = renderHook(() =>
-      useChildHoneyForm<Products, Item>({
+      useChildHoneyForm<Products, 'items', Item>({
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -134,7 +134,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
     );
 
     const { result: itemResult1 } = renderHook(() =>
-      useChildHoneyForm<Products, Item>({
+      useChildHoneyForm<Products, 'items', Item>({
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -145,9 +145,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
       }),
     );
 
-    act(() => {
-      itemResult1.current.formFields.name.setValue('Apple');
-    });
+    act(() => itemResult1.current.formFields.name.setValue('Apple'));
 
     await act(() => itemsResult.current.submitForm());
 
@@ -185,7 +183,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
     );
 
     const { result: itemResult1, unmount: unmountItem1 } = renderHook(() =>
-      useChildHoneyForm<Products, Item>({
+      useChildHoneyForm<Products, 'items', Item>({
         formIndex: 0,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -200,7 +198,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
     );
 
     const { result: itemResult2, unmount: unmountItem2 } = renderHook(() =>
-      useChildHoneyForm<Products, Item>({
+      useChildHoneyForm<Products, 'items', Item>({
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -214,9 +212,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
       }),
     );
 
-    act(() => {
-      itemResult1.current.formFields.name.setValue('Apple');
-    });
+    act(() => itemResult1.current.formFields.name.setValue('Apple'));
 
     expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
@@ -229,9 +225,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
       },
     ]);
 
-    act(() => {
-      itemResult2.current.formFields.name.setValue('Banana');
-    });
+    act(() => itemResult2.current.formFields.name.setValue('Banana'));
 
     expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {
@@ -254,7 +248,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
     ]);
 
     const { result: itemResult3 } = renderHook(() =>
-      useChildHoneyForm<Products, Item>({
+      useChildHoneyForm<Products, 'items', Item>({
         formIndex: 1,
         parentField: itemsResult.current.formFields.items,
         fields: {
@@ -279,9 +273,7 @@ describe('Hook [use-honey-form]: Nested forms', () => {
       },
     ]);
 
-    act(() => {
-      itemResult3.current.formFields.name.setValue('Apple');
-    });
+    act(() => itemResult3.current.formFields.name.setValue('Apple'));
 
     expect(itemsResult.current.formFields.items.getChildFormsValues()).toStrictEqual([
       {

@@ -1255,14 +1255,14 @@ export type HoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext =
  * Configuration for the fields of a child form within a parent form.
  *
  * @template ParentForm - The type representing the parent form structure.
- * @template ChildForm - The type representing the child form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the form.
  */
 export type ChildHoneyFormFieldsConfigs<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > = {
   [FieldName in keyof ChildForm]: ChildHoneyFormFieldConfig<
@@ -1441,14 +1441,14 @@ export type HoneyFormOptions<
  * Options for configuring a child form within a parent form.
  *
  * @template ParentForm - The type representing the parent form structure.
- * @template ChildForm - The type representing the child form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the form.
  */
 export type ChildHoneyFormOptions<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > = BaseHoneyFormOptions<
   {
@@ -1464,7 +1464,7 @@ export type ChildHoneyFormOptions<
     /**
      * Configuration for the form fields.
      */
-    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ChildForm, ParentFieldName, FormContext>;
+    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ParentFieldName, ChildForm, FormContext>;
   },
   ChildForm,
   ParentForm,
