@@ -4,56 +4,50 @@ import type { ReactNode } from 'react';
 import type {
   HoneyFormField,
   HoneyFormBaseForm,
-  ChildHoneyFormBaseForm,
   ChildHoneyFormFieldConfig,
   KeysWithArrayValues,
+  HoneyFormExtractChildForm,
 } from '../types';
 
 import { useChildHoneyFormProvider } from './child-honey-form.provider';
 
 type ChildHoneyFormDynamicFieldProps<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
-  FieldName extends keyof ChildForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  FieldName extends keyof ChildForm,
   FormContext,
-  FieldValue extends ChildForm[FieldName] = ChildForm[FieldName],
-> = ChildHoneyFormFieldConfig<
-  ParentForm,
-  ChildForm,
-  FieldName,
-  ParentFieldName,
-  FormContext,
-  FieldValue
-> & {
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
+> = ChildHoneyFormFieldConfig<ParentForm, ParentFieldName, FieldName, FormContext, ChildForm> & {
   name: FieldName;
-  children: (field: HoneyFormField<ChildForm, FieldName, FormContext, FieldValue>) => ReactNode;
+  children: (field: HoneyFormField<ChildForm, FieldName, FormContext>) => ReactNode;
 };
 
 export const ChildHoneyFormDynamicField = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
-  FieldName extends keyof ChildForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  FieldName extends keyof ChildForm,
   FormContext,
-  FieldValue extends ChildForm[FieldName],
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 >({
   children,
   name,
   ...props
 }: ChildHoneyFormDynamicFieldProps<
   ParentForm,
-  ChildForm,
-  FieldName,
   ParentFieldName,
+  FieldName,
   FormContext,
-  FieldValue
+  ChildForm
 >) => {
   const { formFields, addFormField, removeFormField } = useChildHoneyFormProvider<
     ParentForm,
-    ChildForm,
     ParentFieldName,
-    FormContext
+    FormContext,
+    ChildForm
   >();
 
   useEffect(() => {
@@ -69,6 +63,5 @@ export const ChildHoneyFormDynamicField = <
     return null;
   }
 
-  // @ts-expect-error
   return <>{children(field)}</>;
 };

@@ -69,7 +69,7 @@ type HoneyFormExtractChildForms<FieldValue> = FieldValue extends (infer ChildFor
 /**
  * Utility type that extracts a single child form from a given field value.
  */
-type HoneyFormExtractChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
+export type HoneyFormExtractChildForm<FieldValue> = FieldValue extends (infer ChildForm extends
   ChildHoneyFormBaseForm)[]
   ? ChildForm
   : never;
@@ -317,14 +317,7 @@ export type HoneyFormInteractiveFieldValidatorContext<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = BaseHoneyFormFieldValidatorContext<
   {
-    fieldConfig: HoneyFormInteractiveFieldConfig<
-      never,
-      Form,
-      FieldName,
-      never,
-      FormContext,
-      FieldValue
-    >;
+    fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>;
   },
   Form,
   FieldName,
@@ -664,18 +657,14 @@ type BaseHoneyFormFieldConfig<
 /**
  * Represents the configuration for an interactive form field within the context of a specific form.
  *
- * @template ParentForm - Type representing the parent form.
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
- * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  */
 export type HoneyFormInteractiveFieldConfig<
-  ParentForm extends HoneyFormBaseForm,
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
-  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = BaseHoneyFormFieldConfig<
@@ -871,7 +860,7 @@ export type HoneyFormFieldConfig<
   FormContext = undefined,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > =
-  | HoneyFormInteractiveFieldConfig<never, Form, FieldName, never, FormContext, FieldValue>
+  | HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext, FieldValue>
   | HoneyFormPassiveFieldConfig<Form, FieldName, FormContext, FieldValue>
   | HoneyFormObjectFieldConfig<Form, FieldName, FormContext, FieldValue>
   | HoneyFormNestedFormsFieldConfig<Form, FieldName, FormContext, FieldValue>;
@@ -880,28 +869,23 @@ export type HoneyFormFieldConfig<
  * Represents the configuration for a child form field within the context of a specific parent form.
  *
  * @template ParentForm - Type representing the parent form.
- * @template ChildForm - Type representing the child form.
- * @template FieldName - Name of the field in the child form.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ * @template FieldName - Name of the field in the child form.
  * @template FormContext - Contextual information for the form.
+ * @template ChildForm - Type representing the child form.
  * @template FieldValue - Type representing the value of the field in the child form.
  */
 export type ChildHoneyFormFieldConfig<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
-  FieldName extends keyof ChildForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  FieldName extends keyof ChildForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
   FieldValue extends ChildForm[FieldName] = ChildForm[FieldName],
 > =
-  | HoneyFormInteractiveFieldConfig<
-      ParentForm,
-      ChildForm,
-      FieldName,
-      ParentFieldName,
-      FormContext,
-      FieldValue
-    >
+  | HoneyFormInteractiveFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
   | HoneyFormPassiveFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
   | HoneyFormObjectFieldConfig<ChildForm, FieldName, FormContext, FieldValue>
   | HoneyFormNestedFormsFieldConfig<ChildForm, FieldName, FormContext, FieldValue>;
@@ -936,7 +920,7 @@ export type HoneyFormInteractiveFieldBuiltInValidator = <
   FieldValue extends Form[FieldName] = Form[FieldName],
 >(
   fieldValue: FieldValue | undefined,
-  fieldConfig: HoneyFormInteractiveFieldConfig<never, Form, FieldName, never, any, FieldValue>,
+  fieldConfig: HoneyFormInteractiveFieldConfig<Form, FieldName, any, FieldValue>,
   fieldErrors: HoneyFormFieldError[],
 ) => void;
 
@@ -1256,21 +1240,23 @@ export type HoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext =
  *
  * @template ParentForm - The type representing the parent form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
- * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the form.
+ * @template ChildForm - The type representing the child form structure.
  */
 export type ChildHoneyFormFieldsConfigs<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 > = {
   [FieldName in keyof ChildForm]: ChildHoneyFormFieldConfig<
     ParentForm,
-    ChildForm,
-    FieldName,
     ParentFieldName,
+    FieldName,
     FormContext,
+    ChildForm,
     ChildForm[FieldName]
   >;
 };
@@ -1342,8 +1328,9 @@ export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm
 };
 
 export type FormOptions<
-  Form extends HoneyFormBaseForm,
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  Form extends HoneyFormBaseForm,
   FormContext = undefined,
 > = {
   initialFormFieldsStateResolver: (
@@ -1353,7 +1340,7 @@ export type FormOptions<
    * A reference to a parent form field.
    * Use this to create nested forms where the parent field can have child forms.
    */
-  parentField?: HoneyFormParentField<ParentForm>;
+  parentField?: HoneyFormParentField<ParentForm, ParentFieldName>;
   /**
    * Default values for the form fields.
    * Can be a Promise function to asynchronously retrieve defaults.
@@ -1415,9 +1402,10 @@ type BaseHoneyFormOptions<
   T,
   Form extends HoneyFormBaseForm,
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext = undefined,
 > = Omit<
-  FormOptions<Form, ParentForm, FormContext>,
+  FormOptions<ParentForm, ParentFieldName, Form, FormContext>,
   'initialFormFieldsStateResolver' | 'parentField'
 > &
   T;
@@ -1433,7 +1421,8 @@ export type HoneyFormOptions<
     fields?: HoneyFormFieldsConfigs<Form, FormContext>;
   },
   Form,
-  undefined,
+  never,
+  never,
   FormContext
 >;
 
@@ -1442,21 +1431,23 @@ export type HoneyFormOptions<
  *
  * @template ParentForm - The type representing the parent form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
- * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the form.
+ * @template ChildForm - The type representing the child form structure.
  */
 export type ChildHoneyFormOptions<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 > = BaseHoneyFormOptions<
   {
     /**
      * A reference to a parent form field.
      * Use this to create nested forms where the parent field can have child forms.
      */
-    parentField: HoneyFormParentField<ParentForm>;
+    parentField: HoneyFormParentField<ParentForm, ParentFieldName>;
     /**
      * The index of a child form within a parent form, if applicable.
      */
@@ -1464,10 +1455,11 @@ export type ChildHoneyFormOptions<
     /**
      * Configuration for the form fields.
      */
-    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ParentFieldName, ChildForm, FormContext>;
+    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ParentFieldName, FormContext>;
   },
   ChildForm,
   ParentForm,
+  ParentFieldName,
   FormContext
 >;
 

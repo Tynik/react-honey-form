@@ -19,6 +19,7 @@ import type {
   HoneyFormValues,
   HoneyFormNestedFormsFieldConfig,
   KeysWithArrayValues,
+  HoneyFormExtractChildForm,
 } from './types';
 import { HONEY_FORM_ERRORS } from './constants';
 
@@ -189,10 +190,8 @@ export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
 /**
  * Checks if the given form field configuration is interactive.
  *
- * @template ParentForm - Type representing the parent form.
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
- * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template FormContext - Contextual information for the form.
  *
  * @param {HoneyFormFieldConfig<Form, FieldName, FormContext>} fieldConfig - The configuration of the form field.
@@ -200,20 +199,12 @@ export const getFormValues = <Form extends HoneyFormBaseForm, FormContext>(
  * @returns {fieldConfig is HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext>} - A boolean indicating whether the field is interactive.
  */
 export const checkIfFieldIsInteractive = <
-  ParentForm extends HoneyFormBaseForm,
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
-  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext,
 >(
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
-): fieldConfig is HoneyFormInteractiveFieldConfig<
-  ParentForm,
-  Form,
-  FieldName,
-  ParentFieldName,
-  FormContext
-> =>
+): fieldConfig is HoneyFormInteractiveFieldConfig<Form, FieldName, FormContext> =>
   fieldConfig.type === 'string' ||
   fieldConfig.type === 'numeric' ||
   fieldConfig.type === 'number' ||
@@ -283,17 +274,19 @@ export const checkIfFieldIsNestedForms = <
  * Options object for determining whether to skip a form field.
  *
  * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
  */
 type CheckIsSkipFieldOptions<
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
 > = {
-  parentField: HoneyFormParentField<ParentForm> | undefined;
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName> | undefined;
   /**
    * Name of the field.
    */
@@ -316,6 +309,7 @@ type CheckIsSkipFieldOptions<
  * Determines whether a specific form field should be skipped based on the skip function defined in its configuration.
  *
  * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template Form - Type representing the entire form.
  * @template FieldName - Name of the field in the form.
  * @template FormContext - Contextual information for the form.
@@ -326,6 +320,7 @@ type CheckIsSkipFieldOptions<
  */
 export const checkIsSkipField = <
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
@@ -333,7 +328,7 @@ export const checkIsSkipField = <
   fieldName,
   formFields,
   ...options
-}: CheckIsSkipFieldOptions<ParentForm, Form, FieldName, FormContext>): boolean =>
+}: CheckIsSkipFieldOptions<ParentForm, ParentFieldName, Form, FieldName, FormContext>): boolean =>
   formFields[fieldName].config.skip?.({
     formFields,
     ...options,
@@ -360,10 +355,11 @@ export const scheduleFieldValidation = <
  * Retrieves the values of the form fields suitable for form submission.
  *
  * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template Form - Type representing the entire form.
  * @template FormContext - The type representing the context associated with the form.
  *
- * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field where the child form is associated.
+ * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field where the child form is associated.
  * @param {FormContext} formContext - The context associated with the form.
  * @param {HoneyFormFields<Form, FormContext>} formFields - The form fields to extract values from.
  *
@@ -371,10 +367,11 @@ export const scheduleFieldValidation = <
  */
 export const getSubmitFormValues = <
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   Form extends HoneyFormBaseForm,
   FormContext,
 >(
-  parentField: HoneyFormParentField<ParentForm> | undefined,
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName> | undefined,
   formContext: FormContext,
   formFields: HoneyFormFields<Form, FormContext>,
 ): Form => {
@@ -440,20 +437,22 @@ export const getFormErrors = <Form extends HoneyFormBaseForm, FormContext>(
  * Registers a child form within a parent form field's metadata.
  *
  * @template ParentForm - Type representing the parent form.
- * @template ChildForm - Type representing the entire child form.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  * @template FormContext - The type representing the context associated with the forms.
+ * @template ChildForm - Type representing the entire child form.
  *
- * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field where the child form is associated.
+ * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field where the child form is associated.
  * @param {HoneyFormChildFormContext<ChildForm, FormContext>} childFormContext - The context information for the child form.
  */
 export const registerChildForm = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 >(
-  parentField: HoneyFormParentField<ParentForm>,
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
   childFormContext: HoneyFormChildFormContext<ParentForm, ChildForm, ParentFieldName, FormContext>,
 ) => {
   // Ensure __meta__ property exists and is an array, then push the child form context
@@ -467,12 +466,16 @@ export const registerChildForm = <
  * Unregisters a child form from a parent form field's metadata using the child form's ID.
  *
  * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  *
- * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field from which to unregister the child form.
+ * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field from which to unregister the child form.
  * @param {HoneyFormId} formId - The ID of the child form to unregister.
  */
-export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
-  parentField: HoneyFormParentField<ParentForm>,
+export const unregisterChildForm = <
+  ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
+>(
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
   formId: HoneyFormId,
 ) => {
   // Filter out the child form with the specified ID
@@ -486,14 +489,18 @@ export const unregisterChildForm = <ParentForm extends HoneyFormBaseForm>(
  * Retrieves the index of a child form within a parent form field's list of child forms.
  *
  * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
  *
- * @param {HoneyFormParentField<ParentForm>} parentField - The parent form field containing the child forms.
+ * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field containing the child forms.
  * @param {HoneyFormId} formId - The ID of the child form to find.
  *
  * @returns {number} - The index of the child form within the parent form field's list of child forms, or -1 if not found.
  */
-export const getChildFormIndex = <ParentForm extends HoneyFormBaseForm>(
-  parentField: HoneyFormParentField<ParentForm>,
+export const getChildFormIndex = <
+  ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
+>(
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
   formId: HoneyFormId,
 ): number =>
   parentField.__meta__.childForms?.findIndex(childForm => childForm.formId === formId) ?? -1;

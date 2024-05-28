@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { HoneyFormBaseForm, ChildHoneyFormBaseForm, KeysWithArrayValues } from '../types';
+import type { HoneyFormBaseForm, KeysWithArrayValues } from '../types';
 import type { ChildHoneyFormProviderProps } from './child-honey-form.provider';
 import type { ChildHoneyFormFormProps, ChildHoneyFormFormContent } from './child-honey-form.form';
 
@@ -11,23 +11,21 @@ import { ChildHoneyFormForm } from './child-honey-form.form';
 type ChildHoneyFormProps<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
-> = ChildHoneyFormProviderProps<ParentForm, ParentFieldName, ChildForm, FormContext> & {
-  children?: ChildHoneyFormFormContent<ParentForm, ParentFieldName, ChildForm, FormContext>;
-  formProps?: ChildHoneyFormFormProps<ParentForm, ParentFieldName, ChildForm, FormContext>;
+> = ChildHoneyFormProviderProps<ParentForm, ParentFieldName, FormContext> & {
+  children?: ChildHoneyFormFormContent<ParentForm, ParentFieldName, FormContext>;
+  formProps?: ChildHoneyFormFormProps<ParentForm, ParentFieldName, FormContext>;
 };
 
 const ChildHoneyFormComponent = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >({
   children,
   formProps,
   ...props
-}: ChildHoneyFormProps<ParentForm, ParentFieldName, ChildForm, FormContext>) => {
+}: ChildHoneyFormProps<ParentForm, ParentFieldName, FormContext>) => {
   return (
     <ChildHoneyFormProvider {...props}>
       <ChildHoneyFormForm {...formProps}>{children}</ChildHoneyFormForm>

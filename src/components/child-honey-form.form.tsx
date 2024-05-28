@@ -3,9 +3,9 @@ import React from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 import type {
   HoneyFormBaseForm,
-  ChildHoneyFormBaseForm,
   HoneyFormApi,
   KeysWithArrayValues,
+  HoneyFormExtractChildForm,
 } from '../types';
 
 import { useChildHoneyFormProvider } from './child-honey-form.provider';
@@ -15,8 +15,10 @@ export type ChildHoneyFormFormContent<
   // TODO: pass ParentForm to ChildHoneyFormApi
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 > =
   | ReactNode
   | ((
@@ -27,28 +29,21 @@ export type ChildHoneyFormFormContent<
 export type ChildHoneyFormFormProps<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 > = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
-  children?: ChildHoneyFormFormContent<ParentForm, ParentFieldName, ChildForm, FormContext>;
+  children?: ChildHoneyFormFormContent<ParentForm, ParentFieldName, FormContext>;
 };
 
 export const ChildHoneyFormForm = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >({
   children,
   ...props
-}: ChildHoneyFormFormProps<ParentForm, ParentFieldName, ChildForm, FormContext>) => {
+}: ChildHoneyFormFormProps<ParentForm, ParentFieldName, FormContext>) => {
   const parentHoneyFormApi = useHoneyFormProvider<ParentForm, FormContext>();
-  const childHoneyFormApi = useChildHoneyFormProvider<
-    ParentForm,
-    ParentFieldName,
-    ChildForm,
-    FormContext
-  >();
+  const childHoneyFormApi = useChildHoneyFormProvider<ParentForm, ParentFieldName, FormContext>();
 
   return (
     <div role="form" data-testid="child-honey-form" {...props}>

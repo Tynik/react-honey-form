@@ -3,10 +3,10 @@ import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 import type {
   HoneyFormBaseForm,
-  ChildHoneyFormBaseForm,
   HoneyFormApi,
   ChildHoneyFormOptions,
   KeysWithArrayValues,
+  HoneyFormExtractChildForm,
 } from '../types';
 
 import { useChildHoneyForm } from '../use-child-honey-form';
@@ -15,8 +15,10 @@ type ChildHoneyFormContextValue<
   // TODO: pass ParentForm to ChildHoneyFormApi
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 > = HoneyFormApi<ChildForm, FormContext>;
 
 const ChildHoneyFormContext = createContext<
@@ -26,21 +28,17 @@ const ChildHoneyFormContext = createContext<
 export type ChildHoneyFormProviderProps<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
-> = ChildHoneyFormOptions<ParentForm, ParentFieldName, ChildForm, FormContext>;
+> = ChildHoneyFormOptions<ParentForm, ParentFieldName, FormContext>;
 
 export const ChildHoneyFormProvider = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
 >({
   children,
   ...props
-}: PropsWithChildren<
-  ChildHoneyFormProviderProps<ParentForm, ParentFieldName, ChildForm, FormContext>
->) => {
+}: PropsWithChildren<ChildHoneyFormProviderProps<ParentForm, ParentFieldName, FormContext>>) => {
   const childHoneyFormApi = useChildHoneyForm(props);
 
   return (
@@ -53,11 +51,13 @@ export const ChildHoneyFormProvider = <
 export const useChildHoneyFormProvider = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 >() => {
   const childFormContext = useContext<
-    ChildHoneyFormContextValue<ParentForm, ParentFieldName, ChildForm, FormContext> | undefined
+    ChildHoneyFormContextValue<ParentForm, ParentFieldName, FormContext, ChildForm> | undefined
   >(ChildHoneyFormContext);
 
   if (!childFormContext) {

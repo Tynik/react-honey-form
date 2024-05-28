@@ -66,7 +66,7 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     MultiHoneyFormsContext,
   );
 
-  const formApi = useForm<Form, undefined, FormContext>({
+  const formApi = useForm<never, never, Form, FormContext>({
     initialFormFieldsStateResolver: config => createInitialFormFields({ fieldsConfigs, ...config }),
     ...options,
   });

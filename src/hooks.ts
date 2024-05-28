@@ -23,6 +23,7 @@ import type {
   HoneyFormErrors,
   HoneyFormFieldAddErrors,
   HoneyFormFieldSetChildFormsErrors,
+  KeysWithArrayValues,
 } from './types';
 import {
   resetAllFields,
@@ -54,8 +55,9 @@ import { HONEY_FORM_ERRORS } from './constants';
 const DEFAULTS = {};
 
 export const useForm = <
-  Form extends HoneyFormBaseForm,
   ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  Form extends HoneyFormBaseForm,
   FormContext = undefined,
 >({
   initialFormFieldsStateResolver,
@@ -68,7 +70,7 @@ export const useForm = <
   onSubmit,
   onChange,
   onChangeDebounce = 0,
-}: FormOptions<Form, ParentForm, FormContext>) => {
+}: FormOptions<ParentForm, ParentFieldName, Form, FormContext>) => {
   const formIdRef = useRef<HoneyFormId | null>(null);
 
   const [formState, setFormState] = useState<HoneyFormFormState>({
@@ -652,7 +654,7 @@ export const useForm = <
           setFormValues(defaultValues, { isDirty: false });
         })
         .catch(() => {
-          errorMessage('Unable to fetch form default values.');
+          errorMessage('Unable to fetch or process the form default values.');
           setIsFormDefaultsFetchingErred(true);
         })
         .finally(() => {

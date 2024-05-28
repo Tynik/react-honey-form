@@ -4,10 +4,10 @@ import type {
   HoneyFormApi,
   ChildHoneyFormOptions,
   HoneyFormParentField,
-  ChildHoneyFormBaseForm,
   InitialFormFieldsStateResolverOptions,
   HoneyFormFieldsConfigs,
   KeysWithArrayValues,
+  HoneyFormExtractChildForm,
 } from './types';
 import { HONEY_FORM_ERRORS } from './constants';
 import {
@@ -22,18 +22,20 @@ import { useForm } from './hooks';
 
 type CreateInitialFormFieldsOptions<
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext,
+  ChildForm extends HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 > = InitialFormFieldsStateResolverOptions<ChildForm, FormContext> & {
   formIndex: number | undefined;
-  parentField: HoneyFormParentField<ParentForm> | undefined;
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName> | undefined;
   fieldsConfigs: HoneyFormFieldsConfigs<ChildForm, FormContext>;
 };
 
 const createInitialFormFields = <
   ParentForm extends HoneyFormBaseForm,
-  ChildForm extends ChildHoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
   FormContext,
+  ChildForm extends HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 >({
   formContext,
   formIndex,
@@ -48,15 +50,16 @@ const createInitialFormFields = <
   removeFieldValue,
   addFormFieldErrors,
   setFieldChildFormsErrors,
-}: CreateInitialFormFieldsOptions<ParentForm, ChildForm, FormContext>) => {
+}: CreateInitialFormFieldsOptions<ParentForm, ParentFieldName, FormContext, ChildForm>) => {
   const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
     let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
 
     if (formIndex !== undefined && parentField) {
       const childForm = Array.isArray(parentField.value)
-        ? parentField.value[formIndex]
+        ? (parentField.value[formIndex] as ChildForm)
         : parentField.value;
 
+      // @ts-expect-error
       childFormFieldValue = childForm?.[fieldName];
     }
 
@@ -91,8 +94,8 @@ const createInitialFormFields = <
  *
  * @template ParentForm - The type representing the parent form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
- * @template ChildForm - The type representing the child form structure.
  * @template FormContext - The type representing the context associated with the form.
+ * @template ChildForm - The type representing the child form structure.
  *
  * @param {Object} options - Options for the child form hook.
  *
@@ -101,25 +104,36 @@ const createInitialFormFields = <
 export const useChildHoneyForm = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
-  ChildForm extends ChildHoneyFormBaseForm,
   FormContext = undefined,
+  ChildForm extends HoneyFormExtractChildForm<
+    ParentForm[ParentFieldName]
+  > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
 >({
   formIndex,
   parentField,
   fields: fieldsConfigs = {} as never,
   ...options
-}: ChildHoneyFormOptions<ParentForm, ParentFieldName, ChildForm, FormContext>): HoneyFormApi<
+}: ChildHoneyFormOptions<ParentForm, ParentFieldName, FormContext>): HoneyFormApi<
   ChildForm,
   FormContext
 > => {
-  const { formIdRef, formFieldsRef, ...childFormApi } = useForm<ChildForm, ParentForm, FormContext>(
-    {
-      parentField,
-      initialFormFieldsStateResolver: config =>
-        createInitialFormFields({ formIndex, parentField, fieldsConfigs, ...config }),
-      ...options,
-    },
-  );
+  const { formIdRef, formFieldsRef, ...childFormApi } = useForm<
+    ParentForm,
+    ParentFieldName,
+    ChildForm,
+    FormContext
+  >({
+    parentField,
+    initialFormFieldsStateResolver: config =>
+      // @ts-expect-error
+      createInitialFormFields({
+        formIndex,
+        parentField,
+        fieldsConfigs,
+        ...config,
+      }),
+    ...options,
+  });
 
   const { submitForm, validateForm } = childFormApi;
 
