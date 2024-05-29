@@ -16,9 +16,21 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
 
   const [isFormsSubmitting, setIsFormsSubmitting] = useState(false);
 
-  const addForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['addForm']>(form => {
-    setForms(forms => [...forms, form]);
-  }, []);
+  const removeForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['removeForm']>(
+    targetForm => {
+      setForms(forms => forms.filter(form => form !== targetForm));
+    },
+    [],
+  );
+
+  const addForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['addForm']>(
+    form => {
+      setForms(forms => [...forms, form]);
+
+      return () => removeForm(form);
+    },
+    [removeForm],
+  );
 
   const insertForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['insertForm']>(
     (index, form) => {
@@ -29,13 +41,6 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
 
         return updatedForms;
       });
-    },
-    [],
-  );
-
-  const removeForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['removeForm']>(
-    targetForm => {
-      setForms(forms => forms.filter(form => form !== targetForm));
     },
     [],
   );

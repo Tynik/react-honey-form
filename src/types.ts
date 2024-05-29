@@ -1380,7 +1380,7 @@ export type FormOptions<
    *
    * @default undefined
    */
-  storage?: 'query';
+  storage?: 'query' | 'ls';
   /**
    * A callback function triggered when the form is submitted.
    */
@@ -1629,6 +1629,11 @@ export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
   newFormDefaults?: HoneyFormDefaultValues<Form>,
 ) => void;
 
+/**
+ * Restore unfinished form from the storage if detected.
+ */
+export type HoneyFormRestoreUnfinishedForm = () => void;
+
 export type HoneyFormFormState = {
   isValidating: boolean;
   isSubmitting: boolean;
@@ -1724,11 +1729,15 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
   addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
   clearFormErrors: HoneyFormClearErrors;
   validateForm: HoneyFormValidate<Form>;
+  /**
+   * Submits the form by invoking the submit handler and handling server errors if they present.
+   */
   submitForm: HoneyFormSubmit<Form, FormContext>;
   /**
    * Reset the form to the initial state.
    */
   resetForm: HoneyFormReset<Form>;
+  restoreUnfinishedForm: HoneyFormRestoreUnfinishedForm;
 };
 
 /**
@@ -1754,8 +1763,10 @@ export type MultiHoneyFormsApi<Form extends HoneyFormBaseForm, FormContext = und
    * Adds a new form instance to the list of managed forms.
    *
    * @param {HoneyFormApi<Form, FormContext>} form - The form instance to add.
+   *
+   * @returns {Function} - A function that, when called, will remove the added form from the list of managed forms.
    */
-  addForm: (form: HoneyFormApi<Form, FormContext>) => void;
+  addForm: (form: HoneyFormApi<Form, FormContext>) => () => void;
   /**
    * Inserts a new form instance at the specified index in the list of managed forms.
    *

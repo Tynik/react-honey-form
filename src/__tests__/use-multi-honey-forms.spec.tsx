@@ -159,4 +159,46 @@ describe('Hook [use-multi-honey-forms]: General', () => {
       { context: undefined },
     );
   });
+
+  it('should update a form field value even if the form component was unmounted', async () => {
+    type Form = {
+      name: string;
+    };
+
+    const onSubmit = jest.fn<Promise<void>, [Form[]]>();
+
+    const { result: multiFormsApi } = renderHook(() => useMultiHoneyForms<Form>({ onSubmit }));
+
+    const { result: formApi, unmount } = renderHook(() =>
+      useHoneyForm<Form>({
+        fields: {
+          name: {
+            type: 'string',
+          },
+        },
+      }),
+    );
+
+    // Add a form
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
+
+    unmount();
+
+    // Set a value for the name field
+    act(() => formApi.current.formFields.name.setValue('Apple'));
+
+    // Submit all forms
+    await act(() => multiFormsApi.current.submitForms());
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      [
+        {
+          name: 'Apple',
+        },
+      ],
+      { context: undefined },
+    );
+  });
 });

@@ -24,6 +24,7 @@ import type {
   HoneyFormFieldAddErrors,
   HoneyFormFieldSetChildFormsErrors,
   KeysWithArrayValues,
+  HoneyFormRestoreUnfinishedForm,
 } from './types';
 import {
   resetAllFields,
@@ -89,6 +90,7 @@ export const useForm = <
   const formErrorsRef = useRef<HoneyFormErrors<Form> | null>(null);
   const isFormDirtyRef = useRef(false);
   const isFormValidRef = useRef(false);
+  const isUnfinishedFormDetected = useRef(false);
   const isFormSubmittedRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
@@ -184,6 +186,7 @@ export const useForm = <
             });
           });
 
+          formFieldsRef.current = nextFormFields;
           return nextFormFields;
         }, isSkipOnChange),
       );
@@ -200,18 +203,21 @@ export const useForm = <
         nextFormFields[fieldName] = getNextErredField(nextFormFields[fieldName], fieldErrors);
       });
 
+      formFieldsRef.current = nextFormFields;
       return nextFormFields;
     });
   }, []);
 
   const clearFormErrors = useCallback<HoneyFormClearErrors>(() => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(
-      formFields =>
-        mapFormFields(formFields, (_, formField) =>
-          getNextErrorsFreeField(formField),
-        ) as unknown as HoneyFormFields<Form, FormContext>,
-    );
+    setFormFields(formFields => {
+      const nextFormFields = mapFormFields(formFields, (_, formField) =>
+        getNextErrorsFreeField(formField),
+      ) as unknown as HoneyFormFields<Form, FormContext>;
+
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
+    });
   }, []);
 
   /**
@@ -293,6 +299,7 @@ export const useForm = <
           }, 0);
         }
 
+        formFieldsRef.current = nextFormFields;
         return nextFormFields;
       }),
     );
@@ -300,10 +307,15 @@ export const useForm = <
 
   const clearFieldErrors: HoneyFormFieldClearErrors<Form> = fieldName => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    setFormFields(formFields => ({
-      ...formFields,
-      [fieldName]: getNextErrorsFreeField(formFields[fieldName]),
-    }));
+    setFormFields(formFields => {
+      const nextFormFields = {
+        ...formFields,
+        [fieldName]: getNextErrorsFreeField(formFields[fieldName]),
+      };
+
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
+    });
   };
 
   const pushFieldValue: HoneyFormFieldPushValue<Form> = (fieldName, value) => {
@@ -351,10 +363,13 @@ export const useForm = <
         filteredValue,
       );
 
-      return {
+      const nextFormFields = {
         ...formFields,
         [fieldName]: nextFormField,
       };
+
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
     });
   };
 
@@ -363,7 +378,7 @@ export const useForm = <
     setFormFields(formFields => {
       const formField = formFields[fieldName];
 
-      return {
+      const nextFormFields = {
         ...formFields,
         [fieldName]: {
           ...formField,
@@ -371,6 +386,9 @@ export const useForm = <
           errors: [...(formField?.errors ?? []), ...errors],
         },
       };
+
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
     });
   }, []);
 
@@ -385,13 +403,16 @@ export const useForm = <
       setFormFields(formFields => {
         const formField = formFields[fieldName];
 
-        return {
+        const nextFormFields = {
           ...formFields,
           [fieldName]: {
             ...formField,
             childFormsErrors,
           },
         };
+
+        formFieldsRef.current = nextFormFields;
+        return nextFormFields;
       });
     },
     [],
@@ -405,7 +426,7 @@ export const useForm = <
           warningMessage(`Form field "${fieldName.toString()}" is already present.`);
         }
 
-        return {
+        const nextFormFields = {
           ...formFields,
           [fieldName]: createField(fieldName, config, {
             formContext,
@@ -420,6 +441,9 @@ export const useForm = <
             setFieldChildFormsErrors,
           }),
         };
+
+        formFieldsRef.current = nextFormFields;
+        return nextFormFields;
       });
     },
     [formContext],
@@ -431,11 +455,12 @@ export const useForm = <
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(formFields => {
-      const newFormFields = { ...formFields };
+      const nextFormFields = { ...formFields };
       //
-      delete newFormFields[fieldName];
+      delete nextFormFields[fieldName];
       //
-      return newFormFields;
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
     });
   }, []);
 
@@ -572,9 +597,12 @@ export const useForm = <
     setFormFields(getInitialFormFieldsState);
   };
 
-  /**
-   * Submits the form by invoking the submit handler and handling server errors.
-   */
+  const restoreUnfinishedForm = useCallback<HoneyFormRestoreUnfinishedForm>(() => {
+    isUnfinishedFormDetected.current = false;
+
+    setFormValues({});
+  }, []);
+
   const submitForm = useCallback<HoneyFormSubmit<Form, FormContext>>(
     async formSubmitHandler => {
       if (!formFieldsRef.current) {
@@ -657,9 +685,7 @@ export const useForm = <
           errorMessage('Unable to fetch or process the form default values.');
           setIsFormDefaultsFetchingErred(true);
         })
-        .finally(() => {
-          setIsFormDefaultsFetching(false);
-        });
+        .finally(() => setIsFormDefaultsFetching(false));
     }
   }, []);
 
@@ -707,5 +733,6 @@ export const useForm = <
     validateForm: outerValidateForm,
     submitForm,
     resetForm,
+    restoreUnfinishedForm,
   };
 };
