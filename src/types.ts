@@ -171,6 +171,19 @@ export type HoneyFormFieldSetInternalValue<Form extends HoneyFormBaseForm> = <
   options?: HoneyFormFieldSetInternalValueOptions,
 ) => void;
 
+/**
+ * A type representing a function that completes the asynchronous validation for a specific form field.
+ *
+ * @template Form - The type representing the form structure.
+ * @template FieldName - The name of the field within the form to complete the validation for.
+ *
+ * @param {FieldName} fieldName - The name of the field whose asynchronous validation is being completed.
+ */
+export type HoneyFormFieldFinishAsyncValidation<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form = keyof Form,
+> = (fieldName: FieldName) => void;
+
 export type HoneyFormFieldClearErrors<Form extends HoneyFormBaseForm> = <
   FieldName extends keyof Form,
 >(
@@ -220,7 +233,7 @@ export type HoneyFormFieldAddErrors<Form extends HoneyFormBaseForm> = <
  * @template Form - Type representing the entire form.
  */
 export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
-  [FieldName in keyof Form]: HoneyFormFieldError[];
+  [FieldName in keyof Form]?: HoneyFormFieldError[];
 };
 
 /**
@@ -930,6 +943,11 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
+/**
+ * @example
+ * - `aria-required`: ARIA attribute indicating whether the field is required for accessibility.
+ * - `aria-invalid`: ARIA attribute indicating whether the field is in an invalid state for accessibility.
+ */
 export type BaseHoneyFormFieldHTMLAttributes<T> = Pick<
   InputHTMLAttributes<T>,
   'type' | 'name' | 'inputMode' | 'aria-required' | 'aria-invalid'
@@ -947,8 +965,6 @@ export type BaseHoneyFormFieldHTMLAttributes<T> = Pick<
  * - `onChange`: Callback function triggered when the field value changes.
  * - `ref`: A reference to the field element.
  * - `value`: The current value of the field.
- * - `aria-required`: ARIA attribute indicating whether the field is required for accessibility.
- * - `aria-invalid`: ARIA attribute indicating whether the field is in an invalid state for accessibility.
  *
  * @remarks
  * When the `onBlur` event is triggered, and the field's mode is set to 'blur', the validation process
@@ -962,7 +978,7 @@ export type HoneyFormInteractiveFieldProps<
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
   BaseHoneyFormFieldHTMLAttributes<any> &
-    Pick<InputHTMLAttributes<any>, 'onChange' | 'onBlur'> & {
+    Pick<InputHTMLAttributes<any>, 'onChange' | 'onBlur' | 'aria-busy'> & {
       value: FieldValue | undefined;
     }
 >;
@@ -1102,6 +1118,12 @@ type BaseHoneyFormField<
      * @default []
      */
     errors: HoneyFormFieldError[];
+    /**
+     * Indicates whether the field is currently undergoing validation.
+     *
+     * @default false
+     */
+    isValidating: boolean;
     /**
      * A function to set the field's value.
      */
@@ -1718,16 +1740,56 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
    * @default false
    */
   isFormSubmitted: boolean;
+  /**
+   * A boolean value that becomes `true` if any form field is currently validating using promise-based validator functions.
+   * This value changes only when the field value is changed. It does not apply during full form validation.
+   *
+   * @default false
+   */
+  isAnyFormFieldValidating: boolean;
+  /**
+   * A boolean value that indicates whether the form submission is allowed.
+   *
+   * The value is determined by the following conditions:
+   * - `isFormDefaultsFetching` is `false`
+   * - `isFormDefaultsFetchingErred` is `false`
+   * - `isAnyFormFieldValidating` is `false`
+   * - `isFormSubmitting` is `false`
+   *
+   * @default true
+   */
+  isFormSubmitAllowed: boolean;
+  /**
+   * Sets the values of the form fields.
+   */
   setFormValues: HoneyFormSetFormValues<Form>;
+  /**
+   * Sets the errors for the form fields.
+   */
   setFormErrors: HoneyFormSetFormErrors<Form>;
   /**
    * Add a new field to the form.
    */
   addFormField: HoneyFormAddFormField<Form, FormContext>;
+  /**
+   * Removes a field from the form.
+   */
   removeFormField: HoneyFormRemoveFormField<Form>;
+  /**
+   * Adds an error to a specific form field.
+   */
   addFormFieldError: HoneyFormFieldAddError<Form>;
+  /**
+   * Adds the errors to a specific form field.
+   */
   addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
+  /**
+   * Clears all form errors.
+   */
   clearFormErrors: HoneyFormClearErrors;
+  /**
+   * Validates the entire form.
+   */
   validateForm: HoneyFormValidate<Form>;
   /**
    * Submits the form by invoking the submit handler and handling server errors if they present.
@@ -1737,6 +1799,9 @@ export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined
    * Reset the form to the initial state.
    */
   resetForm: HoneyFormReset<Form>;
+  /**
+   * Restores the form to an unfinished state.
+   */
   restoreUnfinishedForm: HoneyFormRestoreUnfinishedForm;
 };
 

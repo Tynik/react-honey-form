@@ -11,6 +11,9 @@ import type {
   HoneyFormFieldPushValue,
   HoneyFormFieldRemoveValue,
   HoneyFormFieldSetInternalValue,
+  HoneyFormFieldAddErrors,
+  HoneyFormFieldSetChildFormsErrors,
+  HoneyFormFieldFinishAsyncValidation,
   HoneyFormValidateField,
   HoneyFormAddFormField,
   HoneyFormClearErrors,
@@ -21,8 +24,6 @@ import type {
   HoneyFormSubmit,
   HoneyFormValidate,
   HoneyFormErrors,
-  HoneyFormFieldAddErrors,
-  HoneyFormFieldSetChildFormsErrors,
   KeysWithArrayValues,
   HoneyFormRestoreUnfinishedForm,
 } from './types';
@@ -35,6 +36,7 @@ import {
   getNextFieldsState,
   getNextErrorsFreeField,
   getNextSingleFieldState,
+  getNextAsyncValidatedField,
 } from './field';
 import {
   checkIfFieldIsInteractive,
@@ -173,12 +175,12 @@ export const useForm = <
                 ? fieldConfig.filter(values[fieldName], { formContext })
                 : values[fieldName];
 
-            const nextFormField = executeFieldValidator(
+            const nextFormField = executeFieldValidator({
               formContext,
-              nextFormFields,
               fieldName,
-              filteredValue,
-            );
+              formFields: nextFormFields,
+              fieldValue: filteredValue,
+            });
 
             nextFormFields[fieldName] = getNextSingleFieldState(nextFormField, filteredValue, {
               formContext,
@@ -220,6 +222,19 @@ export const useForm = <
     });
   }, []);
 
+  const finishFieldAsyncValidation: HoneyFormFieldFinishAsyncValidation<Form> = fieldName => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setFormFields(formFields => {
+      const nextFormFields = {
+        ...formFields,
+        [fieldName]: getNextAsyncValidatedField(formFields[fieldName]),
+      };
+
+      formFieldsRef.current = nextFormFields;
+      return nextFormFields;
+    });
+  };
+
   /**
    * Set the value of a form field and update the form state accordingly.
    *
@@ -254,6 +269,7 @@ export const useForm = <
             formContext,
             formFields,
             isFormat,
+            finishFieldAsyncValidation,
             // Re-validate the field immediately if it previously had errors or if forced to validate
             isValidate: isValidate || isFieldErred,
           },
@@ -356,12 +372,12 @@ export const useForm = <
         filteredValue = formField.rawValue;
       }
 
-      const nextFormField = executeFieldValidator(
+      const nextFormField = executeFieldValidator({
         formContext,
         formFields,
         fieldName,
-        filteredValue,
-      );
+        fieldValue: filteredValue,
+      });
 
       const nextFormFields = {
         ...formFields,
@@ -695,7 +711,18 @@ export const useForm = <
   const formErrors = useMemo(() => getFormErrors(formFields), [formFields]);
   formErrorsRef.current = formErrors;
 
+  const isAnyFormFieldValidating = useMemo(
+    () => Object.keys(formFields).some(formField => formFields[formField].isValidating),
+    [formFields],
+  );
+
   const isFormErred = Object.keys(formErrors).length > 0;
+
+  const isFormSubmitAllowed =
+    !isFormDefaultsFetching &&
+    !isFormDefaultsFetchingErred &&
+    !isAnyFormFieldValidating &&
+    !formState.isSubmitting;
 
   return {
     formIdRef,
@@ -717,6 +744,8 @@ export const useForm = <
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
     isFormErred,
+    isAnyFormFieldValidating,
+    isFormSubmitAllowed,
     isFormDirty: isFormDirtyRef.current,
     isFormValidating: formState.isValidating,
     isFormValid: isFormValidRef.current,

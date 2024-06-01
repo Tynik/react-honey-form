@@ -590,13 +590,12 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
         fields: {
           name: {
             type: 'string',
-            validator: value => {
-              return new Promise(resolve => {
+            validator: value =>
+              new Promise(resolve => {
                 setTimeout(() => {
                   resolve(value === 'Apple' ? 'Apples are not accepted!' : true);
                 }, 0);
-              });
-            },
+              }),
           },
         },
       }),
@@ -626,13 +625,12 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
         fields: {
           name: {
             type: 'string',
-            validator: () => {
-              return new Promise((resolve, reject) => {
+            validator: () =>
+              new Promise((resolve, reject) => {
                 setTimeout(() => {
                   reject(new Error('Something went wrong!'));
                 }, 0);
-              });
-            },
+              }),
           },
         },
       }),
@@ -660,13 +658,12 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
         fields: {
           name: {
             type: 'string',
-            validator: value => {
-              return new Promise(resolve => {
+            validator: value =>
+              new Promise(resolve => {
                 setTimeout(() => {
                   resolve(value === 'Apple' ? 'Apples are not accepted!' : true);
                 }, 0);
-              });
-            },
+              }),
           },
         },
         onSubmit,
@@ -688,9 +685,46 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  it('should handle asynchronous field validation state and update form submission status', async () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            type: 'string',
+            validator: value =>
+              new Promise(resolve => {
+                setTimeout(() => {
+                  resolve(null);
+                }, 0);
+              }),
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.name.setValue('Apple'));
+
+    await waitFor(() => {
+      expect(result.current.formFields.name.isValidating).toBeTruthy();
+      expect(result.current.formFields.name.props['aria-busy']).toBeTruthy();
+
+      expect(result.current.isAnyFormFieldValidating).toBeTruthy();
+      // The form submission should not be allowed when any field is in the validation process
+      expect(result.current.isFormSubmitAllowed).toBeFalsy();
+    });
+
+    await waitFor(() => {
+      expect(result.current.formFields.name.isValidating).toBeFalsy();
+      expect(result.current.formFields.name.props['aria-busy']).toBeFalsy();
+
+      expect(result.current.isAnyFormFieldValidating).toBeFalsy();
+      expect(result.current.isFormSubmitAllowed).toBeTruthy();
+    });
+  });
 });
 
-describe('Hook [use-honey-form]: Scheduled validation', () => {
+describe('Hook [use-honey-form]: Scheduled fields validation', () => {
   it('schedule validation for another field inside field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amountFrom: number; amountTo: number }>({

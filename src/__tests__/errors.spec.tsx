@@ -3,14 +3,14 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 
 describe('Hook [use-honey-form]: Work with errors', () => {
-  it('errors initially should have empty object', () => {
+  it('should initialize with empty errors object and no form errors', () => {
     const { result } = renderHook(() => useHoneyForm({ fields: {} }));
 
     expect(result.current.formErrors).toStrictEqual({});
     expect(result.current.isFormErred).toBeFalsy();
   });
 
-  it('error should not be present for just declared field', () => {
+  it('should not have an error for a newly declared field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ name: string }>({
         fields: {
@@ -24,7 +24,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     expect(result.current.formErrors.name).toBeUndefined();
   });
 
-  it('decimal value should not be allowed by default for number type', () => {
+  it('should not allow decimal values for number type by default', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -53,7 +53,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     });
   });
 
-  it('decimal value should not be allowed by default for number type with custom validator', () => {
+  it('should not allow decimal values for number type with custom validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -65,9 +65,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.age.setValue(1.5);
-    });
+    act(() => result.current.formFields.age.setValue(1.5));
 
     expect(result.current.formFields.age.value).toBe(1.5);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
@@ -82,7 +80,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     });
   });
 
-  it('use custom errors return from field validator', () => {
+  it('should use custom errors returned from field validator', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -102,9 +100,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
-      result.current.formFields.age.setValue(43);
-    });
+    act(() => result.current.formFields.age.setValue(43));
 
     expect(result.current.formFields.age.value).toBe(43);
     expect(result.current.formFields.age.cleanValue).toBeUndefined();
@@ -116,9 +112,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.age.setValue(46);
-    });
+    act(() => result.current.formFields.age.setValue(46));
 
     expect(result.current.formFields.age.value).toBe(46);
     expect(result.current.formFields.age.cleanValue).toBe(46);
@@ -126,7 +120,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  it('add and clear the server error added to existed field', () => {
+  it('should add and clear server error for an existing field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -138,12 +132,12 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     );
     expect(result.current.formFields.age.errors).toStrictEqual([]);
 
-    act(() => {
+    act(() =>
       result.current.addFormFieldError('age', {
         type: 'server',
         message: 'age should be less than 55',
-      });
-    });
+      }),
+    );
 
     expect(result.current.formFields.age.errors).toStrictEqual([
       {
@@ -152,14 +146,12 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       },
     ]);
 
-    act(() => {
-      result.current.formFields.age.clearErrors();
-    });
+    act(() => result.current.formFields.age.clearErrors());
 
     expect(result.current.formFields.age.errors).toStrictEqual([]);
   });
 
-  it('add server error to non existed field', () => {
+  it('should add server error to non-existing field', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: number }>({
         fields: {
@@ -188,7 +180,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
     });
   });
 
-  it('should ignore server type errors when submitting', async () => {
+  it('should ignore server errors during submission', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -202,7 +194,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       }),
     );
 
-    act(() => {
+    act(() =>
       result.current.setFormErrors({
         name: [
           {
@@ -210,8 +202,8 @@ describe('Hook [use-honey-form]: Work with errors', () => {
             message: 'Apple is not allowed',
           },
         ],
-      });
-    });
+      }),
+    );
 
     expect(result.current.formErrors).toStrictEqual({
       name: [
@@ -250,9 +242,7 @@ describe('Hook [use-honey-form]: Work with errors', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.name.setValue('Apple');
-    });
+    act(() => result.current.formFields.name.setValue('Apple'));
 
     await act(() => result.current.submitForm());
 

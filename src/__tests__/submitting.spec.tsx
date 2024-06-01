@@ -49,6 +49,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     expect(result.current.isFormDirty).toBeTruthy();
     expect(result.current.isFormValid).toBeFalsy();
     expect(result.current.isFormSubmitted).toBeFalsy();
+    expect(result.current.isFormSubmitAllowed).toBeTruthy();
 
     await act(() => result.current.submitForm());
 
@@ -57,6 +58,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     expect(result.current.isFormDirty).toBeFalsy();
     expect(result.current.isFormValid).toBeTruthy();
     expect(result.current.isFormSubmitted).toBeTruthy();
+    expect(result.current.isFormSubmitAllowed).toBeTruthy();
   });
 
   it('should not update form states after unsuccessful submission', async () => {
@@ -118,7 +120,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     );
   });
 
-  it('should show an error related to allow only numerics because its high priority error than min/max', async () => {
+  it('should prioritize numeric-only error over min/max error', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -149,7 +151,7 @@ describe('Hook [use-honey-form]: Submitting', () => {
     });
   });
 
-  it('should not submit the form with errors', async () => {
+  it('should prevent form submission with errors', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>
@@ -172,13 +174,14 @@ describe('Hook [use-honey-form]: Submitting', () => {
     });
 
     expect(result.current.formFields.age.errors.length).toBe(1);
+    expect(result.current.isFormSubmitAllowed).toBeTruthy();
 
     await act(() => result.current.submitForm());
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('should reset form after submission using resetAfterSubmit=true option', async () => {
+  it('should reset form after successful submission using `resetAfterSubmit` option', async () => {
     const onSubmit = jest.fn();
 
     const { result } = renderHook(() =>

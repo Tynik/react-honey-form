@@ -30,6 +30,7 @@ import type {
   HoneyFormValidateField,
   HoneyFormParentField,
   KeysWithArrayValues,
+  HoneyFormFieldFinishAsyncValidation,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -46,6 +47,7 @@ import {
   getFormValues,
   checkIsSkipField,
   scheduleFieldValidation,
+  noop,
 } from './helpers';
 import { HONEY_FORM_ERRORS } from './constants';
 
@@ -274,7 +276,7 @@ type ObjectFieldPropsOptions<
  * @template FormContext - Contextual information for the form.
  * @template FieldValue - Type representing the value of the field.
  *
- *  @param {FieldName} fieldName - The name of the field.
+ * @param {FieldName} fieldName - The name of the field.
  * @param {FieldValue} fieldValue - The current value of the field.
  * @param {ObjectFieldPropsOptions<Form, FieldName, FormContext>} options - Options for object field properties.
  *
@@ -321,18 +323,22 @@ type FieldPropsOptions<
 };
 
 /**
- * Gets the properties for a form field based on its type.
+ * Retrieves the properties for a form field based on its type.
  *
- * @template Form - Type representing the entire form.
- * @template FieldName - Name of the field in the form.
- * @template FormContext - Contextual information for the form.
- * @template FieldValue - Type representing the value of the field.
+ * This function determines the type of the form field (interactive, passive, or object)
+ * and returns the appropriate properties for that field type. It ensures the form field
+ * has the necessary configuration and handlers for proper functioning within the form.
  *
- * @param {FieldName} fieldName - The name of the field.
- * @param {FieldValue} fieldValue - The current value of the field.
- * @param {FieldPropsOptions<Form, FieldName, FormContext>} options - Options for field properties.
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field within the form.
+ * @template FormContext - The context of the form.
+ * @template FieldValue - The type representing the value of the field.
  *
- * @returns {HoneyFormFieldProps<Form, FieldName, FieldValue>} - The field properties.
+ * @param {FieldName} fieldName - The name of the form field.
+ * @param {FieldValue} fieldValue - The current value of the form field.
+ * @param {FieldPropsOptions<Form, FieldName, FormContext>} options - Additional options for retrieving field properties.
+ *
+ * @returns {HoneyFormFieldProps<Form, FieldName, FieldValue>} - The properties for the form field based on its type.
  */
 const getFieldProps = <
   Form extends HoneyFormBaseForm,
@@ -403,6 +409,23 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   setFieldChildFormsErrors: HoneyFormFieldSetChildFormsErrors<Form>;
 };
 
+/**
+ * Creates a form field with the specified configuration and initial setup.
+ *
+ * This function initializes a form field by setting its configuration, default values,
+ * event handlers, and other necessary properties. It ensures the form field is properly
+ * integrated within the form context and maintains its state throughout the form's lifecycle.
+ *
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field within the form.
+ * @template FormContext - The type representing any additional context for the form.
+ *
+ * @param {FieldName} fieldName - The name of the form field to be created.
+ * @param {HoneyFormFieldConfig<Form, FieldName, FormContext>} fieldConfig - The configuration for the form field.
+ * @param {CreateFieldOptions<Form, FormContext>} options - Additional options for field creation, including context and various handlers.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The created form field with all its properties and methods.
+ */
 export const createField = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
@@ -472,6 +495,7 @@ export const createField = <
     rawValue: filteredValue,
     cleanValue: filteredValue,
     value: formattedValue,
+    isValidating: false,
     // TODO: try to fix the next error
     // @ts-expect-error
     getChildFormsValues: () => {
@@ -512,15 +536,19 @@ export const createField = <
 };
 
 /**
- * Returns the next state of a form field with errors cleared.
+ * Returns the updated state of a form field with all errors cleared.
  *
- * @template Form - The form type.
- * @template FieldName - The name of the field.
- * @template FormContext - The context of the form.
+ * This function processes the form field to reset its error-related properties,
+ * ensuring that the field is marked as valid by setting the `aria-invalid` attribute to `false`
+ * and clearing any existing error messages. It also resets the `cleanValue` property to `undefined`.
  *
- * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field.
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field within the form.
+ * @template FormContext - The type representing any additional context for the form.
  *
- * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state with errors cleared.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The current state of the form field to be updated.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The updated state of the form field with errors cleared and validation status reset.
  */
 export const getNextErrorsFreeField = <
   Form extends HoneyFormBaseForm,
@@ -567,7 +595,7 @@ export const getNextErrorsFreeField = <
 /**
  * Returns the next state of a form field with specified errors.
  *
- * @template Form - The form type.
+ * @template Form - The type representing the entire form.
  * @template FieldName - The name of the field.
  * @template FormContext - The context of the form.
  *
@@ -625,9 +653,9 @@ export const getNextErredField = <
 /**
  * Retrieves the next state of a form field after resetting its values and clearing all field errors.
  *
- * @template Form - The type of the form object.
- * @template FieldName - The type of the field name.
- * @template FormContext - The type of the form context.
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field.
+ * @template FormContext - The context of the form.
  *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field to reset.
  * @param {boolean} [isResetToDefault=true] - Indicates whether the field should be reset to its default value.
@@ -687,8 +715,12 @@ export const getNextResetField = <
 /**
  * Handle the result of field validation and update the field errors array accordingly.
  *
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field being validated.
+ * @template FormContext - The context of the form.
+ *
  * @param {HoneyFormFieldError[]} fieldErrors - The array to collect validation errors for the field.
- * @param {HoneyFormFieldConfig} fieldConfig - Configuration for the field being validated.
+ * @param {HoneyFormFieldConfig<Form, FieldName, FormContext>} fieldConfig - Configuration for the field being validated.
  * @param {HoneyFormFieldValidationResult | null} validationResult - The result of the field validation.
  */
 const handleFieldValidationResult = <
@@ -722,14 +754,70 @@ const handleFieldValidationResult = <
 };
 
 /**
+ * Updates the form field to indicate it is currently undergoing asynchronous validation.
+ *
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field in the form.
+ * @template FormContext - The contextual information for the form.
+ *
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field to update.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The updated form field with asynchronous validation status.
+ */
+const getNextAsyncValidatingField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  formField: HoneyFormField<Form, FieldName, FormContext>,
+): HoneyFormField<Form, FieldName, FormContext> => ({
+  ...formField,
+  isValidating: true,
+  props: {
+    ...formField.props,
+    'aria-busy': true,
+  },
+});
+
+/**
+ * Updates the form field to indicate it has completed asynchronous validation.
+ *
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field in the form.
+ * @template FormContext - The contextual information for the form.
+ *
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field to update.
+ *
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The updated form field with asynchronous validation completed.
+ */
+export const getNextAsyncValidatedField = <
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+>(
+  formField: HoneyFormField<Form, FieldName, FormContext>,
+): HoneyFormField<Form, FieldName, FormContext> => ({
+  ...formField,
+  isValidating: false,
+  props: {
+    ...formField.props,
+    'aria-busy': false,
+  },
+});
+
+/**
  * Get the next validated field based on validation results and field errors.
+ *
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field being validated.
+ * @template FormContext - The context of the form.
  *
  * @param {HoneyFormFieldError[]} fieldErrors - The array of validation errors for the field.
  * @param {HoneyFormFieldValidationResult | null} validationResult - The result of the field validation.
- * @param {HoneyFormField} formField - The form field being validated.
+ * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field being validated.
  * @param {Form[FieldName] | undefined} cleanValue - The cleaned value of the field.
  *
- * @returns {HoneyFormField} - The next form field state after validation.
+ * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next form field state after validation.
  */
 const getNextValidatedField = <
   Form extends HoneyFormBaseForm,
@@ -861,23 +949,27 @@ const executeInternalFieldValidators = <
 };
 
 /**
- * Handles the result of a promise-based field validation, adding errors to the form field.
+ * Handles the result of a promise-based field validation, updating the form field with appropriate errors.
  *
- * @template Form - The form type.
- * @template FieldName - The name of the field.
- * @template FormContext - The context of the form.
+ * This function processes the result of a promise returned by a field validation function. It adds validation errors
+ * to the form field based on the resolved value of the promise. If the promise is rejected, it adds an error with the
+ * rejection reason.
+ *
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field within the form.
+ * @template FormContext - Contextual information for the form.
  *
  * @param {HoneyFormField<Form, FieldName, FormContext>} formField - The form field being validated.
- * @param {Promise<HoneyFormFieldValidationResult>} validationResponse - The result of the promise-based validation.
+ * @param {Promise<HoneyFormFieldValidationResult>} validationResponse - The promise representing the result of the validation.
  */
-const handleFieldPromiseValidationResult = <
+const handleFieldAsyncValidationResult = <
   Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FormContext,
 >(
   formField: HoneyFormField<Form, FieldName, FormContext>,
   validationResponse: Promise<HoneyFormFieldValidationResult>,
-) => {
+): Promise<void> =>
   validationResponse
     .then(validationResult => {
       if (validationResult) {
@@ -903,7 +995,6 @@ const handleFieldPromiseValidationResult = <
         message: formField.config.errorMessages?.invalid ?? validationResult.message,
       });
     });
-};
 
 /**
  * Sanitizes the value of a form field based on its type.
@@ -926,17 +1017,53 @@ const sanitizeFieldValue = <
 };
 
 /**
- * Execute the validator for a specific form field.
+ * Options for executing the validator for a specific form field.
  *
- * @template Form - The form type.
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field to validate in the form.
+ * @template FormContext - The contextual information for the form.
+ * @template FieldValue - The type representing the value of the field.
+ */
+type ExecuteFieldValidatorOptions<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
+  FormContext,
+  FieldValue extends Form[FieldName],
+> = {
+  /**
+   * The contextual information for the form.
+   */
+  formContext: FormContext;
+  /**
+   * The current state of all form fields.
+   */
+  formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * The name of the field to validate.
+   */
+  fieldName: FieldName;
+  /**
+   * The value of the field.
+   */
+  fieldValue: FieldValue | undefined;
+  /**
+   * Optional callback function to complete asynchronous validation for the field.
+   *
+   * This function should be called once the asynchronous validation process is finished to indicate
+   * that the field's validation status has been resolved.
+   */
+  finishFieldAsyncValidation?: HoneyFormFieldFinishAsyncValidation<Form, FieldName>;
+};
+
+/**
+ * Executes the validator for a specific form field and returns the next state of the field.
+ *
+ * @template Form - The type representing the entire form.
  * @template FieldName - The name of the field to validate.
  * @template FormContext - The context of the form.
  * @template FieldValue - The value of the field.
  *
- * @param {FormContext} formContext - The context of the form.
- * @param {HoneyFormFields<Form, FormContext>} formFields - The current state of all form fields.
- * @param {FieldName} fieldName - The name of the field to validate.
- * @param {FieldValue | undefined} fieldValue - The value of the field.
+ * @param {ExecuteFieldValidatorOptions<Form, FieldName, FormContext, FieldValue>} options - Options for executing the field validator.
  *
  * @returns {HoneyFormField<Form, FieldName, FormContext>} - The next state of the validated field.
  */
@@ -945,13 +1072,18 @@ export const executeFieldValidator = <
   FieldName extends keyof Form,
   FormContext,
   FieldValue extends Form[FieldName],
->(
-  formContext: FormContext,
-  formFields: HoneyFormFields<Form, FormContext>,
-  fieldName: FieldName,
-  fieldValue: FieldValue | undefined,
-): HoneyFormField<Form, FieldName, FormContext> => {
-  const formField = formFields[fieldName];
+>({
+  formContext,
+  formFields,
+  fieldName,
+  fieldValue,
+  finishFieldAsyncValidation,
+}: ExecuteFieldValidatorOptions<Form, FieldName, FormContext, FieldValue>): HoneyFormField<
+  Form,
+  FieldName,
+  FormContext
+> => {
+  let formField = formFields[fieldName];
 
   const fieldErrors: HoneyFormFieldError[] = [];
 
@@ -970,6 +1102,8 @@ export const executeFieldValidator = <
 
     // Execute custom validator. Can only run when the default validator returns true
     if (formField.config.validator) {
+      formField = getNextAsyncValidatingField(formField);
+
       const formValues = getFormValues(formFields);
 
       const validationResponse = formField.config.validator(sanitizedValue, {
@@ -982,7 +1116,9 @@ export const executeFieldValidator = <
       });
 
       if (validationResponse instanceof Promise) {
-        handleFieldPromiseValidationResult(formField, validationResponse);
+        handleFieldAsyncValidationResult(formField, validationResponse)
+          .then(() => finishFieldAsyncValidation?.(fieldName))
+          .catch(noop);
       } else {
         validationResult = validationResponse;
       }
@@ -1260,6 +1396,15 @@ const resetDependentFields = <
   });
 };
 
+/**
+ * Options for triggering scheduled validations on form fields.
+ *
+ * @template ParentForm - The type representing the parent form structure.
+ * @template ParentFieldName - The type representing the name of the parent field that contains an array of values.
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field in the form triggering validations.
+ * @template FormContext - The contextual information for the form.
+ */
 type TriggerScheduledFieldsValidationsOptions<
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
@@ -1283,6 +1428,13 @@ type TriggerScheduledFieldsValidationsOptions<
    * The context of the form.
    */
   formContext: FormContext;
+  /**
+   * Callback function to complete asynchronous validation for the field.
+   *
+   * This function should be called once the asynchronous validation process is finished to indicate
+   * that the field's validation status has been resolved.
+   */
+  finishFieldAsyncValidation: HoneyFormFieldFinishAsyncValidation<Form, FieldName>;
 };
 
 /**
@@ -1294,7 +1446,7 @@ type TriggerScheduledFieldsValidationsOptions<
  * @template FieldName - The name of the field to trigger validations for.
  * @template FormContext - The context of the form.
  *
- * @param {TriggerScheduledFieldsValidationsOptions<ParentForm, Form, FieldName, FormContext>} options - The options for triggering scheduled validations.
+ * @param {TriggerScheduledFieldsValidationsOptions<ParentForm, ParentFieldName, Form, FieldName, FormContext>} options - The options for triggering scheduled validations.
  */
 const triggerScheduledFieldsValidations = <
   ParentForm extends HoneyFormBaseForm,
@@ -1307,6 +1459,7 @@ const triggerScheduledFieldsValidations = <
   fieldName,
   nextFormFields,
   formContext,
+  finishFieldAsyncValidation,
 }: TriggerScheduledFieldsValidationsOptions<
   ParentForm,
   ParentFieldName,
@@ -1347,12 +1500,13 @@ const triggerScheduledFieldsValidations = <
           filteredValue = nextFormField.rawValue;
         }
 
-        nextFormFields[otherFieldName] = executeFieldValidator(
+        nextFormFields[otherFieldName] = executeFieldValidator({
           formContext,
-          nextFormFields,
-          otherFieldName,
-          filteredValue,
-        );
+          finishFieldAsyncValidation,
+          formFields: nextFormFields,
+          fieldName: otherFieldName,
+          fieldValue: filteredValue,
+        });
       }
 
       // Reset the validation scheduled flag for the field
@@ -1435,39 +1589,71 @@ export const getNextSingleFieldState = <
   };
 };
 
+/**
+ * Options for determining the next state of form fields.
+ *
+ * @template ParentForm - The type representing the parent form structure.
+ * @template ParentFieldName - The type representing the name of the parent field that contains an array of values.
+ * @template Form - The type representing the entire form structure.
+ * @template FieldName - The name of the field in the form.
+ * @template FormContext - The contextual information for the form.
+ */
 type NextFieldsStateOptions<
-  Form extends HoneyFormBaseForm,
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form,
   FormContext,
 > = {
+  /**
+   * The parent form field, if any.
+   */
   parentField: HoneyFormParentField<ParentForm, ParentFieldName> | undefined;
+  /**
+   * The context of the form.
+   */
   formContext: FormContext;
+  /**
+   * The current state of all form fields.
+   */
   formFields: HoneyFormFields<Form, FormContext>;
+  /**
+   * Flag indicating whether to validate the form fields.
+   */
   isValidate: boolean;
+  /**
+   * Flag indicating whether to format the form fields.
+   */
   isFormat: boolean;
+  /**
+   * Callback function to complete asynchronous validation for the field.
+   *
+   * This function should be called once the asynchronous validation process is finished to indicate
+   * that the field's validation status has been resolved.
+   */
+  finishFieldAsyncValidation: HoneyFormFieldFinishAsyncValidation<Form, FieldName>;
 };
 
 /**
  * Computes the next state of form fields after a change in a specific field.
  *
- * @template Form - Type representing the entire form.
  * @template ParentForm - The type representing the parent form structure.
  * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ * @template Form - Type representing the entire form.
  * @template FieldName - The name of the field that changed.
  * @template FieldValue - The type of the field's value.
  * @template FormContext - The context type for the form.
  *
  * @param {FieldName} fieldName - The name of the field that changed.
  * @param {FieldValue | undefined} fieldValue - The new value of the changed field.
- * @param {NextFieldsStateOptions<Form, ParentForm, FormContext>} options - Options for computing the next state.
+ * @param {NextFieldsStateOptions<ParentForm, ParentFieldName, Form, FieldName, FormContext>} options - Options for computing the next state.
  *
  * @returns {HoneyFormFields<Form, FormContext>} - The next state of form fields.
  */
 export const getNextFieldsState = <
-  Form extends HoneyFormBaseForm,
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
+  Form extends HoneyFormBaseForm,
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName],
   FormContext,
@@ -1480,7 +1666,8 @@ export const getNextFieldsState = <
     formFields,
     isValidate,
     isFormat,
-  }: NextFieldsStateOptions<Form, ParentForm, ParentFieldName, FormContext>,
+    finishFieldAsyncValidation,
+  }: NextFieldsStateOptions<ParentForm, ParentFieldName, Form, FieldName, FormContext>,
 ): HoneyFormFields<Form, FormContext> => {
   const fieldConfig = formFields[fieldName].config;
 
@@ -1501,7 +1688,13 @@ export const getNextFieldsState = <
   if (isValidate) {
     resetDependentFields(formContext, nextFormFields, fieldName);
 
-    nextFormField = executeFieldValidator(formContext, nextFormFields, fieldName, filteredValue);
+    nextFormField = executeFieldValidator({
+      formContext,
+      fieldName,
+      finishFieldAsyncValidation,
+      formFields: nextFormFields,
+      fieldValue: filteredValue,
+    });
   }
 
   nextFormFields[fieldName] = getNextSingleFieldState(nextFormField, filteredValue, {
@@ -1515,6 +1708,7 @@ export const getNextFieldsState = <
     fieldName,
     nextFormFields,
     formContext,
+    finishFieldAsyncValidation,
   });
 
   return nextFormFields;
