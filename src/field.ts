@@ -1117,8 +1117,8 @@ export const executeFieldValidator = <
 
       if (validationResponse instanceof Promise) {
         handleFieldAsyncValidationResult(formField, validationResponse)
-          .then(() => finishFieldAsyncValidation?.(fieldName))
-          .catch(noop);
+          .catch(noop)
+          .finally(() => finishFieldAsyncValidation?.(fieldName));
       } else {
         validationResult = validationResponse;
       }
