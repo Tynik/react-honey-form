@@ -35,11 +35,24 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
   const insertForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['insertForm']>(
     (index, form) => {
       setForms(forms => {
-        const updatedForms = [...forms];
+        const nextForms = [...forms];
 
-        updatedForms.splice(index, 0, form);
+        nextForms.splice(index, 0, form);
 
-        return updatedForms;
+        return nextForms;
+      });
+    },
+    [],
+  );
+
+  const replaceForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['replaceForm']>(
+    (index, form) => {
+      setForms(forms => {
+        const nextForms = [...forms];
+
+        nextForms.splice(index, 1, form);
+
+        return nextForms;
       });
     },
     [],
@@ -95,6 +108,7 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
     isFormsSubmitting,
     addForm,
     insertForm,
+    replaceForm,
     removeForm,
     clearForms,
     validateForms,

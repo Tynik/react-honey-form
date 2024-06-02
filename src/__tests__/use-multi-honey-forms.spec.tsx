@@ -10,7 +10,9 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     const { result: formApi } = renderHook(() => useHoneyForm({}));
 
     // Add a new form
-    act(() => multiFormsApi.current.addForm(formApi.current));
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi.current]);
 
@@ -20,7 +22,7 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     expect(multiFormsApi.current.forms).toStrictEqual([]);
   });
 
-  it('should insert/remove forms to/from multi forms list', () => {
+  it('should insert form to multi forms list', () => {
     const { result: multiFormsApi } = renderHook(() => useMultiHoneyForms({}));
 
     const { result: formApi1 } = renderHook(() => useHoneyForm({}));
@@ -33,10 +35,23 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     act(() => multiFormsApi.current.insertForm(0, formApi2.current));
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi2.current, formApi1.current]);
+  });
 
-    act(() => multiFormsApi.current.removeForm(formApi2.current));
+  it('should replace form in multi forms list', () => {
+    const { result: multiFormsApi } = renderHook(() => useMultiHoneyForms({}));
+
+    const { result: formApi1 } = renderHook(() => useHoneyForm({}));
+    const { result: formApi2 } = renderHook(() => useHoneyForm({}));
+
+    act(() => {
+      multiFormsApi.current.addForm(formApi1.current);
+    });
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi1.current]);
+
+    act(() => multiFormsApi.current.replaceForm(0, formApi2.current));
+
+    expect(multiFormsApi.current.forms).toStrictEqual([formApi2.current]);
   });
 
   it('should clear all added multi forms from list', () => {
@@ -44,7 +59,9 @@ describe('Hook [use-multi-honey-forms]: General', () => {
 
     const { result: formApi } = renderHook(() => useHoneyForm({}));
 
-    act(() => multiFormsApi.current.addForm(formApi.current));
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi.current]);
 
@@ -71,7 +88,9 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     );
 
     // Add a new form
-    act(() => multiFormsApi.current.addForm(formApi.current));
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
     // Set a value for the name field
     act(() => formApi.current.formFields.name.setValue('Orange'));
 
@@ -102,7 +121,9 @@ describe('Hook [use-multi-honey-forms]: General', () => {
       }),
     );
 
-    act(() => multiFormsApi.current.addForm(formApi.current));
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
 
     await act(() => multiFormsApi.current.validateForms());
 
@@ -142,7 +163,9 @@ describe('Hook [use-multi-honey-forms]: General', () => {
     );
 
     // Add a form
-    act(() => multiFormsApi.current.addForm(formApi.current));
+    act(() => {
+      multiFormsApi.current.addForm(formApi.current);
+    });
 
     // Set a value for the name field
     act(() => formApi.current.formFields.name.setValue('Apple'));
