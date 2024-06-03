@@ -9,7 +9,6 @@ import type {
   KeysWithArrayValues,
   HoneyFormExtractChildForm,
 } from './types';
-import { HONEY_FORM_ERRORS } from './constants';
 import {
   getHoneyFormUniqueId,
   registerChildForm,
@@ -139,14 +138,6 @@ export const useChildHoneyForm = <
 
   useEffect(() => {
     if (parentField) {
-      if (!Array.isArray(parentField.defaultValue)) {
-        throw new Error(HONEY_FORM_ERRORS.parentFieldValue);
-      }
-
-      if (parentField.defaultValue.length && formIndex === undefined) {
-        throw new Error(HONEY_FORM_ERRORS.parentFieldFormIndex);
-      }
-
       formIdRef.current = getHoneyFormUniqueId();
 
       registerChildForm(parentField, {

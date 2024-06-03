@@ -49,7 +49,7 @@ describe('Hook [use-multi-honey-forms]: General', () => {
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi1.current]);
 
-    act(() => multiFormsApi.current.replaceForm(0, formApi2.current));
+    act(() => multiFormsApi.current.replaceForm(formApi1.current, formApi2.current));
 
     expect(multiFormsApi.current.forms).toStrictEqual([formApi2.current]);
   });

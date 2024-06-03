@@ -46,14 +46,8 @@ export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext =
   );
 
   const replaceForm = useCallback<MultiHoneyFormsApi<Form, FormContext>['replaceForm']>(
-    (index, form) => {
-      setForms(forms => {
-        const nextForms = [...forms];
-
-        nextForms.splice(index, 1, form);
-
-        return nextForms;
-      });
+    (targetForm, newForm) => {
+      setForms(forms => forms.map(form => (form === targetForm ? newForm : form)));
     },
     [],
   );

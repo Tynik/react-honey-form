@@ -31,6 +31,7 @@ import type {
   HoneyFormParentField,
   KeysWithArrayValues,
   HoneyFormFieldFinishAsyncValidation,
+  HoneyFormMeta,
 } from './types';
 import {
   INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP,
@@ -191,6 +192,8 @@ const getInteractiveFieldProps = <
     }),
     // Additional field properties from field configuration
     ...fieldConfig.props,
+    // ARIA
+    'aria-busy': false,
   };
 };
 
@@ -397,6 +400,7 @@ const getFieldProps = <
 };
 
 type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
+  form?: HoneyFormMeta;
   formContext: FormContext;
   formFieldsRef: HoneyFormFieldsRef<Form, FormContext>;
   formDefaultsRef: HoneyFormDefaultsRef<Form>;
@@ -434,6 +438,7 @@ export const createField = <
   fieldName: FieldName,
   fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext>,
   {
+    form,
     formContext,
     formFieldsRef,
     formDefaultsRef,
@@ -475,6 +480,7 @@ export const createField = <
       : filteredValue;
 
   const fieldMeta: HoneyFormFieldMeta<Form, FieldName, FormContext> = {
+    form,
     formFieldsRef,
     isValidationScheduled: false,
     childForms: undefined,
@@ -512,7 +518,7 @@ export const createField = <
       );
     },
     __meta__: fieldMeta,
-    // functions
+    // FUNCTIONS
     setValue: (value, options) => setFieldValue(fieldName, value, options),
     pushValue: value => pushFieldValue(fieldName, value),
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
@@ -1102,8 +1108,6 @@ export const executeFieldValidator = <
 
     // Execute custom validator. Can only run when the default validator returns true
     if (formField.config.validator) {
-      formField = getNextAsyncValidatingField(formField);
-
       const formValues = getFormValues(formFields);
 
       const validationResponse = formField.config.validator(sanitizedValue, {
@@ -1116,6 +1120,8 @@ export const executeFieldValidator = <
       });
 
       if (validationResponse instanceof Promise) {
+        formField = getNextAsyncValidatingField(formField);
+
         handleFieldAsyncValidationResult(formField, validationResponse)
           .catch(noop)
           .finally(() => finishFieldAsyncValidation?.(fieldName));

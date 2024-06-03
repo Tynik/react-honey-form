@@ -5,9 +5,8 @@ import type {
   HoneyFormFieldBuiltInValidator,
   HoneyFormPassiveFieldType,
   HoneyFormPassiveFieldValidator,
+  CustomDateRangeForm,
 } from './types';
-
-import type { CustomDateRangeForm } from './form.types';
 
 export const INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP: Record<
   HoneyFormInteractiveFieldType,

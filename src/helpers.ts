@@ -13,6 +13,7 @@ import type {
   HoneyFormFieldError,
   HoneyFormServerErrors,
   HoneyFormFieldErrorMessage,
+  HoneyFormFieldDeserializer,
   HoneyFormInteractiveFieldConfig,
   HoneyFormPassiveFieldConfig,
   HoneyFormObjectFieldConfig,
@@ -20,6 +21,7 @@ import type {
   HoneyFormNestedFormsFieldConfig,
   KeysWithArrayValues,
   HoneyFormExtractChildForm,
+  JSONValue,
 } from './types';
 import { HONEY_FORM_ERRORS } from './constants';
 
@@ -455,7 +457,6 @@ export const registerChildForm = <
   parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
   childFormContext: HoneyFormChildFormContext<ParentForm, ChildForm, ParentFieldName, FormContext>,
 ) => {
-  // Ensure __meta__ property exists and is an array, then push the child form context
   // @ts-expect-error
   parentField.__meta__.childForms ||= [];
   // @ts-expect-error
@@ -541,4 +542,58 @@ export const runChildFormsValidation = async <
   );
 
   return hasErrors;
+};
+
+export const checkQueryStringLimit = (searchParams: URLSearchParams) => {
+  let queryStringLimit = 0;
+
+  if (navigator.userAgent.includes('Firefox')) {
+    queryStringLimit = 65_000;
+    //
+  } else if (navigator.userAgent.includes('Chrome')) {
+    queryStringLimit = 80_000;
+    //
+  } else if (navigator.userAgent.includes('Opera')) {
+    queryStringLimit = 190_000;
+  }
+
+  if (queryStringLimit && searchParams.toString().length > queryStringLimit) {
+    warningMessage(
+      `The query string exceeds the limit of ${queryStringLimit} characters. This might cause unexpected behavior or errors. Please reduce the length of the query string.`,
+    );
+  }
+};
+
+const serializeForm = <Form extends HoneyFormBaseForm>(formData: Form) =>
+  window.btoa(encodeURI(JSON.stringify(formData)));
+
+const deserializeForm = <Form extends HoneyFormBaseForm>(
+  rawFormData: string,
+  formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
+) =>
+  JSON.parse(decodeURI(window.atob(rawFormData)), (key, value) =>
+    formFieldDeserializer(key, value as JSONValue),
+  ) as Form;
+
+export const serializeFormToQS = <Form extends HoneyFormBaseForm>(
+  formName: string,
+  formData: Form,
+) => {
+  const searchParams = new URLSearchParams(window.location.search);
+  searchParams.set(formName, serializeForm(formData));
+
+  checkQueryStringLimit(searchParams);
+
+  return searchParams;
+};
+
+export const deserializeFormFromQS = <Form extends HoneyFormBaseForm>(
+  formName: string,
+  formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
+  search?: string,
+): Form | undefined => {
+  const searchParams = new URLSearchParams(search ?? window.location.search);
+  const rawFormData = searchParams.get(formName);
+
+  return rawFormData ? deserializeForm(rawFormData, formFieldDeserializer) : undefined;
 };

@@ -1,9 +1,10 @@
 import type { ChangeEvent } from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
+import type { CustomDateRangeForm } from '../types';
+
 import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from '../validators';
-import type { CustomDateRangeForm } from '../form.types';
 
 describe('Hook [use-honey-form]: Validation', () => {
   it('should validate field value against minimum value constraint', () => {

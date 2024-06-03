@@ -6,11 +6,11 @@ import type {
   HoneyFormApi,
   InitialFormFieldsStateResolverOptions,
 } from './types';
+import type { MultiHoneyFormsContextValue } from './components/multi-honey-forms';
 
 import { createField } from './field';
 import { useForm } from './hooks';
-import { mapFieldsConfigs, noop } from './helpers';
-import type { MultiHoneyFormsContextValue } from './components';
+import { deserializeFormFromQS, mapFieldsConfigs, noop } from './helpers';
 import { MultiHoneyFormsContext } from './components/multi-honey-forms';
 
 type CreateInitialFormFieldsOptions<
@@ -59,6 +59,8 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
 };
 
 export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
+  storage,
+  name: formName,
   fields: fieldsConfigs = {} as never,
   ...options
 }: HoneyFormOptions<Form, FormContext>): HoneyFormApi<Form, FormContext> => {
@@ -81,6 +83,20 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     return () => {
       multiFormsContext.removeForm(formApi);
     };
+  }, []);
+
+  useEffect(() => {
+    if (storage === 'qs') {
+      const formData = deserializeFormFromQS<Form>(
+        formName,
+        (fieldName, rawValue) =>
+          fieldsConfigs[fieldName].deserializer?.(rawValue) ?? (rawValue as Form[keyof Form]),
+      );
+
+      if (formData !== undefined) {
+        formApi.setFormValues(formData);
+      }
+    }
   }, []);
 
   return formApi;

@@ -7,7 +7,7 @@ import type {
   HoneyFormFieldClearErrors,
   HoneyFormDefaultValues,
   HoneyFormFields,
-  HoneyFormFormState,
+  HoneyFormState,
   HoneyFormFieldPushValue,
   HoneyFormFieldRemoveValue,
   HoneyFormFieldSetInternalValue,
@@ -55,7 +55,12 @@ import {
 } from './helpers';
 import { HONEY_FORM_ERRORS } from './constants';
 
-const DEFAULTS = {};
+const FORM_DEFAULTS = {};
+
+const INITIAL_FORM_STATE: HoneyFormState = {
+  isValidating: false,
+  isSubmitting: false,
+};
 
 export const useForm = <
   ParentForm extends HoneyFormBaseForm,
@@ -65,21 +70,17 @@ export const useForm = <
 >({
   initialFormFieldsStateResolver,
   parentField,
-  defaults = DEFAULTS,
+  defaults = FORM_DEFAULTS,
   values: externalValues,
   resetAfterSubmit = false,
   context: formContext,
-  storage,
   onSubmit,
   onChange,
   onChangeDebounce = 0,
 }: FormOptions<ParentForm, ParentFieldName, Form, FormContext>) => {
   const formIdRef = useRef<HoneyFormId | null>(null);
 
-  const [formState, setFormState] = useState<HoneyFormFormState>({
-    isValidating: false,
-    isSubmitting: false,
-  });
+  const [formState, setFormState] = useState<HoneyFormState>(INITIAL_FORM_STATE);
 
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
@@ -96,7 +97,7 @@ export const useForm = <
   const isFormSubmittedRef = useRef(false);
   const onChangeTimeoutRef = useRef<number | null>(null);
 
-  const updateFormState = useCallback((newFormState: Partial<HoneyFormFormState>) => {
+  const updateFormState = useCallback((newFormState: Partial<HoneyFormState>) => {
     setFormState(prevFormState => ({ ...prevFormState, ...newFormState }));
   }, []);
 
@@ -123,7 +124,7 @@ export const useForm = <
 
     const nextFormFields = fn();
 
-    // If `onChange` is provided, set a timeout for debouncing and call onChange after the timeout.
+    // If `onChange` is provided, set a timeout for debouncing and call `onChange` after the timeout.
     if (onChange) {
       const formFields = formFieldsRef.current;
       if (!formFields) {
@@ -435,7 +436,7 @@ export const useForm = <
   );
 
   const addFormField = useCallback<HoneyFormAddFormField<Form, FormContext>>(
-    (fieldName, config) => {
+    (fieldName, fieldConfig) => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setFormFields(formFields => {
         if (formFields[fieldName]) {
@@ -444,7 +445,7 @@ export const useForm = <
 
         const nextFormFields = {
           ...formFields,
-          [fieldName]: createField(fieldName, config, {
+          [fieldName]: createField(fieldName, fieldConfig, {
             formContext,
             formFieldsRef,
             formDefaultsRef,
@@ -455,6 +456,9 @@ export const useForm = <
             removeFieldValue,
             addFormFieldErrors,
             setFieldChildFormsErrors,
+            form: {
+              //
+            },
           }),
         };
 

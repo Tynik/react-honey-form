@@ -1,9 +1,10 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react';
 
+import type { HoneyFormApi, HoneyFormFieldsConfigs } from '../../types';
+
 import { MultiHoneyForms, useMultiHoneyFormsProvider } from '../multi-honey-forms';
 import { HoneyForm } from '../honey-form';
-import type { HoneyFormApi, HoneyFormFieldsConfigs } from '../../types';
 
 describe('Component [MultiHoneyForms]: Basic usage', () => {
   it('should add form to multi forms list by default', () => {

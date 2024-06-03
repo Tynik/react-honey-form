@@ -1,4 +1,5 @@
 import type { ReactElement, MutableRefObject, RefObject, InputHTMLAttributes } from 'react';
+import type { JSONValue } from './generic.types';
 
 export type KeysWithArrayValues<T> = {
   [K in keyof T]: T[K] extends unknown[] ? K : never;
@@ -513,6 +514,22 @@ export type HoneyFormNestedFormsFieldValidator<
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 /**
+ * A function type that defines how to deserialize a field's raw value from JSON into a form value.
+ *
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field being deserialized.
+ *
+ * @param {FieldName} fieldName - The name of the field for which the raw value is being deserialized.
+ * @param {JSONValue} rawValue - The raw value from JSON that needs to be deserialized.
+ *
+ * @returns {Form[FieldName]} - The deserialized value for the field.
+ */
+export type HoneyFormFieldDeserializer<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form = keyof Form,
+> = (fieldName: FieldName, rawValue: JSONValue) => Form[FieldName];
+
+/**
  * Context object for the filter function of a form field.
  *
  * @template FormContext - Type representing the contextual information for the form.
@@ -660,6 +677,14 @@ type BaseHoneyFormFieldConfig<
      * A function to determine whether to skip validation and submission for this field.
      */
     skip?: HoneyFormSkipField<Form, FormContext>;
+    /**
+     * A function to serialize the field value into the appropriate JSON value.
+     */
+    serializer?: (fieldValue: FieldValue) => JSONValue;
+    /**
+     * A function to deserialize the raw value of the field from JSON into the appropriate form value.
+     */
+    deserializer?: (rawValue: JSONValue) => FieldValue;
     /**
      * Callback function triggered when the field value changes.
      */
@@ -1048,6 +1073,10 @@ export type HoneyFormChildFormContext<
   validateForm: HoneyFormValidate<ChildForm>;
 };
 
+export type HoneyFormMeta = {
+  //
+};
+
 /**
  * Metadata associated with a form field.
  */
@@ -1057,6 +1086,7 @@ export type HoneyFormFieldMeta<
   FormContext,
   NestedFormsFieldName extends KeysWithArrayValues<Form> = KeysWithArrayValues<Form>,
 > = {
+  form: HoneyFormMeta;
   /**
    * Reference to form fields.
    */
@@ -1396,14 +1426,6 @@ export type FormOptions<
    */
   context?: FormContext;
   /**
-   * [NOT IMPLEMENTED]
-   *
-   * Where to store the fields values when they changed
-   *
-   * @default undefined
-   */
-  storage?: 'query' | 'ls';
-  /**
    * A callback function triggered when the form is submitted.
    */
   onSubmit?: HoneyFormOnSubmit<Form, FormContext>;
@@ -1438,9 +1460,23 @@ export type HoneyFormOptions<
 > = BaseHoneyFormOptions<
   {
     /**
+     * The form name to use the name for saving and restoring not submitted form data.
+     *
+     * @default undefined
+     */
+    name?: string;
+    /**
      * Configuration for the form fields.
      */
     fields?: HoneyFormFieldsConfigs<Form, FormContext>;
+    /**
+     * [NOT IMPLEMENTED]
+     *
+     * Where to store the fields values when they changed and restore the values from storage.
+     *
+     * @default undefined
+     */
+    storage?: 'qs' | 'ls';
   },
   Form,
   never,
@@ -1555,7 +1591,7 @@ export type HoneyFormAddFormField<Form extends HoneyFormBaseForm, FormContext> =
   FieldName extends keyof Form,
 >(
   fieldName: FieldName,
-  config: HoneyFormFieldConfig<Form, FieldName, FormContext, Form[FieldName]>,
+  fieldConfig: HoneyFormFieldConfig<Form, FieldName, FormContext, Form[FieldName]>,
 ) => void;
 
 /**
@@ -1656,220 +1692,7 @@ export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
  */
 export type HoneyFormRestoreUnfinishedForm = () => void;
 
-export type HoneyFormFormState = {
+export type HoneyFormState = {
   isValidating: boolean;
   isSubmitting: boolean;
-};
-
-export type HoneyFormApi<Form extends HoneyFormBaseForm, FormContext = undefined> = {
-  /**
-   * Form context.
-   *
-   * @default undefined
-   */
-  formContext: FormContext;
-  /**
-   * An object that contains the state of the form fields.
-   *
-   * @default {}
-   */
-  formFields: HoneyFormFields<Form, FormContext>;
-  /**
-   * Provides quick access to the current values of all form fields.
-   *
-   * @default {}
-   */
-  formValues: HoneyFormValues<Form>;
-  /**
-   * Provides quick access to the default values of all form fields.
-   *
-   * @default {}
-   */
-  formDefaultValues: HoneyFormDefaultValues<Form>;
-  /**
-   * @default {}
-   */
-  formErrors: HoneyFormErrors<Form>;
-  /**
-   * A boolean value that becomes `true` when the form has any error.
-   * It remains `false` when the form is error-free.
-   *
-   * @default false
-   */
-  isFormErred: boolean;
-  /**
-   * @default false
-   */
-  isFormDefaultsFetching: boolean;
-  /**
-   * @default false
-   */
-  isFormDefaultsFetchingErred: boolean;
-  /**
-   * A boolean value that indicates whether any field value in the form has changed.
-   * It is `false` by default and becomes `true` when any field value is changed.
-   * It returns to `false` when the form is successfully submitted.
-   *
-   * @default false
-   */
-  isFormDirty: boolean;
-  /**
-   * A boolean value that becomes `true` when the form is in the process of validation.
-   * It indicates that the validation of the form's fields is currently underway.
-   *
-   * @default false
-   */
-  isFormValidating: boolean;
-  /**
-   * A boolean value that becomes `true` when the process of form validation has successfully finished,
-   *  and no errors have been detected in any of the form's fields.
-   *
-   * @default false
-   */
-  isFormValid: boolean;
-  /**
-   * A boolean value that indicates whether the form is currently submitting.
-   *
-   * @default false
-   */
-  isFormSubmitting: boolean;
-  /**
-   * A boolean value that becomes `true` when the form has been successfully submitted.
-   * It resets to `false` when any field value is changed.
-   *
-   * @default false
-   */
-  isFormSubmitted: boolean;
-  /**
-   * A boolean value that becomes `true` if any form field is currently validating using promise-based validator functions.
-   * This value changes only when the field value is changed. It does not apply during full form validation.
-   *
-   * @default false
-   */
-  isAnyFormFieldValidating: boolean;
-  /**
-   * A boolean value that indicates whether the form submission is allowed.
-   *
-   * The value is determined by the following conditions:
-   * - `isFormDefaultsFetching` is `false`
-   * - `isFormDefaultsFetchingErred` is `false`
-   * - `isAnyFormFieldValidating` is `false`
-   * - `isFormSubmitting` is `false`
-   *
-   * @default true
-   */
-  isFormSubmitAllowed: boolean;
-  /**
-   * Sets the values of the form fields.
-   */
-  setFormValues: HoneyFormSetFormValues<Form>;
-  /**
-   * Sets the errors for the form fields.
-   */
-  setFormErrors: HoneyFormSetFormErrors<Form>;
-  /**
-   * Add a new field to the form.
-   */
-  addFormField: HoneyFormAddFormField<Form, FormContext>;
-  /**
-   * Removes a field from the form.
-   */
-  removeFormField: HoneyFormRemoveFormField<Form>;
-  /**
-   * Adds an error to a specific form field.
-   */
-  addFormFieldError: HoneyFormFieldAddError<Form>;
-  /**
-   * Adds the errors to a specific form field.
-   */
-  addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
-  /**
-   * Clears all form errors.
-   */
-  clearFormErrors: HoneyFormClearErrors;
-  /**
-   * Validates the entire form.
-   */
-  validateForm: HoneyFormValidate<Form>;
-  /**
-   * Submits the form by invoking the submit handler and handling server errors if they present.
-   */
-  submitForm: HoneyFormSubmit<Form, FormContext>;
-  /**
-   * Reset the form to the initial state.
-   */
-  resetForm: HoneyFormReset<Form>;
-  /**
-   * Restores the form to an unfinished state.
-   */
-  restoreUnfinishedForm: HoneyFormRestoreUnfinishedForm;
-};
-
-/**
- * Represents an API for managing multiple form instances.
- *
- * @template Form - Type representing the entire form.
- * @template FormContext - Contextual information for the form.
- */
-export type MultiHoneyFormsApi<Form extends HoneyFormBaseForm, FormContext = undefined> = {
-  /**
-   * An array of form instances.
-   *
-   * @default []
-   */
-  forms: HoneyFormApi<Form, FormContext>[];
-  /**
-   * A boolean value that indicates whether the forms are currently submitting.
-   *
-   * @default false
-   */
-  isFormsSubmitting: boolean;
-  /**
-   * Adds a new form instance to the list of managed forms.
-   *
-   * @param {HoneyFormApi<Form, FormContext>} form - The form instance to add.
-   *
-   * @returns {Function} - A function that, when called, will remove the added form from the list of managed forms.
-   */
-  addForm: (form: HoneyFormApi<Form, FormContext>) => () => void;
-  /**
-   * Replaces a form instance with new form at the specified index in the list of managed forms.
-   *
-   * @param {number} index - The index at which to replace the form.
-   * @param {HoneyFormApi<Form, FormContext>} form - The new form instance.
-   */
-  replaceForm: (index: number, form: HoneyFormApi<Form, FormContext>) => void;
-  /**
-   * Inserts a new form instance at the specified index in the list of managed forms.
-   *
-   * @param {number} index - The index at which to insert the form.
-   * @param {HoneyFormApi<Form, FormContext>} form - The form instance to insert.
-   */
-  insertForm: (index: number, form: HoneyFormApi<Form, FormContext>) => void;
-  /**
-   * Removes a form instance from the list of managed forms.
-   *
-   * @param {HoneyFormApi<Form, FormContext>} targetForm - The form instance to remove.
-   */
-  removeForm: (targetForm: HoneyFormApi<Form, FormContext>) => void;
-  /**
-   * Removing all form instances from the list.
-   */
-  clearForms: () => void;
-  /**
-   * Validates all forms.
-   *
-   * @returns {Promise<boolean[]>} - A Promise resolving to an array of boolean values indicating the validation status of each form.
-   */
-  validateForms: () => Promise<boolean[]>;
-  /**
-   * Submits all forms.
-   *
-   * @returns {Promise<void[]>} - A Promise resolving to an array of values indicating the submission status of each form.
-   */
-  submitForms: () => Promise<void[]>;
-  /**
-   * Resets all forms. Reset their values to defaults and clear all errors.
-   */
-  resetForms: () => void;
 };
