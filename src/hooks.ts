@@ -745,16 +745,26 @@ export const useForm = <
     get formErrors() {
       return formErrorsRef.current;
     },
+    get isFormDirty() {
+      return isFormDirtyRef.current;
+    },
+    get isFormValidating() {
+      return formState.isValidating;
+    },
+    get isFormValid() {
+      return isFormValidRef.current;
+    },
+    get isFormSubmitting() {
+      return formState.isSubmitting;
+    },
+    get isFormSubmitted() {
+      return isFormSubmittedRef.current;
+    },
     isFormDefaultsFetching,
     isFormDefaultsFetchingErred,
     isFormErred,
     isAnyFormFieldValidating,
     isFormSubmitAllowed,
-    isFormDirty: isFormDirtyRef.current,
-    isFormValidating: formState.isValidating,
-    isFormValid: isFormValidRef.current,
-    isFormSubmitting: formState.isSubmitting,
-    isFormSubmitted: isFormSubmittedRef.current,
     // functions
     setFormValues,
     setFormErrors,
