@@ -6,16 +6,21 @@ type NumericFilterOptions = {
 
 /**
  * Creates a filter function to allow only numbers.
+ *
  * @param {NumericFilterOptions} options - Options for the filter.
+ *
  * @returns {function(string): string} - The filter function.
  */
 export const createHoneyFormNumericFilter =
-  <FieldValue extends string | undefined, FormContext = undefined>({
+  <FieldValue extends string | number | undefined, FormContext = undefined>({
     maxLength,
   }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue, FormContext> =>
   value =>
     // Remove non-numeric characters and limit the result to N characters
-    value?.replace(/[^0-9]+/g, '').slice(0, maxLength) as FieldValue;
+    value
+      ?.toString()
+      .replace(/[^0-9]+/g, '')
+      .slice(0, maxLength) as FieldValue;
 
 export type HoneyFormNumberFilterOptions = {
   maxLength?: number;
@@ -43,7 +48,7 @@ export type HoneyFormNumberFilterOptions = {
  * @returns {string} - The filtered and formatted numeric string.
  */
 export const createHoneyFormNumberFilter =
-  <FieldValue extends string | undefined, FormContext = undefined>({
+  <FieldValue extends string | number | undefined, FormContext = undefined>({
     maxLength,
     maxLengthBeforeDecimal = maxLength,
     maxLengthAfterDecimal = 2,
@@ -58,7 +63,7 @@ export const createHoneyFormNumberFilter =
     const pattern = new RegExp(`[^0-9${decimal ? '.' : ''}${negative ? '-' : ''}]+`, 'g');
 
     // Remove non-numeric characters and split by the decimal point
-    const parts = value.replace(pattern, '').split('.');
+    const parts = value.toString().replace(pattern, '').split('.');
     //
     const isNegativeSignPresent = parts[0][0] === '-';
 
