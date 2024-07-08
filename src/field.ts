@@ -523,7 +523,6 @@ export const createField = <
     pushValue: value => pushFieldValue(fieldName, value),
     removeValue: formIndex => removeFieldValue(fieldName, formIndex),
     resetValue: () => setFieldValue(fieldName, formDefaultsRef.current[fieldName]),
-    //
     addErrors: errors => addFormFieldErrors(fieldName, errors),
     addError: error => addFormFieldErrors(fieldName, [error]),
     setChildFormsErrors: errors => setFieldChildFormsErrors(fieldName, errors),

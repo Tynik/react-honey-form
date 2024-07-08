@@ -1556,6 +1556,12 @@ export type MultiHoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = 
  */
 type UseHoneyFormSetFormValuesOptions = {
   /**
+   * If `true`, the form will be validated after setting these values.
+   *
+   * @default true
+   */
+  isValidate?: boolean;
+  /**
    * Indicates whether setting a new form values should mark the form as "dirty".
    *
    * @default true

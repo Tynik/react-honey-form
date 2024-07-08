@@ -282,6 +282,25 @@ describe('Hook [use-honey-form]: Validation', () => {
     ]);
   });
 
+  it('should call the field validator function once when the field value is set', () => {
+    const onValidate = jest.fn().mockReturnValue(true);
+
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            type: 'string',
+            validator: onValidate,
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.name.setValue('Apple'));
+
+    expect(onValidate.mock.calls.length).toBe(1);
+  });
+
   it('should handle multiple field validators affecting each other', async () => {
     const onSubmit = jest.fn();
 
@@ -693,7 +712,7 @@ describe('Hook [use-honey-form]: Validator as the promise function', () => {
         fields: {
           name: {
             type: 'string',
-            validator: value =>
+            validator: () =>
               new Promise(resolve => {
                 setTimeout(() => {
                   resolve(null);

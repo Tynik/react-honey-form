@@ -148,7 +148,10 @@ export const useForm = <
   };
 
   const setFormValues = useCallback<HoneyFormSetFormValues<Form>>(
-    (values, { isDirty = true, isClearAll = false, isSkipOnChange = false } = {}) => {
+    (
+      values,
+      { isValidate = true, isDirty = true, isClearAll = false, isSkipOnChange = false } = {},
+    ) => {
       if (isDirty) {
         isFormDirtyRef.current = true;
       }
@@ -176,12 +179,14 @@ export const useForm = <
                 ? fieldConfig.filter(values[fieldName], { formContext })
                 : values[fieldName];
 
-            const nextFormField = executeFieldValidator({
-              formContext,
-              fieldName,
-              formFields: nextFormFields,
-              fieldValue: filteredValue,
-            });
+            const nextFormField = isValidate
+              ? executeFieldValidator({
+                  formContext,
+                  fieldName,
+                  formFields: nextFormFields,
+                  fieldValue: filteredValue,
+                })
+              : nextFormFields[fieldName];
 
             nextFormFields[fieldName] = getNextSingleFieldState(nextFormField, filteredValue, {
               formContext,
@@ -687,7 +692,7 @@ export const useForm = <
   // Detect changes in `externalValues` and update the form values accordingly
   useEffect(() => {
     if (externalValues) {
-      setFormValues(externalValues, { isDirty: false, isSkipOnChange: true });
+      setFormValues(externalValues, { isValidate: false, isDirty: false, isSkipOnChange: true });
     }
   }, [externalValues]);
 
@@ -699,7 +704,7 @@ export const useForm = <
         .then(defaultValues => {
           formDefaultsRef.current = defaultValues;
 
-          setFormValues(defaultValues, { isDirty: false });
+          setFormValues(defaultValues, { isValidate: false, isDirty: false });
         })
         .catch(() => {
           errorMessage('Unable to fetch or process the form default values.');
