@@ -654,6 +654,9 @@ type BaseHoneyFormFieldConfig<
     /**
      * The default value for the field.
      *
+     * Note:
+     * The default value remains as undefined when the form defaults are provided as a Promise function.
+     *
      * @default undefined
      */
     defaultValue?: FieldValue;
@@ -1242,7 +1245,10 @@ export type HoneyFormField<
      */
     getChildFormsValues: () => HoneyFormExtractChildForms<FieldValue>;
     /**
-     * A function to focus on this field. Note: Can only be used when `props` are destructured within a component.
+     * A function to focus on this field.
+     *
+     * Note:
+     * Can only be used when `props` are destructured within a component.
      */
     focus: () => void;
   },
