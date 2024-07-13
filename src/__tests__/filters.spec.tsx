@@ -77,33 +77,23 @@ describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.zip.setValue('');
-    });
+    act(() => result.current.formFields.zip.setValue(''));
 
     expect(result.current.formFields.zip.value).toBe('');
 
-    act(() => {
-      result.current.formFields.zip.setValue('1');
-    });
+    act(() => result.current.formFields.zip.setValue('1'));
 
     expect(result.current.formFields.zip.value).toBe('1');
 
-    act(() => {
-      result.current.formFields.zip.setValue('a');
-    });
+    act(() => result.current.formFields.zip.setValue('a'));
 
     expect(result.current.formFields.zip.value).toBe('');
 
-    act(() => {
-      result.current.formFields.zip.setValue(' -.!g%$#*&@');
-    });
+    act(() => result.current.formFields.zip.setValue(' -.!g%$#*&@'));
 
     expect(result.current.formFields.zip.value).toBe('');
 
-    act(() => {
-      result.current.formFields.zip.setValue('123456789');
-    });
+    act(() => result.current.formFields.zip.setValue('123456789'));
 
     expect(result.current.formFields.zip.value).toBe('12345');
   });
@@ -168,6 +158,10 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
 
     expect(result.current.formValues.amount).toBe('.');
 
+    act(() => result.current.formFields.amount.setValue('..'));
+
+    expect(result.current.formValues.amount).toBe('.');
+
     act(() => result.current.formFields.amount.setValue('.1'));
 
     expect(result.current.formValues.amount).toBe('.1');
@@ -191,6 +185,14 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     act(() => result.current.formFields.amount.setValue('-.1'));
 
     expect(result.current.formValues.amount).toBe('-.1');
+
+    act(() => result.current.formFields.amount.setValue('-1-'));
+
+    expect(result.current.formValues.amount).toBe('-1');
+
+    act(() => result.current.formFields.amount.setValue('--1'));
+
+    expect(result.current.formValues.amount).toBe('-1');
 
     act(() => result.current.formFields.amount.setValue('1.2'));
 
