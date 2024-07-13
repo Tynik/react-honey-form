@@ -194,6 +194,10 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
 
     expect(result.current.formValues.amount).toBe('-1');
 
+    act(() => result.current.formFields.amount.setValue('1--'));
+
+    expect(result.current.formValues.amount).toBe('1');
+
     act(() => result.current.formFields.amount.setValue('1.2'));
 
     expect(result.current.formValues.amount).toBe('1.2');

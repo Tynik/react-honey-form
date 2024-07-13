@@ -87,6 +87,8 @@ export const createHoneyFormNumberFilter =
 
       if (isNegativeSignPresent) {
         cleanedValue = `-${cleanedValue.slice(1).replace(/-/g, '')}`;
+      } else {
+        cleanedValue = cleanedValue.replace(/-/g, '');
       }
     }
 
