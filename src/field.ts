@@ -1202,16 +1202,21 @@ export const executeFieldValidatorAsync = async <
 
   const fieldErrors: HoneyFormFieldError[] = [];
 
-  let filteredValue: Form[FieldName];
+  let filteredValue: Form[FieldName] = formField.rawValue;
 
-  if (checkIfFieldIsInteractive(formField.config) && formField.config.filter) {
-    filteredValue = formField.config.filter(formField.rawValue, { formContext });
-    //
+  if (checkIfFieldIsInteractive(formField.config)) {
+    filteredValue =
+      typeof filteredValue === 'string'
+        ? ((filteredValue as string).trimStart() as Form[FieldName])
+        : filteredValue;
+
+    if (formField.config.filter) {
+      filteredValue = formField.config.filter(filteredValue, { formContext });
+    } else {
+      filteredValue = formField.rawValue;
+    }
   } else if (checkIfFieldIsNestedForms(formField.config)) {
     filteredValue = formField.getChildFormsValues() as Form[FieldName];
-    //
-  } else {
-    filteredValue = formField.rawValue;
   }
 
   const sanitizedValue = sanitizeFieldValue(formField.config.type, filteredValue);
@@ -1679,14 +1684,18 @@ export const getNextFieldsState = <
   const nextFormFields = { ...formFields };
   let nextFormField: HoneyFormField<Form, FieldName, FormContext> = formFields[fieldName];
 
-  let filteredValue: Form[FieldName];
+  let filteredValue: Form[FieldName] = fieldValue;
 
-  if (checkIfFieldIsInteractive(fieldConfig) && fieldConfig.filter) {
-    // Apply filtering to the field value if a filter function is defined
-    filteredValue = fieldConfig.filter(fieldValue, { formContext });
-    //
-  } else {
-    filteredValue = fieldValue;
+  if (checkIfFieldIsInteractive(fieldConfig)) {
+    filteredValue =
+      typeof fieldValue === 'string'
+        ? ((fieldValue as string).trimStart() as Form[FieldName])
+        : fieldValue;
+
+    if (fieldConfig.filter) {
+      // Apply additional filtering to the field value when the filter function is defined
+      filteredValue = fieldConfig.filter(filteredValue, { formContext });
+    }
   }
 
   // If validation is requested, clear dependent fields and execute the field validator

@@ -6,6 +6,7 @@ import type {
   HoneyFormPassiveFieldType,
   HoneyFormPassiveFieldValidator,
   CustomDateRangeForm,
+  HoneyFormObjectFieldValidator,
 } from './types';
 
 export const INTERACTIVE_FIELD_TYPE_VALIDATORS_MAP: Record<
@@ -324,7 +325,7 @@ type CreateHoneyFormDateFromValidatorOptions<
  * Creates a validator function to ensure the validity of a "Date From" field within the context of a date range.
  *
  * @param {CreateHoneyFormDateFromValidatorOptions<Form, DateFromKey, DateToKey>} options - Options for creating the validator.
- * @returns {HoneyFormInteractiveFieldValidator<Form, DateFromKey, FormContext>} - The validator function for "Date From" field.
+ * @returns {HoneyFormObjectFieldValidator<Form, DateFromKey, FormContext>} - The validator function for "Date From" field.
  */
 export const createHoneyFormDateFromValidator =
   <
@@ -346,7 +347,7 @@ export const createHoneyFormDateFromValidator =
     Form,
     DateFromKey,
     DateToKey
-  >): HoneyFormInteractiveFieldValidator<Form, DateFromKey, FormContext> =>
+  >): HoneyFormObjectFieldValidator<Form, DateFromKey, FormContext> =>
   /**
    * Validator function for "Date From" field.
    *
@@ -405,7 +406,7 @@ type CreateHoneyFormDateToValidatorOptions<
  * Creates a validator function to ensure the validity of a "Date To" field within the context of a date range.
  *
  * @param {CreateHoneyFormDateToValidatorOptions<Form, DateToKey, DateFromKey>} options - Options for creating the validator.
- * @returns {HoneyFormInteractiveFieldValidator<Form, DateToKey, FormContext>} - The validator function for "Date To" field.
+ * @returns {HoneyFormObjectFieldValidator<Form, DateToKey, FormContext>} - The validator function for "Date To" field.
  */
 export const createHoneyFormDateToValidator =
   <
@@ -427,7 +428,7 @@ export const createHoneyFormDateToValidator =
     Form,
     DateToKey,
     DateFromKey
-  >): HoneyFormInteractiveFieldValidator<Form, DateToKey, FormContext> =>
+  >): HoneyFormObjectFieldValidator<Form, DateToKey, FormContext> =>
   /**
    * Validator function for "Date To" field.
    *

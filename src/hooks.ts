@@ -532,7 +532,9 @@ export const useForm = <
               formValues,
             })
           ) {
-            nextFormFields[fieldName] = getNextErrorsFreeField(formField);
+            nextFormFields[fieldName] = getNextErrorsFreeField<Form, typeof fieldName, FormContext>(
+              formField,
+            );
             return;
           }
 
@@ -548,11 +550,7 @@ export const useForm = <
             formContext,
           });
 
-          // Filter out errors of type 'server' to avoid blocking the form submission trigger
-          const fieldErrors = nextField.errors.filter(fieldError => fieldError.type !== 'server');
-          if (fieldErrors.length) {
-            hasErrors = true;
-          }
+          hasErrors ||= nextField.errors.some(fieldError => fieldError.type !== 'server');
 
           nextFormFields[fieldName] = nextField;
         }),

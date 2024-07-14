@@ -2,8 +2,40 @@ import { act, renderHook } from '@testing-library/react';
 import { useHoneyForm } from '../use-honey-form';
 import { createHoneyFormNumberFilter, createHoneyFormNumericFilter } from '../filters';
 
+describe('Hook [use-honey-form]: Builtin filtering', () => {
+  it('should trim all spaces from the begging', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ name: string }>({
+        fields: {
+          name: {
+            type: 'string',
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.name.setValue(' '));
+
+    expect(result.current.formFields.name.rawValue).toBe('');
+    expect(result.current.formFields.name.value).toBe('');
+    expect(result.current.formFields.name.cleanValue).toBe('');
+
+    act(() => result.current.formFields.name.setValue(' a'));
+
+    expect(result.current.formFields.name.rawValue).toBe('a');
+    expect(result.current.formFields.name.value).toBe('a');
+    expect(result.current.formFields.name.cleanValue).toBe('a');
+
+    act(() => result.current.formFields.name.setValue(' a '));
+
+    expect(result.current.formFields.name.rawValue).toBe('a ');
+    expect(result.current.formFields.name.value).toBe('a ');
+    expect(result.current.formFields.name.cleanValue).toBe('a ');
+  });
+});
+
 describe('Hook [use-honey-form]: Filter function', () => {
-  it('should filter the initial field value', () => {
+  it('should filter the default field value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ age: string }>({
         fields: {
