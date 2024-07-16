@@ -702,7 +702,7 @@ export const useForm = <
         .then(defaultValues => {
           formDefaultsRef.current = defaultValues;
 
-          setFormValues(defaultValues, { isValidate: false, isDirty: false });
+          setFormValues(defaultValues, { isValidate: false, isDirty: false, isSkipOnChange: true });
         })
         .catch(() => {
           errorMessage('Unable to fetch or process the form default values.');
