@@ -1424,6 +1424,14 @@ export type FormOptions<
    */
   resetAfterSubmit?: boolean;
   /**
+   * Specifies whether the form should perform validation for external values.
+   * If true, the form will validate the external values upon being set.
+   * If false, the external values will be set without validation.
+   *
+   * @default false
+   */
+  validateExternalValues?: boolean;
+  /**
    * Any object that can be used to pass contextual data to field functions.
    * This provides a way to share additional information or context with field-specific logic.
    *
@@ -1692,8 +1700,6 @@ export type HoneyFormSubmit<Form extends HoneyFormBaseForm, FormContext = undefi
  * @template Form - Type representing the entire form.
  *
  * @param {HoneyFormDefaultValues<Form>} [newFormDefaults] - Optional new default values for the form fields.
- *
- * @returns {void} - This function does not return anything.
  */
 export type HoneyFormReset<Form extends HoneyFormBaseForm> = (
   newFormDefaults?: HoneyFormDefaultValues<Form>,

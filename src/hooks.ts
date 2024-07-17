@@ -73,6 +73,7 @@ export const useForm = <
   defaults = FORM_DEFAULTS,
   values: externalValues,
   resetAfterSubmit = false,
+  validateExternalValues = false,
   context: formContext,
   onSubmit,
   onChange,
@@ -690,7 +691,11 @@ export const useForm = <
   // Detect changes in `externalValues` and update the form values accordingly
   useEffect(() => {
     if (externalValues) {
-      setFormValues(externalValues, { isValidate: false, isDirty: false, isSkipOnChange: true });
+      setFormValues(externalValues, {
+        isValidate: validateExternalValues,
+        isDirty: false,
+        isSkipOnChange: true,
+      });
     }
   }, [externalValues]);
 
