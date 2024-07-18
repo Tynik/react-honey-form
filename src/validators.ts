@@ -213,15 +213,14 @@ export const minLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
       fieldConfig.type !== 'email' &&
       fieldConfig.type !== 'numeric') ||
     fieldConfig.min === undefined ||
-    fieldConfig.max !== undefined
+    fieldConfig.max !== undefined ||
+    typeof fieldValue !== 'string' ||
+    !fieldValue
   ) {
     return;
   }
 
-  if (
-    fieldValue === undefined ||
-    (typeof fieldValue === 'string' && fieldValue.length < fieldConfig.min)
-  ) {
+  if (fieldValue.length < fieldConfig.min) {
     fieldErrors.push({
       type: 'min',
       message:
@@ -244,12 +243,14 @@ export const maxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltInVal
       fieldConfig.type !== 'email' &&
       fieldConfig.type !== 'numeric') ||
     fieldConfig.max === undefined ||
-    fieldConfig.min !== undefined
+    fieldConfig.min !== undefined ||
+    typeof fieldValue !== 'string' ||
+    !fieldValue
   ) {
     return;
   }
 
-  if (typeof fieldValue === 'string' && fieldValue.length > fieldConfig.max) {
+  if (fieldValue.length > fieldConfig.max) {
     fieldErrors.push({
       type: 'max',
       message:
@@ -272,16 +273,14 @@ export const minMaxLengthBuiltInFieldValidator: HoneyFormInteractiveFieldBuiltIn
       fieldConfig.type !== 'email' &&
       fieldConfig.type !== 'numeric') ||
     fieldConfig.min === undefined ||
-    fieldConfig.max === undefined
+    fieldConfig.max === undefined ||
+    typeof fieldValue !== 'string' ||
+    !fieldValue
   ) {
     return;
   }
 
-  if (
-    fieldValue === undefined ||
-    (typeof fieldValue === 'string' &&
-      (fieldValue.length < fieldConfig.min || fieldValue.length > fieldConfig.max))
-  ) {
+  if (fieldValue.length < fieldConfig.min || fieldValue.length > fieldConfig.max) {
     if (fieldConfig.min === fieldConfig.max) {
       fieldErrors.push({
         type: 'minMax',

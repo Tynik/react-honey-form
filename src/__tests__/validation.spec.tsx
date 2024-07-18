@@ -139,23 +139,23 @@ describe('Hook [use-honey-form]: Validation', () => {
         fields: {
           name: {
             type: 'string',
-            min: 1,
+            min: 2,
           },
         },
       }),
     );
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => result.current.formFields.name.setValue('A'));
+    act(() => result.current.formFields.name.setValue('12'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([]);
 
-    act(() => result.current.formFields.name.setValue(''));
+    act(() => result.current.formFields.name.setValue('1'));
 
     expect(result.current.formFields.name.errors).toStrictEqual([
       {
         type: 'min',
-        message: 'The length must be greater than or equal to 1 characters',
+        message: 'The length must be greater than or equal to 2 characters',
       },
     ]);
   });
