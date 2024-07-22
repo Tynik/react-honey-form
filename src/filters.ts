@@ -51,10 +51,6 @@ export const createHoneyFormNumericFilter =
  */
 export type HoneyFormNumberFilterOptions = {
   /**
-   * The maximum total length of the resulting string, including the decimal point and negative sign.
-   */
-  maxLength?: number;
-  /**
    * Whether to allow negative numbers (e.g., allow a minus sign '-' at the beginning).
    *
    * @default true
@@ -69,7 +65,7 @@ export type HoneyFormNumberFilterOptions = {
   /**
    * The maximum length of characters before the decimal point.
    *
-   * @default `maxLength`
+   * @default 9
    */
   maxLengthBeforeDecimal?: number;
   /**
@@ -96,8 +92,7 @@ export type HoneyFormNumberFilterOptions = {
  */
 export const createHoneyFormNumberFilter =
   <FieldValue extends string | number | undefined, FormContext = undefined>({
-    maxLength,
-    maxLengthBeforeDecimal = maxLength,
+    maxLengthBeforeDecimal = 9,
     maxLengthAfterDecimal = 2,
     decimal = true,
     negative = true,
@@ -121,8 +116,8 @@ export const createHoneyFormNumberFilter =
     // Split by the decimal point
     const [integerPart, fractionPart] = cleanedValue.split('.');
 
-    // Remove leading zeros while preserving a single zero if that's the entire integer part
-    const limitedIntegerPart = integerPart.replace(/^0+(?=\d)/, '');
+    // Remove leading zeros; if decimal is allowed, preserve a single zero if it's the only digit left
+    const limitedIntegerPart = integerPart.replace(decimal ? /^0+(?=\d)/ : /^0+/, '');
 
     // Limit the lengths of the parts based on the maxLength options
     const limitedBeforeDecimal = limitedIntegerPart.slice(0, maxLengthBeforeDecimal);

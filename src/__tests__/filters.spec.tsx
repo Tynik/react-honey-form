@@ -142,7 +142,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
         fields: {
           amount: {
             type: 'string',
-            filter: createHoneyFormNumberFilter({ maxLength: 5 }),
+            filter: createHoneyFormNumberFilter({ maxLengthBeforeDecimal: 5 }),
           },
         },
       }),
@@ -192,7 +192,7 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
         fields: {
           amount: {
             type: 'number',
-            filter: createHoneyFormNumberFilter({ maxLength: 3 }),
+            filter: createHoneyFormNumberFilter({ maxLengthBeforeDecimal: 3 }),
           },
         },
       }),
@@ -226,26 +226,6 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
 
     expect(result.current.formValues.amount).toBe('1.');
 
-    act(() => result.current.formFields.amount.setValue('-1.'));
-
-    expect(result.current.formValues.amount).toBe('-1.');
-
-    act(() => result.current.formFields.amount.setValue('-.1'));
-
-    expect(result.current.formValues.amount).toBe('-.1');
-
-    act(() => result.current.formFields.amount.setValue('-1-'));
-
-    expect(result.current.formValues.amount).toBe('-1');
-
-    act(() => result.current.formFields.amount.setValue('--1'));
-
-    expect(result.current.formValues.amount).toBe('-1');
-
-    act(() => result.current.formFields.amount.setValue('1--'));
-
-    expect(result.current.formValues.amount).toBe('1');
-
     act(() => result.current.formFields.amount.setValue('1.2'));
 
     expect(result.current.formValues.amount).toBe('1.2');
@@ -262,12 +242,82 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
 
     expect(result.current.formValues.amount).toBe('162.23');
 
-    act(() => result.current.formFields.amount.setValue('-16245.235'));
-
-    expect(result.current.formValues.amount).toBe('-162.23');
-
     act(() => result.current.formFields.amount.setValue('0003.5'));
 
     expect(result.current.formFields.amount.value).toBe('3.5');
+
+    act(() => result.current.formFields.amount.setValue('1--'));
+
+    expect(result.current.formValues.amount).toBe('1');
+  });
+
+  it('should correctly format and filter negative decimal numbers', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            type: 'number',
+            filter: createHoneyFormNumberFilter({ maxLengthBeforeDecimal: 3 }),
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.amount.setValue('-1.'));
+
+    expect(result.current.formValues.amount).toBe('-1.');
+
+    act(() => result.current.formFields.amount.setValue('-.1'));
+
+    expect(result.current.formValues.amount).toBe('-.1');
+
+    act(() => result.current.formFields.amount.setValue('-1-'));
+
+    expect(result.current.formValues.amount).toBe('-1');
+
+    act(() => result.current.formFields.amount.setValue('--1'));
+
+    expect(result.current.formValues.amount).toBe('-1');
+
+    act(() => result.current.formFields.amount.setValue('-16245.235'));
+
+    expect(result.current.formValues.amount).toBe('-162.23');
+  });
+
+  it('should filter out non-integer characters and leading zeros when decimal is not allowed', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            type: 'number',
+            filter: createHoneyFormNumberFilter({ decimal: false }),
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.amount.setValue('.'));
+
+    expect(result.current.formValues.amount).toBe('');
+
+    act(() => result.current.formFields.amount.setValue('1.'));
+
+    expect(result.current.formValues.amount).toBe('1');
+
+    act(() => result.current.formFields.amount.setValue('.1'));
+
+    expect(result.current.formValues.amount).toBe('1');
+
+    act(() => result.current.formFields.amount.setValue('0'));
+
+    expect(result.current.formValues.amount).toBe('');
+
+    act(() => result.current.formFields.amount.setValue('00'));
+
+    expect(result.current.formValues.amount).toBe('');
+
+    act(() => result.current.formFields.amount.setValue('001'));
+
+    expect(result.current.formValues.amount).toBe('1');
   });
 });
