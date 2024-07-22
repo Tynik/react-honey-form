@@ -1,26 +1,50 @@
 import type { HoneyFormFieldFilter } from './types';
 
 type NumericFilterOptions = {
+  /**
+   * The maximum total length of the resulting numeric string.
+   */
   maxLength?: number;
+  /**
+   * Whether to allow leading zeros in the resulting numeric string.
+   *
+   * @default true
+   */
+  allowLeadingZeros?: boolean;
 };
 
 /**
- * Creates a filter function to allow only numbers.
+ * Creates a filter function to allow only numeric input with optional length constraints.
  *
- * @param {NumericFilterOptions} options - Options for the filter.
+ * @param {NumericFilterOptions} options - Options for the numeric filter.
  *
  * @returns {function(string): string} - The filter function.
+ *
+ * @remarks
+ * This function filters out any non-numeric characters and limits the length of the numeric input.
+ * If `allowLeadingZeros` is set to false, it also removes all leading zeros from the resulting string.
+ * If `allowLeadingZeros` is true, it preserves leading zeros.
  */
 export const createHoneyFormNumericFilter =
   <FieldValue extends string | number | undefined, FormContext = undefined>({
     maxLength,
+    allowLeadingZeros = true,
   }: NumericFilterOptions = {}): HoneyFormFieldFilter<FieldValue, FormContext> =>
-  value =>
-    // Remove non-numeric characters and limit the result to N characters
-    value
-      ?.toString()
-      .replace(/[^0-9]+/g, '')
-      .slice(0, maxLength) as FieldValue;
+  value => {
+    if (!value) {
+      return value;
+    }
+
+    // Remove non-numeric characters
+    let cleanedValue = value.toString().replace(/[^0-9]+/g, '');
+    if (!allowLeadingZeros) {
+      // Remove all leading zeros
+      cleanedValue = cleanedValue.replace(/^0+/, '');
+    }
+
+    // Limit the length of the cleaned value
+    return cleanedValue.slice(0, maxLength) as FieldValue;
+  };
 
 /**
  * Options for configuring the number filter function.

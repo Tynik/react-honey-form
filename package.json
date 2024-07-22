@@ -1,6 +1,6 @@
 {
   "name": "@tynik/react-honey-form",
-  "version": "20.12.1",
+  "version": "20.13.0",
   "description": "The TS library to build the fully customized forms using React framework",
   "keywords": [
     "react",

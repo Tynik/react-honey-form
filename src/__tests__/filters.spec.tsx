@@ -97,11 +97,11 @@ describe('Hook [use-honey-form]: Filter function', () => {
 });
 
 describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
-  it('remove non-numeric characters from passed value and limit the length', () => {
+  it('should remove non-numeric characters from passed value and limit the length', () => {
     const { result } = renderHook(() =>
-      useHoneyForm<{ zip: string }>({
+      useHoneyForm<{ price: string }>({
         fields: {
-          zip: {
+          price: {
             type: 'string',
             filter: createHoneyFormNumericFilter({ maxLength: 5 }),
           },
@@ -109,25 +109,29 @@ describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
       }),
     );
 
-    act(() => result.current.formFields.zip.setValue(''));
+    act(() => result.current.formFields.price.setValue(''));
 
-    expect(result.current.formFields.zip.value).toBe('');
+    expect(result.current.formFields.price.value).toBe('');
 
-    act(() => result.current.formFields.zip.setValue('1'));
+    act(() => result.current.formFields.price.setValue('11'));
 
-    expect(result.current.formFields.zip.value).toBe('1');
+    expect(result.current.formFields.price.value).toBe('11');
 
-    act(() => result.current.formFields.zip.setValue('a'));
+    act(() => result.current.formFields.price.setValue('a'));
 
-    expect(result.current.formFields.zip.value).toBe('');
+    expect(result.current.formFields.price.value).toBe('');
 
-    act(() => result.current.formFields.zip.setValue(' -.!g%$#*&@'));
+    act(() => result.current.formFields.price.setValue(' -.!g%$#*&@'));
 
-    expect(result.current.formFields.zip.value).toBe('');
+    expect(result.current.formFields.price.value).toBe('');
 
-    act(() => result.current.formFields.zip.setValue('123456789'));
+    act(() => result.current.formFields.price.setValue('123456789'));
 
-    expect(result.current.formFields.zip.value).toBe('12345');
+    expect(result.current.formFields.price.value).toBe('12345');
+
+    act(() => result.current.formFields.price.setValue('00'));
+
+    expect(result.current.formFields.price.value).toBe('00');
   });
 });
 
