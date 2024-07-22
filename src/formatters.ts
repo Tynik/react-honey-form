@@ -58,11 +58,13 @@ export const createHoneyFormNumberFormatter =
 
     const parts = value.split('.');
 
+    // Remove redundant zeros from the start of the integer part
+    const integerPart = parts[0].replace(/^0+(?!$)/, '');
     const limitedAfterDecimal = parts[1]?.slice(0, maxLengthAfterDecimal) ?? '';
 
-    if (!parts[0] && !limitedAfterDecimal) {
+    if (!integerPart && !limitedAfterDecimal) {
       return '' as FieldValue;
     }
 
-    return `${parts[0]}.${limitedAfterDecimal.padEnd(maxLengthAfterDecimal, '0')}` as FieldValue;
+    return `${integerPart}.${limitedAfterDecimal.padEnd(maxLengthAfterDecimal, '0')}` as FieldValue;
   };

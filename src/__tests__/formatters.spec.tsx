@@ -161,70 +161,60 @@ describe('Hook [use-honey-form]: Use predefined number formatter', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.amount.setValue('');
-    });
+    act(() => result.current.formFields.amount.setValue(''));
 
     expect(result.current.formFields.amount.value).toBe('');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.');
-    });
+    act(() => result.current.formFields.amount.setValue('1.'));
 
     expect(result.current.formFields.amount.value).toBe('1.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('.');
-    });
+    act(() => result.current.formFields.amount.setValue('.'));
 
     expect(result.current.formFields.amount.value).toBe('');
 
-    act(() => {
-      result.current.formFields.amount.setValue('.0');
-    });
+    act(() => result.current.formFields.amount.setValue('.0'));
 
     expect(result.current.formFields.amount.value).toBe('.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1');
-    });
+    act(() => result.current.formFields.amount.setValue('1'));
 
     expect(result.current.formFields.amount.value).toBe('1.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.0');
-    });
+    act(() => result.current.formFields.amount.setValue('1.0'));
 
     expect(result.current.formFields.amount.value).toBe('1.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.00');
-    });
+    act(() => result.current.formFields.amount.setValue('1.00'));
 
     expect(result.current.formFields.amount.value).toBe('1.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.0013');
-    });
+    act(() => result.current.formFields.amount.setValue('1.0013'));
 
     expect(result.current.formFields.amount.value).toBe('1.00');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.2');
-    });
+    act(() => result.current.formFields.amount.setValue('1.2'));
 
     expect(result.current.formFields.amount.value).toBe('1.20');
 
-    act(() => {
-      result.current.formFields.amount.setValue('1.23');
-    });
+    act(() => result.current.formFields.amount.setValue('1.23'));
 
     expect(result.current.formFields.amount.value).toBe('1.23');
 
-    act(() => {
-      result.current.formFields.amount.setValue('-12');
-    });
+    act(() => result.current.formFields.amount.setValue('-12'));
 
     expect(result.current.formFields.amount.value).toBe('-12.00');
+
+    act(() => result.current.formFields.amount.setValue('00'));
+
+    expect(result.current.formFields.amount.value).toBe('0.00');
+
+    act(() => result.current.formFields.amount.setValue('002'));
+
+    expect(result.current.formFields.amount.value).toBe('2.00');
+
+    act(() => result.current.formFields.amount.setValue('0003.5'));
+
+    expect(result.current.formFields.amount.value).toBe('3.50');
   });
 });
