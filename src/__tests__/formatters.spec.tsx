@@ -4,7 +4,7 @@ import { createHoneyFormNumberFormatter, createHoneyFormSplitStringFormatter } f
 import { createHoneyFormNumericFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Formatter function', () => {
-  it('a value should have formatted value', () => {
+  it('should have formatted value', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ price: string }>({
         fields: {
@@ -16,9 +16,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.price.setValue('5');
-    });
+    act(() => result.current.formFields.price.setValue('5'));
 
     expect(result.current.formFields.price.rawValue).toBe('5');
     expect(result.current.formFields.price.value).toBe('$5');
@@ -41,9 +39,7 @@ describe('Hook [use-honey-form]: Formatter function', () => {
       }),
     );
 
-    act(() => {
-      result.current.formFields.price.setValue('5');
-    });
+    act(() => result.current.formFields.price.setValue('5'));
 
     await act(() => result.current.submitForm(onSubmit));
 
@@ -204,17 +200,5 @@ describe('Hook [use-honey-form]: Use predefined number formatter', () => {
     act(() => result.current.formFields.amount.setValue('-12'));
 
     expect(result.current.formFields.amount.value).toBe('-12.00');
-
-    act(() => result.current.formFields.amount.setValue('00'));
-
-    expect(result.current.formFields.amount.value).toBe('0.00');
-
-    act(() => result.current.formFields.amount.setValue('002'));
-
-    expect(result.current.formFields.amount.value).toBe('2.00');
-
-    act(() => result.current.formFields.amount.setValue('0003.5'));
-
-    expect(result.current.formFields.amount.value).toBe('3.50');
   });
 });

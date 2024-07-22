@@ -95,8 +95,10 @@ export const createHoneyFormNumberFilter =
     // Split by the decimal point
     const [integerPart, fractionPart] = cleanedValue.split('.');
 
+    // Remove leading zeros while preserving a single zero if that's the entire integer part
+    const limitedIntegerPart = integerPart.replace(/^0+(?=\d)/, '');
     // Limit the lengths of the parts based on the maxLength options
-    const limitedBeforeDecimal = integerPart.slice(
+    const limitedBeforeDecimal = limitedIntegerPart.slice(
       0,
       isNegativeSignPresent ? maxLengthBeforeDecimal + 1 : maxLengthBeforeDecimal,
     );

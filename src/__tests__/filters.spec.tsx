@@ -132,7 +132,7 @@ describe('Hook [use-honey-form]: Use predefined numeric filter', () => {
 });
 
 describe('Hook [use-honey-form]: Use predefined number filter', () => {
-  it('remove non-numeric characters from passed value and limit the length', () => {
+  it('should remove non-numeric characters and limit length to max length', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amount: string }>({
         fields: {
@@ -168,9 +168,17 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     act(() => result.current.formFields.amount.setValue('-123456789'));
 
     expect(result.current.formFields.amount.value).toBe('-12345');
+
+    act(() => result.current.formFields.amount.setValue('00'));
+
+    expect(result.current.formFields.amount.value).toBe('0');
+
+    act(() => result.current.formFields.amount.setValue('002'));
+
+    expect(result.current.formFields.amount.value).toBe('2');
   });
 
-  it('correctly formats and filters decimal numbers', () => {
+  it('should correctly format and filter decimal numbers', () => {
     const { result } = renderHook(() =>
       useHoneyForm<{ amount: string }>({
         fields: {
@@ -249,5 +257,9 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     act(() => result.current.formFields.amount.setValue('-16245.235'));
 
     expect(result.current.formValues.amount).toBe('-162.23');
+
+    act(() => result.current.formFields.amount.setValue('0003.5'));
+
+    expect(result.current.formFields.amount.value).toBe('3.5');
   });
 });

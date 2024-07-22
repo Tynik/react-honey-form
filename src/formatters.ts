@@ -28,7 +28,17 @@ export const createHoneyFormSplitStringFormatter =
   };
 
 export type HoneyFormNumberFormatterOptions = {
+  /**
+   * Whether to format as a decimal number (e.g., add trailing zeros).
+   *
+   * @default true
+   */
   decimal?: boolean;
+  /**
+   * The maximum number of digits after the decimal point.
+   *
+   * @default 2
+   */
   maxLengthAfterDecimal?: number;
 };
 
@@ -40,9 +50,6 @@ export type HoneyFormNumberFormatterOptions = {
  *
  * @remarks
  * This function formats numeric input strings according to the specified options.
- *
- * @param {boolean} options.decimal - Whether to format as a decimal number (e.g., add trailing zeros). Default: true.
- * @param {number} options.maxLengthAfterDecimal - The maximum number of digits after the decimal point. Default: 2.
  *
  * @returns {string} - The formatted numeric string.
  */
@@ -58,13 +65,11 @@ export const createHoneyFormNumberFormatter =
 
     const parts = value.split('.');
 
-    // Remove redundant zeros from the start of the integer part
-    const integerPart = parts[0].replace(/^0+(?!$)/, '');
     const limitedAfterDecimal = parts[1]?.slice(0, maxLengthAfterDecimal) ?? '';
 
-    if (!integerPart && !limitedAfterDecimal) {
+    if (!parts[0] && !limitedAfterDecimal) {
       return '' as FieldValue;
     }
 
-    return `${integerPart}.${limitedAfterDecimal.padEnd(maxLengthAfterDecimal, '0')}` as FieldValue;
+    return `${parts[0]}.${limitedAfterDecimal.padEnd(maxLengthAfterDecimal, '0')}` as FieldValue;
   };
