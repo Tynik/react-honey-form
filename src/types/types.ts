@@ -971,7 +971,7 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
-export type BaseHoneyFormFieldHTMLAttributes<T> = InputHTMLAttributes<T> & {
+export type BaseHoneyFormFieldHTMLAttributes<T> = Omit<InputHTMLAttributes<T>, 'children'> & {
   ref: RefObject<T>;
 };
 
