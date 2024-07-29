@@ -971,28 +971,13 @@ export type HoneyFormValidateField<Form extends HoneyFormBaseForm> = <FieldName 
 
 export type HoneyFormFieldValueConvertor<FieldValue> = (value: any) => FieldValue;
 
-/**
- * @example
- * - `aria-required`: ARIA attribute indicating whether the field is required for accessibility.
- * - `aria-invalid`: ARIA attribute indicating whether the field is in an invalid state for accessibility.
- */
-export type BaseHoneyFormFieldHTMLAttributes<T> = Pick<
-  InputHTMLAttributes<T>,
-  'type' | 'name' | 'inputMode' | 'aria-required' | 'aria-invalid'
-> & {
+export type BaseHoneyFormFieldHTMLAttributes<T> = InputHTMLAttributes<T> & {
   ref: RefObject<T>;
 };
 
 /**
  * Represents the props for a form field component.
  * These props are typically used for input elements.
- *
- * @example
- * - `onFocus`: Callback function triggered when the field receives focus.
- * - `onBlur`: Callback function triggered when the field loses focus.
- * - `onChange`: Callback function triggered when the field value changes.
- * - `ref`: A reference to the field element.
- * - `value`: The current value of the field.
  *
  * @remarks
  * When the `onBlur` event is triggered, and the field's mode is set to 'blur', the validation process
@@ -1005,10 +990,9 @@ export type HoneyFormInteractiveFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  BaseHoneyFormFieldHTMLAttributes<any> &
-    Pick<InputHTMLAttributes<any>, 'onChange' | 'onBlur' | 'aria-busy'> & {
-      value: FieldValue | undefined;
-    }
+  Omit<BaseHoneyFormFieldHTMLAttributes<any>, 'value'> & {
+    value: FieldValue | undefined;
+  }
 >;
 
 /**
@@ -1019,9 +1003,7 @@ export type HoneyFormInteractiveFieldProps<
  *
  * @template BaseHoneyFormFieldHTMLAttributes - Base HTML attributes for a form field.
  */
-export type HoneyFormPassiveFieldProps = Readonly<
-  BaseHoneyFormFieldHTMLAttributes<any> & Pick<InputHTMLAttributes<any>, 'checked' | 'onChange'>
->;
+export type HoneyFormPassiveFieldProps = Readonly<BaseHoneyFormFieldHTMLAttributes<any>>;
 
 /**
  * Represents the props for an object form field.
@@ -1038,7 +1020,7 @@ export type HoneyFormObjectFieldProps<
   FieldName extends keyof Form,
   FieldValue extends Form[FieldName] = Form[FieldName],
 > = Readonly<
-  BaseHoneyFormFieldHTMLAttributes<any> & {
+  Omit<BaseHoneyFormFieldHTMLAttributes<any>, 'value' | 'onChange'> & {
     value: FieldValue | undefined;
     onChange: (value: FieldValue | undefined) => void;
   }
