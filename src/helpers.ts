@@ -464,29 +464,6 @@ export const registerChildForm = <
 };
 
 /**
- * Unregisters a child form from a parent form field's metadata using the child form's ID.
- *
- * @template ParentForm - Type representing the parent form.
- * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
- *
- * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field from which to unregister the child form.
- * @param {HoneyFormId} formId - The ID of the child form to unregister.
- */
-export const unregisterChildForm = <
-  ParentForm extends HoneyFormBaseForm,
-  ParentFieldName extends KeysWithArrayValues<ParentForm>,
->(
-  parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
-  formId: HoneyFormId,
-) => {
-  // Filter out the child form with the specified ID
-  // @ts-expect-error
-  parentField.__meta__.childForms = parentField.__meta__.childForms?.filter(
-    childForm => childForm.formId !== formId,
-  );
-};
-
-/**
  * Retrieves the index of a child form within a parent form field's list of child forms.
  *
  * @template ParentForm - Type representing the parent form.
@@ -505,6 +482,31 @@ export const getChildFormIndex = <
   formId: HoneyFormId,
 ): number =>
   parentField.__meta__.childForms?.findIndex(childForm => childForm.formId === formId) ?? -1;
+
+/**
+ * Unregisters a child form from a parent form field's metadata using the child form's ID.
+ *
+ * @template ParentForm - Type representing the parent form.
+ * @template ParentFieldName - The field name type for the parent form that will contain the array of child forms.
+ *
+ * @param {HoneyFormParentField<ParentForm, ParentFieldName>} parentField - The parent form field from which to unregister the child form.
+ * @param {HoneyFormId} formId - The ID of the child form to unregister.
+ */
+export const unregisterChildForm = <
+  ParentForm extends HoneyFormBaseForm,
+  ParentFieldName extends KeysWithArrayValues<ParentForm>,
+>(
+  parentField: HoneyFormParentField<ParentForm, ParentFieldName>,
+  formId: HoneyFormId,
+) => {
+  const childFormIndex = getChildFormIndex(parentField, formId);
+
+  if (childFormIndex === -1) {
+    warningMessage('Child form index cannot be resolved.');
+  } else {
+    parentField.__meta__.childForms.splice(childFormIndex, 1);
+  }
+};
 
 /**
  * Runs validation on child forms associated with a given form field.

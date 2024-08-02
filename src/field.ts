@@ -471,7 +471,7 @@ export const createField = <
       ? config.filter(config.defaultValue, { formContext })
       : config.defaultValue;
 
-  const formattedValue =
+  const resultValue =
     isFieldInteractive && config.formatter
       ? config.formatter(filteredValue, { formContext })
       : filteredValue;
@@ -483,7 +483,7 @@ export const createField = <
     childForms: undefined,
   };
 
-  const fieldProps = getFieldProps(fieldName, formattedValue, {
+  const fieldProps = getFieldProps(fieldName, resultValue, {
     formFieldRef,
     setFieldValue,
     fieldConfig: config,
@@ -497,7 +497,7 @@ export const createField = <
     defaultValue: config.defaultValue,
     rawValue: filteredValue,
     cleanValue: filteredValue,
-    value: formattedValue,
+    value: resultValue,
     isValidating: false,
     // TODO: try to fix the next error
     // @ts-expect-error
@@ -511,7 +511,7 @@ export const createField = <
 
           return getFormValues(childFormFields);
           // Return field value when child forms are not mounted yet at the beginning, but the field value is set as initial value
-        }) ?? formattedValue
+        }) ?? resultValue
       );
     },
     __meta__: fieldMeta,
