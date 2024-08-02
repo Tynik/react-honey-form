@@ -1374,6 +1374,19 @@ export type FormOptions<
    */
   validateExternalValues?: boolean;
   /**
+   * Always run validation for the parent form field when any child field value is changed.
+   *
+   * This option ensures that changes in child form fields trigger validation in the
+   * corresponding parent form field, maintaining overall form integrity.
+   *
+   * When set to `false`, the parent field will be validated only when a child field has errors
+   * or when errors in a child field are cleared. This helps in notifying the parent form about
+   * changes in the validation state of its child fields without performing redundant renders (validations).
+   *
+   * @default false
+   */
+  alwaysValidateParentField?: boolean;
+  /**
    * Any object that can be used to pass contextual data to field functions.
    * This provides a way to share additional information or context with field-specific logic.
    *

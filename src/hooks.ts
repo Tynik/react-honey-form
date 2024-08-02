@@ -72,6 +72,7 @@ export const useForm = <
   values: externalValues,
   resetAfterSubmit = false,
   validateExternalValues = false,
+  alwaysValidateParentField = false,
   context: formContext,
   onSubmit,
   onChange,
@@ -285,8 +286,11 @@ export const useForm = <
         );
 
         if (parentField) {
-          // If this form is a child form associated with a parent form and has errors or clears its errors, notify the parent
-          if (isFieldErred || nextFormFields[fieldName].errors.length) {
+          if (
+            alwaysValidateParentField ||
+            isFieldErred ||
+            nextFormFields[fieldName].errors.length
+          ) {
             // Use a timeout to avoid rendering the parent form during this field's render cycle
             setTimeout(() => {
               parentField.validate();
