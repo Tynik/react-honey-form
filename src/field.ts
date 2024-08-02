@@ -16,7 +16,6 @@ import type {
   HoneyFormFieldAddErrors,
   HoneyFormFieldClearErrors,
   HoneyFormFieldProps,
-  HoneyFormFieldSetChildFormsErrors,
   HoneyFormFieldMeta,
   HoneyFormDefaultsRef,
   HoneyFormFieldsRef,
@@ -410,7 +409,6 @@ type CreateFieldOptions<Form extends HoneyFormBaseForm, FormContext> = {
   pushFieldValue: HoneyFormFieldPushValue<Form>;
   removeFieldValue: HoneyFormFieldRemoveValue<Form>;
   addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
-  setFieldChildFormsErrors: HoneyFormFieldSetChildFormsErrors<Form>;
 };
 
 /**
@@ -448,7 +446,6 @@ export const createField = <
     pushFieldValue,
     removeFieldValue,
     addFormFieldErrors,
-    setFieldChildFormsErrors,
   }: CreateFieldOptions<Form, FormContext>,
 ): HoneyFormField<Form, FieldName, FormContext> => {
   const config: HoneyFormFieldConfig<Form, FieldName, FormContext> = {
@@ -525,7 +522,6 @@ export const createField = <
     resetValue: () => setFieldValue(fieldName, formDefaultsRef.current[fieldName]),
     addErrors: errors => addFormFieldErrors(fieldName, errors),
     addError: error => addFormFieldErrors(fieldName, [error]),
-    setChildFormsErrors: errors => setFieldChildFormsErrors(fieldName, errors),
     clearErrors: () => clearFieldErrors(fieldName),
     validate: () => validateField(fieldName),
     focus: () => {

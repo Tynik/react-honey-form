@@ -48,7 +48,6 @@ const createInitialFormFields = <
   pushFieldValue,
   removeFieldValue,
   addFormFieldErrors,
-  setFieldChildFormsErrors,
 }: CreateInitialFormFieldsOptions<ParentForm, ParentFieldName, FormContext, ChildForm>) => {
   const formFields = mapFieldsConfigs(fieldsConfigs, (fieldName, fieldConfig) => {
     let childFormFieldValue: ChildForm[keyof ChildForm] | null | undefined = null;
@@ -79,7 +78,6 @@ const createInitialFormFields = <
         pushFieldValue,
         removeFieldValue,
         addFormFieldErrors,
-        setFieldChildFormsErrors,
       },
     );
   });

@@ -12,7 +12,6 @@ import type {
   HoneyFormFieldRemoveValue,
   HoneyFormFieldSetInternalValue,
   HoneyFormFieldAddErrors,
-  HoneyFormFieldSetChildFormsErrors,
   HoneyFormFieldFinishAsyncValidation,
   HoneyFormValidateField,
   HoneyFormAddFormField,
@@ -42,7 +41,6 @@ import {
   checkIfFieldIsInteractive,
   checkIfFieldIsNestedForms,
   forEachFormError,
-  getChildFormIndex,
   getFormErrors,
   getFormValues,
   getSubmitFormValues,
@@ -199,6 +197,10 @@ export const useForm = <
           return nextFormFields;
         }, isSkipOnChange),
       );
+
+      if (parentField) {
+        parentField.validate();
+      }
     },
     [formContext],
   );
@@ -287,22 +289,7 @@ export const useForm = <
           if (isFieldErred || nextFormFields[fieldName].errors.length) {
             // Use a timeout to avoid rendering the parent form during this field's render cycle
             setTimeout(() => {
-              const childFormIndex = getChildFormIndex(parentField, formIdRef.current);
-
-              if (childFormIndex === -1) {
-                warningMessage('The child form index cannot be found by form id.');
-              } else {
-                // [NOT FINISHED]
-                // // Handle scenarios for scheduled fields
-                // const newChildFormsErrors = [...parentField.childFormsErrors];
-                //
-                // newChildFormsErrors[childFormIndex] = {
-                //   ...newChildFormsErrors[childFormIndex],
-                //   [fieldName]: nextFormFields[fieldName].errors,
-                // };
-                //
-                // parentField.setChildFormsErrors(newChildFormsErrors);
-              }
+              parentField.validate();
             }, 0);
           }
         }
@@ -420,27 +407,6 @@ export const useForm = <
     [addFormFieldErrors],
   );
 
-  const setFieldChildFormsErrors = useCallback<HoneyFormFieldSetChildFormsErrors<Form>>(
-    (fieldName, childFormsErrors) => {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      setFormFields(formFields => {
-        const formField = formFields[fieldName];
-
-        const nextFormFields = {
-          ...formFields,
-          [fieldName]: {
-            ...formField,
-            childFormsErrors,
-          },
-        };
-
-        formFieldsRef.current = nextFormFields;
-        return nextFormFields;
-      });
-    },
-    [],
-  );
-
   const addFormField = useCallback<HoneyFormAddFormField<Form, FormContext>>(
     (fieldName, fieldConfig) => {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -461,7 +427,6 @@ export const useForm = <
             pushFieldValue,
             removeFieldValue,
             addFormFieldErrors,
-            setFieldChildFormsErrors,
             form: {
               //
             },
@@ -605,7 +570,6 @@ export const useForm = <
       pushFieldValue,
       removeFieldValue,
       addFormFieldErrors,
-      setFieldChildFormsErrors,
     });
 
   const resetForm: HoneyFormReset<Form> = newFormDefaults => {
@@ -619,6 +583,10 @@ export const useForm = <
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setFormFields(getInitialFormFieldsState);
+
+    if (parentField) {
+      parentField.validate();
+    }
   };
 
   const restoreUnfinishedForm = useCallback<HoneyFormRestoreUnfinishedForm>(() => {

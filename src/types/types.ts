@@ -238,35 +238,6 @@ export type HoneyFormErrors<Form extends HoneyFormBaseForm> = {
 };
 
 /**
- * Represents the errors of child forms associated with a parent field in a form.
- *
- * @template Form - Type representing the entire form.
- * @template FieldName - Name of the parent field in the form.
- */
-type HoneyFormChildFormsErrors<
-  Form extends HoneyFormBaseForm,
-  ParentFieldName extends keyof Form,
-> = HoneyFormErrors<HoneyFormExtractChildForm<Form[ParentFieldName]>>[];
-
-/**
- * Function type for setting the errors of child forms associated with a parent field in a form.
- *
- * @template Form - Type representing the entire form.
- */
-export type HoneyFormFieldSetChildFormsErrors<Form extends HoneyFormBaseForm> = <
-  ParentFieldName extends keyof Form,
->(
-  /**
-   * The name of the parent field in the form.
-   */
-  parentFieldName: ParentFieldName,
-  /**
-   * The errors of child forms associated with the parent field.
-   */
-  childFormsErrors: HoneyFormChildFormsErrors<Form, ParentFieldName>,
-) => void;
-
-/**
  * A function type for scheduling validation for another field in the form.
  * It takes the field name (excluding the current field) as a parameter.
  */
@@ -1209,16 +1180,6 @@ export type HoneyFormField<
 > = BaseHoneyFormField<
   HoneyFormFieldProps<Form, FieldName, FieldValue> & {
     /**
-     * An array containing errors of child forms if the field is a parent field with child forms.
-     *
-     * @default []
-     */
-    childFormsErrors: HoneyFormChildFormsErrors<Form, FieldName>;
-    /**
-     * A function to set the new child forms errors to the parent field.
-     */
-    setChildFormsErrors: (childFormsErrors: HoneyFormChildFormsErrors<Form, FieldName>) => void;
-    /**
      * A function to add a new value to a parent field that can have child forms.
      */
     pushValue: (value: HoneyFormExtractChildForm<FieldValue>) => void;
@@ -1364,7 +1325,6 @@ export type InitialFormFieldsStateResolverOptions<Form extends HoneyFormBaseForm
   pushFieldValue: HoneyFormFieldPushValue<Form>;
   removeFieldValue: HoneyFormFieldRemoveValue<Form>;
   addFormFieldErrors: HoneyFormFieldAddErrors<Form>;
-  setFieldChildFormsErrors: HoneyFormFieldSetChildFormsErrors<Form>;
 };
 
 export type FormOptions<
