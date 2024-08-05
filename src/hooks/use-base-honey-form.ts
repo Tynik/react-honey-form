@@ -73,6 +73,7 @@ export const useBaseHoneyForm = <
   name: formName,
   parentField,
   defaults = FORM_DEFAULTS,
+  readDefaultsFromStorage = false,
   values: externalValues,
   resetAfterSubmit = false,
   validateExternalValues = false,
@@ -91,20 +92,10 @@ export const useBaseHoneyForm = <
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
   const [formDefaults] = useState<HoneyFormDefaultValues<Form>>(() => {
-    if (formName) {
+    if (readDefaultsFromStorage && formName) {
       if (storage === 'qs') {
-        if (typeof defaults === 'function') {
-          warningMessage(
-            'Using default values from storage and using defaults function together is not supported.',
-          );
-        }
-
-        return deserializeFormFromQueryString<Form>(
-          formName,
-          (fieldName, rawValue) =>
-            fieldsConfigs[fieldName].deserializer?.(rawValue) ??
-            (rawValue as Form[typeof fieldName]),
-        );
+        // Defaults from storage can extend/override the defaults set via property
+        return { ...defaults, ...deserializeFormFromQueryString(fieldsConfigs, formName) };
       }
     }
 
@@ -152,7 +143,7 @@ export const useBaseHoneyForm = <
       if (storage === 'qs') {
         const formValues = getSubmitFormValues(parentField, formContext, nextFormFields);
 
-        serializeFormToQueryString(formName, formValues);
+        serializeFormToQueryString(fieldsConfigs, formName, formValues);
       }
     }
 
@@ -708,7 +699,8 @@ export const useBaseHoneyForm = <
 
       defaults()
         .then(defaultValues => {
-          formDefaultsRef.current = defaultValues;
+          // Returned defaults from promise function can extend/override the defaults set via property
+          formDefaultsRef.current = { ...formDefaultsRef.current, ...defaultValues };
 
           setFormValues(defaultValues, { isValidate: false, isDirty: false, isSkipOnChange: true });
         })

@@ -485,6 +485,22 @@ export type HoneyFormNestedFormsFieldValidator<
 ) => HoneyFormFieldValidationResult | Promise<HoneyFormFieldValidationResult>;
 
 /**
+ * A function type that defines how to serialize a form field's value into a JSON-compatible value.
+ *
+ * @template Form - The type representing the entire form.
+ * @template FieldName - The name of the field being serialized.
+ *
+ * @param {FieldName} fieldName - The name of the field for which the value is being serialized.
+ * @param {Form[FieldName]} fieldValue - The value of the field that needs to be serialized.
+ *
+ * @returns {JSONValue} - The serialized JSON-compatible value for the field.
+ */
+export type HoneyFormFieldSerializer<
+  Form extends HoneyFormBaseForm,
+  FieldName extends keyof Form = keyof Form,
+> = (fieldName: FieldName, fieldValue: Form[FieldName]) => JSONValue;
+
+/**
  * A function type that defines how to deserialize a field's raw value from JSON into a form value.
  *
  * @template Form - The type representing the entire form.
@@ -1230,6 +1246,19 @@ export type HoneyFormValues<Form extends HoneyFormBaseForm> = {
 };
 
 /**
+ * Base form fields configuration.
+ */
+export type BaseHoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext = undefined> = {
+  [FieldName in keyof Form]: BaseHoneyFormFieldConfig<
+    unknown,
+    Form,
+    FieldName,
+    FormContext,
+    Form[FieldName]
+  >;
+};
+
+/**
  * Form fields configuration.
  */
 export type HoneyFormFieldsConfigs<Form extends HoneyFormBaseForm, FormContext = undefined> = {
@@ -1339,15 +1368,7 @@ export type FormOptions<
   /**
    * Configuration for the form fields.
    */
-  fields: {
-    [FieldName in keyof Form]: BaseHoneyFormFieldConfig<
-      unknown,
-      Form,
-      FieldName,
-      FormContext,
-      Form[FieldName]
-    >;
-  };
+  fields: BaseHoneyFormFieldsConfigs<Form, FormContext>;
   /**
    * The form name to use the name for saving and restoring not submitted form data.
    *
@@ -1366,6 +1387,12 @@ export type FormOptions<
    * @default {}
    */
   defaults?: HoneyFormDefaults<Form>;
+  /**
+   * Indicates whether to read default values from storage.
+   *
+   * @default false
+   */
+  readDefaultsFromStorage?: boolean;
   /**
    * External values that can be provided to the form to synchronize its values.
    * If provided, the form will stay in sync with these external values.
@@ -1500,7 +1527,7 @@ export type ChildHoneyFormOptions<
     ParentFieldName,
     FormContext
   >,
-  'name' | 'storage'
+  'name' | 'storage' | 'readDefaultsFromStorage'
 >;
 
 type MultiHoneyFormsOnSubmitContext<FormContext> = {

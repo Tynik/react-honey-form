@@ -13,6 +13,7 @@ import type {
   HoneyFormFieldError,
   HoneyFormServerErrors,
   HoneyFormFieldErrorMessage,
+  HoneyFormFieldSerializer,
   HoneyFormFieldDeserializer,
   HoneyFormInteractiveFieldConfig,
   HoneyFormPassiveFieldConfig,
@@ -22,6 +23,7 @@ import type {
   KeysWithArrayValues,
   HoneyFormExtractChildForm,
   JSONValue,
+  BaseHoneyFormFieldsConfigs,
 } from './types';
 import { HONEY_FORM_ERRORS } from './constants';
 
@@ -546,6 +548,14 @@ export const runChildFormsValidation = async <
   return hasErrors;
 };
 
+export const replaceHistoryState = (searchParams: URLSearchParams) => {
+  window.history.replaceState(
+    null,
+    '',
+    `${window.location.pathname}${searchParams.size > 0 ? `?${searchParams.toString()}` : ''}`,
+  );
+};
+
 export const checkQueryStringLimit = (searchParams: URLSearchParams) => {
   let queryStringLimit = 0;
 
@@ -572,11 +582,21 @@ export const checkQueryStringLimit = (searchParams: URLSearchParams) => {
  * @template Form - Type representing the entire form.
  *
  * @param {Form} formData - The form data to serialize.
+ * @param {HoneyFormFieldSerializer<Form>} formFieldSerializer - The serializer function for the form fields.
  *
  * @returns {string} - The base64-encoded string representing the serialized form data.
  */
-const serializeForm = <Form extends HoneyFormBaseForm>(formData: Form): string =>
-  window.btoa(encodeURI(JSON.stringify(formData)));
+const serializeForm = <Form extends HoneyFormBaseForm>(
+  formData: Form,
+  formFieldSerializer: HoneyFormFieldSerializer<Form>,
+): string =>
+  window.btoa(
+    encodeURI(
+      JSON.stringify(formData, (key: keyof Form, value: Form[keyof Form]) =>
+        formFieldSerializer(key, value),
+      ),
+    ),
+  );
 
 /**
  * Deserializes raw form data into a form object.
@@ -592,48 +612,66 @@ const deserializeForm = <Form extends HoneyFormBaseForm>(
   rawFormData: string,
   formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
 ): Form =>
-  JSON.parse(decodeURI(window.atob(rawFormData)), (key, value) =>
-    formFieldDeserializer(key, value as JSONValue),
+  JSON.parse(decodeURI(window.atob(rawFormData)), (key: keyof Form, value: JSONValue) =>
+    formFieldDeserializer(key, value),
   ) as Form;
 
 /**
  * Serializes form data and stores it in the query string under the specified form name.
  *
  * @template Form - Type representing the entire form.
+ * @template FormContext - Optional context type for the form.
  *
+ * @param {BaseHoneyFormFieldsConfigs<Form, FormContext>} fieldsConfigs - Configuration object for the form fields, including serializer functions.
  * @param {string} formName - The name to use as the key in the query string.
  * @param {Form} formData - The form data to serialize and store in the query string.
- *
- * @returns {URLSearchParams} - The updated URLSearchParams object.
  */
-export const serializeFormToQueryString = <Form extends HoneyFormBaseForm>(
+export const serializeFormToQueryString = <Form extends HoneyFormBaseForm, FormContext = undefined>(
+  fieldsConfigs: BaseHoneyFormFieldsConfigs<Form, FormContext>,
   formName: string,
   formData: Form,
-): URLSearchParams => {
+) => {
   const searchParams = new URLSearchParams(window.location.search);
-  searchParams.set(formName, serializeForm(formData));
+
+  searchParams.set(
+    formName,
+    serializeForm(
+      formData,
+      (fieldName, fieldValue) =>
+        fieldsConfigs[fieldName].serializer?.(fieldValue) ?? (fieldValue as JSONValue),
+    ),
+  );
 
   checkQueryStringLimit(searchParams);
-
-  return searchParams;
+  replaceHistoryState(searchParams);
 };
 
 /**
  * Deserializes a form from a query string.
  *
  * @template Form - Type representing the entire form.
+ * @template FormContext - Optional context type for the form.
  *
+ * @param {BaseHoneyFormFieldsConfigs<Form, FormContext>} fieldsConfigs - Configuration object for the form fields, including deserializer functions.
  * @param {string} formName - The name of the form to deserialize.
- * @param {HoneyFormFieldDeserializer<Form>} formFieldDeserializer - The deserializer function for the form fields.
  *
  * @returns {Form | undefined} - The deserialized form object, or undefined if the form data is not found in the query string.
  */
-export const deserializeFormFromQueryString = <Form extends HoneyFormBaseForm>(
+export const deserializeFormFromQueryString = <
+  Form extends HoneyFormBaseForm,
+  FormContext = undefined,
+>(
+  fieldsConfigs: BaseHoneyFormFieldsConfigs<Form, FormContext>,
   formName: string,
-  formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
 ): Form | undefined => {
   const searchParams = new URLSearchParams(window.location.search);
   const rawFormData = searchParams.get(formName);
 
-  return rawFormData ? deserializeForm(rawFormData, formFieldDeserializer) : undefined;
+  return rawFormData
+    ? deserializeForm(
+        rawFormData,
+        (fieldName, rawValue) =>
+          fieldsConfigs[fieldName].deserializer?.(rawValue) ?? (rawValue as Form[typeof fieldName]),
+      )
+    : undefined;
 };
