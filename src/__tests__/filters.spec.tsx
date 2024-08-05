@@ -336,25 +336,31 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
     act(() => result.current.formFields.amount.setValue(''));
 
     expect(result.current.formValues.amount).toBe('');
+    expect(result.current.formFields.amount.cleanValue).toBe(undefined);
 
     act(() => result.current.formFields.amount.setValue('1'));
 
     expect(result.current.formValues.amount).toBe('1');
+    expect(result.current.formFields.amount.cleanValue).toBe(1);
 
     act(() => result.current.formFields.amount.setValue('1000'));
 
     expect(result.current.formValues.amount).toBe('1,000');
+    expect(result.current.formFields.amount.cleanValue).toBe(1000);
 
     act(() => result.current.formFields.amount.setValue('100000'));
 
     expect(result.current.formValues.amount).toBe('100,000');
+    expect(result.current.formFields.amount.cleanValue).toBe(100000);
 
     act(() => result.current.formFields.amount.setValue('1000000'));
 
     expect(result.current.formValues.amount).toBe('1,000,000');
+    expect(result.current.formFields.amount.cleanValue).toBe(1000000);
 
     act(() => result.current.formFields.amount.setValue('-1000'));
 
     expect(result.current.formValues.amount).toBe('-1,000');
+    expect(result.current.formFields.amount.cleanValue).toBe(-1000);
   });
 });

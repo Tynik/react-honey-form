@@ -61,7 +61,14 @@ const FIELD_TYPE_MAP: Partial<Record<HoneyFormFieldType, HTMLInputTypeAttribute>
 const DEFAULT_FIELD_VALUE_CONVERTORS_MAP: Partial<
   Record<HoneyFormFieldType, HoneyFormFieldValueConvertor<any>>
 > = {
-  number: value => (value ? Number(value) : undefined),
+  number: (value: number | string | undefined) => {
+    if (typeof value === 'string' && value) {
+      // Try to replace thousands separators because they can be added by number filter
+      return Number(value.replace(/,/g, ''));
+    }
+
+    return typeof value === 'number' ? value : undefined;
+  },
 };
 
 /**
