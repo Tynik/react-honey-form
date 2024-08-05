@@ -320,4 +320,41 @@ describe('Hook [use-honey-form]: Use predefined number filter', () => {
 
     expect(result.current.formValues.amount).toBe('1');
   });
+
+  it('should format numbers with thousands separators correctly', () => {
+    const { result } = renderHook(() =>
+      useHoneyForm<{ amount: string }>({
+        fields: {
+          amount: {
+            type: 'number',
+            filter: createHoneyFormNumberFilter({ useThousandsSeparator: true }),
+          },
+        },
+      }),
+    );
+
+    act(() => result.current.formFields.amount.setValue(''));
+
+    expect(result.current.formValues.amount).toBe('');
+
+    act(() => result.current.formFields.amount.setValue('1'));
+
+    expect(result.current.formValues.amount).toBe('1');
+
+    act(() => result.current.formFields.amount.setValue('1000'));
+
+    expect(result.current.formValues.amount).toBe('1,000');
+
+    act(() => result.current.formFields.amount.setValue('100000'));
+
+    expect(result.current.formValues.amount).toBe('100,000');
+
+    act(() => result.current.formFields.amount.setValue('1000000'));
+
+    expect(result.current.formValues.amount).toBe('1,000,000');
+
+    act(() => result.current.formFields.amount.setValue('-1000'));
+
+    expect(result.current.formValues.amount).toBe('-1,000');
+  });
 });

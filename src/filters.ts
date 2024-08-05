@@ -51,17 +51,23 @@ export const createHoneyFormNumericFilter =
  */
 export type HoneyFormNumberFilterOptions = {
   /**
+   * Whether to allow decimal numbers (e.g., allow a decimal point '.').
+   *
+   * @default true
+   */
+  decimal?: boolean;
+  /**
    * Whether to allow negative numbers (e.g., allow a minus sign '-' at the beginning).
    *
    * @default true
    */
   negative?: boolean;
   /**
-   * Whether to allow decimal numbers (e.g., allow a decimal point '.').
+   * Add commas for thousands separators.
    *
-   * @default true
+   * @default false
    */
-  decimal?: boolean;
+  useThousandsSeparator?: boolean;
   /**
    * The maximum length of characters before the decimal point.
    *
@@ -96,6 +102,7 @@ export const createHoneyFormNumberFilter =
     maxLengthAfterDecimal = 2,
     decimal = true,
     negative = true,
+    useThousandsSeparator = false,
   }: HoneyFormNumberFilterOptions = {}): HoneyFormFieldFilter<FieldValue, FormContext> =>
   value => {
     if (!value) {
@@ -123,11 +130,16 @@ export const createHoneyFormNumberFilter =
     const limitedBeforeDecimal = limitedIntegerPart.slice(0, maxLengthBeforeDecimal);
     const limitedAfterDecimal = fractionPart?.slice(0, maxLengthAfterDecimal);
 
+    // Add commas for thousands separators
+    const integerWithCommas = useThousandsSeparator
+      ? limitedBeforeDecimal.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      : limitedBeforeDecimal;
+
     // Combine the parts back together with the decimal point
     const result =
       limitedAfterDecimal === undefined
-        ? limitedBeforeDecimal
-        : `${limitedBeforeDecimal}.${limitedAfterDecimal}`;
+        ? integerWithCommas
+        : `${integerWithCommas}.${limitedAfterDecimal}`;
 
     // Prepend the negative sign if the original value was negative
     return (isNegativeSignPresent ? `-${result}` : result) as FieldValue;
