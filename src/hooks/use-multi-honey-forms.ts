@@ -6,7 +6,7 @@ import type {
   HoneyFormSubmitHandler,
   MultiHoneyFormOptions,
   MultiHoneyFormsApi,
-} from './types';
+} from '../types';
 
 export const useMultiHoneyForms = <Form extends HoneyFormBaseForm, FormContext = undefined>({
   context: formContext,

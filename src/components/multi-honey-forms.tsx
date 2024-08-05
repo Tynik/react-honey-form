@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 
 import type { ReactNode } from 'react';
 
-import { useMultiHoneyForms } from '../use-multi-honey-forms';
+import { useMultiHoneyForms } from '../hooks/use-multi-honey-forms';
 import type { HoneyFormBaseForm, MultiHoneyFormOptions, MultiHoneyFormsApi } from '../types';
 
 export type MultiHoneyFormsContextValue<

@@ -25,7 +25,7 @@ import type {
   HoneyFormErrors,
   KeysWithArrayValues,
   HoneyFormRestoreUnfinishedForm,
-} from './types';
+} from '../types';
 import {
   resetAllFields,
   createField,
@@ -36,7 +36,7 @@ import {
   getNextErrorsFreeField,
   getNextSingleFieldState,
   getNextAsyncValidatedField,
-} from './field';
+} from '../field';
 import {
   checkIfFieldIsInteractive,
   checkIfFieldIsNestedForms,
@@ -50,8 +50,10 @@ import {
   runChildFormsValidation,
   warningMessage,
   errorMessage,
-} from './helpers';
-import { HONEY_FORM_ERRORS } from './constants';
+  deserializeFormFromQueryString,
+  serializeFormToQueryString,
+} from '../helpers';
+import { HONEY_FORM_ERRORS } from '../constants';
 
 const FORM_DEFAULTS = {};
 
@@ -60,19 +62,22 @@ const INITIAL_FORM_STATE: HoneyFormState = {
   isSubmitting: false,
 };
 
-export const useForm = <
+export const useBaseHoneyForm = <
   ParentForm extends HoneyFormBaseForm,
   ParentFieldName extends KeysWithArrayValues<ParentForm>,
   Form extends HoneyFormBaseForm,
   FormContext = undefined,
 >({
   initialFormFieldsStateResolver,
+  fields: fieldsConfigs,
+  name: formName,
   parentField,
   defaults = FORM_DEFAULTS,
   values: externalValues,
   resetAfterSubmit = false,
   validateExternalValues = false,
   alwaysValidateParentField = false,
+  storage,
   context: formContext,
   onSubmit,
   onChange,
@@ -85,9 +90,28 @@ export const useForm = <
   const [isFormDefaultsFetching, setIsFormDefaultsFetching] = useState(false);
   const [isFormDefaultsFetchingErred, setIsFormDefaultsFetchingErred] = useState(false);
 
-  const formDefaultsRef = useRef<HoneyFormDefaultValues<Form>>(
-    typeof defaults === 'function' ? {} : { ...defaults },
-  );
+  const [formDefaults] = useState<HoneyFormDefaultValues<Form>>(() => {
+    if (formName) {
+      if (storage === 'qs') {
+        if (typeof defaults === 'function') {
+          warningMessage(
+            'Using default values from storage and using defaults function together is not supported.',
+          );
+        }
+
+        return deserializeFormFromQueryString<Form>(
+          formName,
+          (fieldName, rawValue) =>
+            fieldsConfigs[fieldName].deserializer?.(rawValue) ??
+            (rawValue as Form[typeof fieldName]),
+        );
+      }
+    }
+
+    return typeof defaults === 'function' ? {} : { ...defaults };
+  });
+
+  const formDefaultsRef = useRef<HoneyFormDefaultValues<Form>>(formDefaults);
   const formFieldsRef = useRef<HoneyFormFields<Form, FormContext> | null>(null);
   const formValuesRef = useRef<Form | null>(null);
   const formErrorsRef = useRef<HoneyFormErrors<Form> | null>(null);
@@ -124,20 +148,28 @@ export const useForm = <
 
     const nextFormFields = fn();
 
+    if (!parentField) {
+      if (storage === 'qs') {
+        const formValues = getSubmitFormValues(parentField, formContext, nextFormFields);
+
+        serializeFormToQueryString(formName, formValues);
+      }
+    }
+
     // If `onChange` is provided, set a timeout for debouncing and call `onChange` after the timeout.
     if (onChange) {
-      const formFields = formFieldsRef.current;
-      if (!formFields) {
-        throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
-      }
-
       onChangeTimeoutRef.current = window.setTimeout(() => {
         onChangeTimeoutRef.current = null;
 
-        const submitFormValues = getSubmitFormValues(parentField, formContext, nextFormFields);
+        const formFields = formFieldsRef.current;
+        if (!formFields) {
+          throw new Error(HONEY_FORM_ERRORS.emptyFormFieldsRef);
+        }
+
+        const formValues = getSubmitFormValues(parentField, formContext, nextFormFields);
         const formErrors = getFormErrors(nextFormFields);
 
-        onChange(submitFormValues, {
+        onChange(formValues, {
           formFields,
           formErrors,
         });
@@ -298,7 +330,6 @@ export const useForm = <
           }
         }
 
-        // Extract the configuration of the updated field
         const fieldConfig = nextFormFields[fieldName].config;
 
         if (fieldConfig.onChange) {
@@ -347,9 +378,9 @@ export const useForm = <
 
     setFieldValue(
       fieldName,
-      // @ts-expect-error
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      formField.value.filter((_, index) => index !== formIndex),
+      formField
+        .getChildFormsValues()
+        .filter((_, index) => index !== formIndex) as Form[typeof fieldName],
     );
   };
 

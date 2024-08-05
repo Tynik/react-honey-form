@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { act, fireEvent, render, renderHook, waitFor } from '@testing-library/react';
 
 import type { ChangeEvent } from 'react';
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 
 describe('Hook [use-honey-form]: General', () => {
   it('should be dirty after setting a new field value', () => {

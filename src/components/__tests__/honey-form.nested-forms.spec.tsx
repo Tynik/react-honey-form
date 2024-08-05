@@ -5,7 +5,7 @@ import type { ChildHoneyFormFieldsConfigs, HoneyFormFieldsConfigs } from '../../
 
 import { HoneyForm } from '../honey-form';
 import { useHoneyFormProvider } from '../honey-form.provider';
-import { useChildHoneyForm } from '../../use-child-honey-form';
+import { useChildHoneyForm } from '../../hooks';
 import { ChildHoneyForm } from '../child-honey-form';
 
 describe('Component [HoneyForm]: Nested forms', () => {

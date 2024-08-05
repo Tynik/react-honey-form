@@ -1,17 +1,18 @@
 import { useContext, useEffect } from 'react';
+
 import type {
   HoneyFormBaseForm,
   HoneyFormOptions,
   HoneyFormFieldsConfigs,
   HoneyFormApi,
   InitialFormFieldsStateResolverOptions,
-} from './types';
-import type { MultiHoneyFormsContextValue } from './components/multi-honey-forms';
+} from '../types';
+import type { MultiHoneyFormsContextValue } from '../components/multi-honey-forms';
 
-import { createField } from './field';
-import { useForm } from './hooks';
-import { deserializeFormFromQS, mapFieldsConfigs, noop } from './helpers';
-import { MultiHoneyFormsContext } from './components/multi-honey-forms';
+import { createField } from '../field';
+import { useBaseHoneyForm } from './use-base-honey-form';
+import { mapFieldsConfigs, noop } from '../helpers';
+import { MultiHoneyFormsContext } from '../components/multi-honey-forms';
 
 type CreateInitialFormFieldsOptions<
   Form extends HoneyFormBaseForm,
@@ -57,8 +58,6 @@ const createInitialFormFields = <Form extends HoneyFormBaseForm, FormContext>({
 };
 
 export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undefined>({
-  storage,
-  name: formName,
   fields: fieldsConfigs = {} as never,
   ...options
 }: HoneyFormOptions<Form, FormContext>): HoneyFormApi<Form, FormContext> => {
@@ -66,8 +65,9 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     MultiHoneyFormsContext,
   );
 
-  const formApi = useForm<never, never, Form, FormContext>({
+  const formApi = useBaseHoneyForm<never, never, Form, FormContext>({
     initialFormFieldsStateResolver: config => createInitialFormFields({ fieldsConfigs, ...config }),
+    fields: fieldsConfigs,
     ...options,
   });
 
@@ -81,20 +81,6 @@ export const useHoneyForm = <Form extends HoneyFormBaseForm, FormContext = undef
     return () => {
       multiFormsContext.removeForm(formApi);
     };
-  }, []);
-
-  useEffect(() => {
-    if (storage === 'qs') {
-      const formData = deserializeFormFromQS<Form>(
-        formName,
-        (fieldName, rawValue) =>
-          fieldsConfigs[fieldName].deserializer?.(rawValue) ?? (rawValue as Form[keyof Form]),
-      );
-
-      if (formData !== undefined) {
-        formApi.setFormValues(formData);
-      }
-    }
   }, []);
 
   return formApi;

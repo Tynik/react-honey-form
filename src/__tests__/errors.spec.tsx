@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 
 describe('Hook [use-honey-form]: Work with errors', () => {
   it('should initialize with empty errors object and no form errors', () => {

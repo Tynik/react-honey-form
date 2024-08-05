@@ -3,7 +3,7 @@ import React, { createContext, useContext } from 'react';
 
 import type { HoneyFormBaseForm, HoneyFormApi, HoneyFormOptions } from '../types';
 
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 
 type HoneyFormContextValue<Form extends HoneyFormBaseForm, FormContext = undefined> = HoneyFormApi<
   Form,

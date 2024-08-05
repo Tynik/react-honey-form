@@ -566,21 +566,50 @@ export const checkQueryStringLimit = (searchParams: URLSearchParams) => {
   }
 };
 
-const serializeForm = <Form extends HoneyFormBaseForm>(formData: Form) =>
+/**
+ * Serializes a form object into a base64-encoded string.
+ *
+ * @template Form - Type representing the entire form.
+ *
+ * @param {Form} formData - The form data to serialize.
+ *
+ * @returns {string} - The base64-encoded string representing the serialized form data.
+ */
+const serializeForm = <Form extends HoneyFormBaseForm>(formData: Form): string =>
   window.btoa(encodeURI(JSON.stringify(formData)));
 
+/**
+ * Deserializes raw form data into a form object.
+ *
+ * @template Form - Type representing the entire form.
+ *
+ * @param {string} rawFormData - The raw form data as a string.
+ * @param {HoneyFormFieldDeserializer<Form>} formFieldDeserializer - The deserializer function for the form fields.
+ *
+ * @returns {Form} - The deserialized form object.
+ */
 const deserializeForm = <Form extends HoneyFormBaseForm>(
   rawFormData: string,
   formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
-) =>
+): Form =>
   JSON.parse(decodeURI(window.atob(rawFormData)), (key, value) =>
     formFieldDeserializer(key, value as JSONValue),
   ) as Form;
 
-export const serializeFormToQS = <Form extends HoneyFormBaseForm>(
+/**
+ * Serializes form data and stores it in the query string under the specified form name.
+ *
+ * @template Form - Type representing the entire form.
+ *
+ * @param {string} formName - The name to use as the key in the query string.
+ * @param {Form} formData - The form data to serialize and store in the query string.
+ *
+ * @returns {URLSearchParams} - The updated URLSearchParams object.
+ */
+export const serializeFormToQueryString = <Form extends HoneyFormBaseForm>(
   formName: string,
   formData: Form,
-) => {
+): URLSearchParams => {
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.set(formName, serializeForm(formData));
 
@@ -589,12 +618,21 @@ export const serializeFormToQS = <Form extends HoneyFormBaseForm>(
   return searchParams;
 };
 
-export const deserializeFormFromQS = <Form extends HoneyFormBaseForm>(
+/**
+ * Deserializes a form from a query string.
+ *
+ * @template Form - Type representing the entire form.
+ *
+ * @param {string} formName - The name of the form to deserialize.
+ * @param {HoneyFormFieldDeserializer<Form>} formFieldDeserializer - The deserializer function for the form fields.
+ *
+ * @returns {Form | undefined} - The deserialized form object, or undefined if the form data is not found in the query string.
+ */
+export const deserializeFormFromQueryString = <Form extends HoneyFormBaseForm>(
   formName: string,
   formFieldDeserializer: HoneyFormFieldDeserializer<Form>,
-  search?: string,
 ): Form | undefined => {
-  const searchParams = new URLSearchParams(search ?? window.location.search);
+  const searchParams = new URLSearchParams(window.location.search);
   const rawFormData = searchParams.get(formName);
 
   return rawFormData ? deserializeForm(rawFormData, formFieldDeserializer) : undefined;

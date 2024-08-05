@@ -1337,6 +1337,24 @@ export type FormOptions<
     options: InitialFormFieldsStateResolverOptions<Form, FormContext>,
   ) => HoneyFormFields<Form, FormContext>;
   /**
+   * Configuration for the form fields.
+   */
+  fields: {
+    [FieldName in keyof Form]: BaseHoneyFormFieldConfig<
+      unknown,
+      Form,
+      FieldName,
+      FormContext,
+      Form[FieldName]
+    >;
+  };
+  /**
+   * The form name to use the name for saving and restoring not submitted form data.
+   *
+   * @default undefined
+   */
+  name?: string;
+  /**
    * A reference to a parent form field.
    * Use this to create nested forms where the parent field can have child forms.
    */
@@ -1387,6 +1405,12 @@ export type FormOptions<
    */
   alwaysValidateParentField?: boolean;
   /**
+   * Where to store the fields values when they changed and restore the values from storage.
+   *
+   * @default undefined
+   */
+  storage?: 'qs' | 'ls';
+  /**
    * Any object that can be used to pass contextual data to field functions.
    * This provides a way to share additional information or context with field-specific logic.
    *
@@ -1419,38 +1443,24 @@ type BaseHoneyFormOptions<
   FormContext = undefined,
 > = Omit<
   FormOptions<ParentForm, ParentFieldName, Form, FormContext>,
-  'initialFormFieldsStateResolver' | 'parentField'
+  'initialFormFieldsStateResolver' | 'fields' | 'parentField'
 > &
   T;
 
-export type HoneyFormOptions<
-  Form extends HoneyFormBaseForm,
-  FormContext = undefined,
-> = BaseHoneyFormOptions<
-  {
-    /**
-     * The form name to use the name for saving and restoring not submitted form data.
-     *
-     * @default undefined
-     */
-    name?: string;
-    /**
-     * Configuration for the form fields.
-     */
-    fields?: HoneyFormFieldsConfigs<Form, FormContext>;
-    /**
-     * [NOT IMPLEMENTED]
-     *
-     * Where to store the fields values when they changed and restore the values from storage.
-     *
-     * @default undefined
-     */
-    storage?: 'qs' | 'ls';
-  },
-  Form,
-  never,
-  never,
-  FormContext
+export type HoneyFormOptions<Form extends HoneyFormBaseForm, FormContext = undefined> = Omit<
+  BaseHoneyFormOptions<
+    {
+      /**
+       * Configuration for the form fields.
+       */
+      fields?: HoneyFormFieldsConfigs<Form, FormContext>;
+    },
+    Form,
+    never,
+    never,
+    FormContext
+  >,
+  'alwaysValidateParentField'
 >;
 
 /**
@@ -1468,26 +1478,29 @@ export type ChildHoneyFormOptions<
   ChildForm extends HoneyFormExtractChildForm<
     ParentForm[ParentFieldName]
   > = HoneyFormExtractChildForm<ParentForm[ParentFieldName]>,
-> = BaseHoneyFormOptions<
-  {
-    /**
-     * A reference to a parent form field.
-     * Use this to create nested forms where the parent field can have child forms.
-     */
-    parentField: HoneyFormParentField<ParentForm, ParentFieldName>;
-    /**
-     * The index of a child form within a parent form, if applicable.
-     */
-    formIndex?: number;
-    /**
-     * Configuration for the form fields.
-     */
-    fields?: ChildHoneyFormFieldsConfigs<ParentForm, ParentFieldName, FormContext>;
-  },
-  ChildForm,
-  ParentForm,
-  ParentFieldName,
-  FormContext
+> = Omit<
+  BaseHoneyFormOptions<
+    {
+      /**
+       * A reference to a parent form field.
+       * Use this to create nested forms where the parent field can have child forms.
+       */
+      parentField: HoneyFormParentField<ParentForm, ParentFieldName>;
+      /**
+       * Configuration for the form fields.
+       */
+      fields?: ChildHoneyFormFieldsConfigs<ParentForm, ParentFieldName, FormContext>;
+      /**
+       * The index of a child form within a parent form, if applicable.
+       */
+      formIndex?: number;
+    },
+    ChildForm,
+    ParentForm,
+    ParentFieldName,
+    FormContext
+  >,
+  'name' | 'storage'
 >;
 
 type MultiHoneyFormsOnSubmitContext<FormContext> = {

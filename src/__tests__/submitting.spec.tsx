@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
 import { act, renderHook } from '@testing-library/react';
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 
 describe('Hook [use-honey-form]: Submitting', () => {
   it('should submit default fields values', async () => {

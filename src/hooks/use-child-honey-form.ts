@@ -8,16 +8,16 @@ import type {
   HoneyFormFieldsConfigs,
   KeysWithArrayValues,
   HoneyFormExtractChildForm,
-} from './types';
+} from '../types';
 import {
   getHoneyFormUniqueId,
   registerChildForm,
   mapFieldsConfigs,
   unregisterChildForm,
-} from './helpers';
+} from '../helpers';
 
-import { createField } from './field';
-import { useForm } from './hooks';
+import { useBaseHoneyForm } from './use-base-honey-form';
+import { createField } from '../field';
 
 type CreateInitialFormFieldsOptions<
   ParentForm extends HoneyFormBaseForm,
@@ -114,13 +114,14 @@ export const useChildHoneyForm = <
   ChildForm,
   FormContext
 > => {
-  const { formIdRef, formFieldsRef, ...childFormApi } = useForm<
+  const { formIdRef, formFieldsRef, ...childFormApi } = useBaseHoneyForm<
     ParentForm,
     ParentFieldName,
     ChildForm,
     FormContext
   >({
     parentField,
+    fieldsConfigs,
     initialFormFieldsStateResolver: config =>
       // @ts-expect-error
       createInitialFormFields({

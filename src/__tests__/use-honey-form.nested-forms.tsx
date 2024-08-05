@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useHoneyForm } from '../use-honey-form';
-import { useChildHoneyForm } from '../use-child-honey-form';
+import { useHoneyForm, useChildHoneyForm } from '../hooks';
 
 describe('Hook [use-honey-form]: Nested forms field type', () => {
   it('should not fill any field props for nested forms field type', () => {

@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 import { createHoneyFormNumberFilter, createHoneyFormNumericFilter } from '../filters';
 
 describe('Hook [use-honey-form]: Builtin filtering', () => {

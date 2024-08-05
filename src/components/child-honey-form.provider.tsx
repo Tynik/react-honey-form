@@ -9,7 +9,7 @@ import type {
   HoneyFormExtractChildForm,
 } from '../types';
 
-import { useChildHoneyForm } from '../use-child-honey-form';
+import { useChildHoneyForm } from '../hooks';
 
 type ChildHoneyFormContextValue<
   // TODO: pass ParentForm to ChildHoneyFormApi

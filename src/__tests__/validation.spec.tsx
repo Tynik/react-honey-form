@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import type { CustomDateRangeForm } from '../types';
 
-import { useHoneyForm } from '../use-honey-form';
+import { useHoneyForm } from '../hooks';
 import { createHoneyFormDateFromValidator, createHoneyFormDateToValidator } from '../validators';
 
 describe('Hook [use-honey-form]: Validation', () => {
